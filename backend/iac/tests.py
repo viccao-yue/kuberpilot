@@ -1,4 +1,4 @@
-﻿import copy
+import copy
 import io
 import zipfile
 from unittest import mock
@@ -355,6 +355,35 @@ class TerraformIacTests(TestCase):
         stack = TerraformStack.objects.get(id=stack_id)
         self.assertEqual(stack.last_execution_status, 'failed')
         self.assertEqual(stack.last_execution_action, 'plan')
+
+    @mock.patch('iac.executor.threading.Thread')
+    @mock.patch('iac.executor.shutil.which', return_value='/usr/bin/terraform')
+    def test_execute_endpoint_enqueues_execution_when_terraform_present(self, _mock_which, mock_thread_cls):
+        mock_thread = mock.Mock()
+        mock_thread_cls.return_value = mock_thread
+
+        create_response = self.client.post('/api/iac/stacks/', self.aliyun_payload, format='json')
+        stack_id = create_response.json()['id']
+
+        response = self.client.post(
+            f'/api/iac/stacks/{stack_id}/execute/',
+            {
+                'action': 'plan',
+                'secrets': {
+                    'access_key': 'demo-ak',
+                    'secret_key': 'demo-sk',
+                    'instance_password': 'DemoPassword@123',
+                },
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload['execution']['status'], 'pending')
+        self.assertEqual(TerraformExecution.objects.count(), 1)
+        mock_thread_cls.assert_called_once()
+        mock_thread.start.assert_called_once()
 
     def test_sync_cmdb_endpoint_creates_bindings_and_relations(self):
         payload = copy.deepcopy(self.aliyun_payload)

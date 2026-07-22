@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('rbac.urls')),
     path('api/', include('ops.urls')),
+    path('api/iac/', include('iac.urls')),
     path('api/sqlaudit/', include('sqlaudit.urls')),
     path('api/aiops/', include('aiops.urls')),
     path('api/', include('eventwall.urls')),

@@ -1,18 +1,104 @@
-﻿import json
+import json
 import re
 import shutil
 import subprocess
+import threading
 from pathlib import Path
 
 from django.conf import settings
+from django.db import close_old_connections
 from django.utils import timezone
 
 from .cmdb_sync import mark_stack_resources_offline, sync_stack_to_cmdb
-from .models import TerraformExecution
+from .models import TerraformExecution, TerraformStack
 from .terraform import build_render_payload, render_terraform_project
 
 
 def run_terraform_action(stack, action, *, secrets, operator):
+    execution = TerraformExecution.objects.create(
+        stack=stack,
+        action=action,
+        status=TerraformExecution.STATUS_RUNNING,
+        created_by=operator or '',
+        started_at=timezone.now(),
+    )
+    return _run_terraform_action(
+        stack,
+        execution,
+        action,
+        secrets=secrets,
+        operator=operator,
+    )
+
+
+def start_terraform_action(stack, action, *, secrets, operator):
+    terraform_bin = shutil.which('terraform')
+    execution = TerraformExecution.objects.create(
+        stack=stack,
+        action=action,
+        status=TerraformExecution.STATUS_RUNNING if not terraform_bin else TerraformExecution.STATUS_PENDING,
+        created_by=operator or '',
+        started_at=timezone.now() if not terraform_bin else None,
+    )
+    if not terraform_bin:
+        return _finish_execution(
+            stack,
+            execution,
+            status=TerraformExecution.STATUS_FAILED,
+            return_code=-1,
+            stderr='服务器未安装 terraform，可先部署 Terraform 二进制后再执行 init/plan/apply/destroy。',
+        )
+
+    commands = _build_commands(terraform_bin, action)
+    execution.command = _build_command_display(commands)
+    execution.save(update_fields=['command'])
+
+    thread = threading.Thread(
+        target=_execute_terraform_action_thread,
+        args=(stack.id, execution.id, action, secrets or {}, operator or ''),
+        daemon=True,
+    )
+    thread.start()
+    return execution
+
+
+def _execute_terraform_action_thread(stack_id, execution_id, action, secrets, operator):
+    close_old_connections()
+    try:
+        stack = TerraformStack.objects.get(id=stack_id)
+        execution = TerraformExecution.objects.get(id=execution_id)
+        now = timezone.now()
+        execution.status = TerraformExecution.STATUS_RUNNING
+        execution.started_at = now
+        execution.save(update_fields=['status', 'started_at'])
+        _run_terraform_action(
+            stack,
+            execution,
+            action,
+            secrets=secrets or {},
+            operator=operator or '',
+        )
+    except TerraformStack.DoesNotExist:
+        return
+    except TerraformExecution.DoesNotExist:
+        return
+    except Exception as exc:
+        stack = TerraformStack.objects.filter(id=stack_id).first()
+        execution = TerraformExecution.objects.filter(id=execution_id).first()
+        if not stack or not execution:
+            return
+        _finish_execution(
+            stack,
+            execution,
+            status=TerraformExecution.STATUS_FAILED,
+            return_code=-1,
+            stderr=f'Terraform 执行异常: {exc}',
+        )
+    finally:
+        close_old_connections()
+
+
+def _run_terraform_action(stack, execution, action, *, secrets, operator):
     payload = build_render_payload(
         name=stack.name,
         description=stack.description,
@@ -28,14 +114,6 @@ def run_terraform_action(stack, action, *, secrets, operator):
     if operator:
         stack.updated_by = operator
     stack.save(update_fields=['summary', 'generated_files', 'updated_by'])
-
-    execution = TerraformExecution.objects.create(
-        stack=stack,
-        action=action,
-        status=TerraformExecution.STATUS_RUNNING,
-        created_by=operator or '',
-        started_at=timezone.now(),
-    )
 
     terraform_bin = shutil.which('terraform')
     if not terraform_bin:

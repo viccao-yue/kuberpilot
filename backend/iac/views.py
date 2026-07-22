@@ -1,4 +1,4 @@
-﻿import io
+import io
 import zipfile
 
 from django.http import HttpResponse
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rbac.permissions import RBACPermissionMixin, build_rbac_permission
 
 from .cmdb_sync import sync_stack_to_cmdb
-from .executor import run_terraform_action
+from .executor import start_terraform_action
 from .models import TerraformStack
 from .serializers import (
     TerraformExecutionRequestSerializer,
@@ -88,7 +88,7 @@ class TerraformStackViewSet(RBACPermissionMixin, viewsets.ModelViewSet):
         stack = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        execution = run_terraform_action(
+        execution = start_terraform_action(
             stack,
             serializer.validated_data['action'],
             secrets=serializer.validated_data.get('secrets') or {},
@@ -151,6 +151,10 @@ def terraform_bundle_view(request):
 
 
 def _execution_message(execution):
+    if execution.status == 'pending':
+        return f'Terraform {execution.action} 已提交执行，正在排队。'
+    if execution.status == 'running':
+        return f'Terraform {execution.action} 执行中。'
     if execution.status == 'success':
         return f'Terraform {execution.action} 执行成功。'
     if execution.stderr:
