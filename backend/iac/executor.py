@@ -3,6 +3,7 @@ import re
 import shutil
 import subprocess
 import threading
+from datetime import timedelta
 from pathlib import Path
 
 from django.conf import settings
@@ -276,6 +277,35 @@ def _safe_mark_destroyed(stack):
             'detail': 'Terraform destroy 成功，但更新 CMDB 离线状态失败。',
             'error': str(exc),
         }, False
+
+
+def mark_stale_terraform_executions(stack, *, ttl_seconds=1800):
+    now = timezone.now()
+    threshold = now - timedelta(seconds=ttl_seconds)
+    queryset = TerraformExecution.objects.filter(
+        stack=stack,
+        status__in=[TerraformExecution.STATUS_PENDING, TerraformExecution.STATUS_RUNNING],
+    ).only('id', 'status', 'started_at', 'created_at', 'stdout', 'stderr', 'action')
+    updated = 0
+    for execution in queryset:
+        started_at = execution.started_at or execution.created_at
+        if started_at and started_at <= threshold:
+            stderr = (execution.stderr or '').strip()
+            message = 'Terraform 执行超时，已自动标记为失败。'
+            if stderr:
+                stderr = f'{stderr}\n\n{message}'
+            else:
+                stderr = message
+            _finish_execution(
+                stack,
+                execution,
+                status=TerraformExecution.STATUS_FAILED,
+                return_code=-1,
+                stdout=execution.stdout or '',
+                stderr=stderr,
+            )
+            updated += 1
+    return updated
 
 
 def _finish_execution(

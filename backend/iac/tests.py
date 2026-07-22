@@ -1,10 +1,12 @@
 import copy
 import io
 import zipfile
+from datetime import timedelta
 from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from cmdb.models import CIRelation, ConfigItem
@@ -384,6 +386,26 @@ class TerraformIacTests(TestCase):
         self.assertEqual(TerraformExecution.objects.count(), 1)
         mock_thread_cls.assert_called_once()
         mock_thread.start.assert_called_once()
+
+    def test_executions_endpoint_marks_stale_running_executions_failed(self):
+        create_response = self.client.post('/api/iac/stacks/', self.aliyun_payload, format='json')
+        stack_id = create_response.json()['id']
+        stack = TerraformStack.objects.get(id=stack_id)
+
+        execution = TerraformExecution.objects.create(
+            stack=stack,
+            action=TerraformExecution.ACTION_PLAN,
+            status=TerraformExecution.STATUS_RUNNING,
+            created_by='iac-admin',
+            started_at=timezone.now() - timedelta(hours=1),
+        )
+
+        response = self.client.get(f'/api/iac/stacks/{stack_id}/executions/')
+
+        self.assertEqual(response.status_code, 200)
+        execution.refresh_from_db()
+        self.assertEqual(execution.status, TerraformExecution.STATUS_FAILED)
+        self.assertIn('执行超时', execution.stderr)
 
     def test_sync_cmdb_endpoint_creates_bindings_and_relations(self):
         payload = copy.deepcopy(self.aliyun_payload)

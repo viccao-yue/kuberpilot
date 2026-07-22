@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rbac.permissions import RBACPermissionMixin, build_rbac_permission
 
 from .cmdb_sync import sync_stack_to_cmdb
-from .executor import start_terraform_action
+from .executor import mark_stale_terraform_executions, start_terraform_action
 from .models import TerraformStack
 from .serializers import (
     TerraformExecutionRequestSerializer,
@@ -80,6 +80,7 @@ class TerraformStackViewSet(RBACPermissionMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def executions(self, request, pk=None):
         stack = self.get_object()
+        mark_stale_terraform_executions(stack)
         serializer = TerraformExecutionSerializer(stack.executions.all(), many=True)
         return Response(serializer.data)
 
