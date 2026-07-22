@@ -317,7 +317,7 @@ docker compose down
 
 ## 设计文档与延伸阅读
 
-- [KuberPilot AI Agent 产品介绍](https://www.sxdevops.top/ai-agent-promo)
+- [KuberPilot AI Agent 产品介绍](docs/kuberpilot-ai-agent-promo.html)
 - [微信公众号文章：7fPrmABj2Ot2VbgTLTr3Zw](https://mp.weixin.qq.com/s/7fPrmABj2Ot2VbgTLTr3Zw)
 - [微信公众号文章：1fFcSliQ_Nw_HQvwmRxzJg](https://mp.weixin.qq.com/s/1fFcSliQ_Nw_HQvwmRxzJg)
 - [AIOps 2.0 升级优化方案](docs/AIOps2.0升级优化方案.md)
