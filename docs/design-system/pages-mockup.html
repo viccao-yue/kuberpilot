@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KuberPilot — 运维智能体平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =============================================
+   KuberPilot Design System v3.0 — Industrial Ops Premium
+   Ardot principles: NO Inter, NO pure gray, NO cookie-cutter,
+   NO 3-column cards, NO centered hero, Bento Grid,
+   Geist typeface, asymmetric layouts, flat sections,
+   compact dot+text status, organic data
+   ============================================= */
+:root {
+  /* Primary — authoritative deep navy, not generic Tailwind blue */
+  --c-primary: #1a365d;
+  --c-primary-soft: #3b6fa0;
+  --c-primary-bg: #eef4fb;
+  --c-primary-hover: #234876;
+  --c-primary-text: #fff;
+
+  /* Neutral — blue-tinted Zinc, NOT pure gray */
+  --c-surface-0: #f4f6f9;
+  --c-surface-1: #ffffff;
+  --c-surface-2: #eaeef4;
+  --c-surface-3: #dce2eb;
+  --c-border: #c9d3de;
+  --c-border-soft: #dde4ed;
+
+  /* Text hierarchy — weight+color, not just size */
+  --t-heading: #0f1d2e;
+  --t-body: #334155;
+  --t-muted: #64748b;
+  --t-faint: #94a3b8;
+  --t-white: #fff;
+
+  /* Semantic */
+  --c-ok: #16a34a;
+  --c-ok-bg: #f0fdf4;
+  --c-ok-soft: #bbf7d0;
+  --c-warn: #d97706;
+  --c-warn-bg: #fffbeb;
+  --c-warn-soft: #fde68a;
+  --c-danger: #dc2626;
+  --c-danger-bg: #fef2f2;
+  --c-danger-soft: #fecaca;
+
+  /* Type — Geist, Ardot recommended */
+  --f-ui: 'Geist','Noto Sans SC',system-ui,-apple-system,sans-serif;
+  --f-mono: 'Geist Mono','JetBrains Mono','Fira Code',monospace;
+  --fs-xs: 0.7rem;     /* 11.2px */
+  --fs-sm: 0.8125rem;  /* 13px */
+  --fs-base: 0.9rem;   /* 14.4px — ops tools, slightly smaller */
+  --fs-md: 1rem;       /* 16px */
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 2rem;
+  --fw-light: 300; --fw-n: 400; --fw-m: 500; --fw-s: 600; --fw-b: 700;
+
+  /* Space — 4pt grid, varied rhythm */
+  --sp-0:0;--sp-1:4px;--sp-2:8px;--sp-3:12px;--sp-4:16px;
+  --sp-5:20px;--sp-6:24px;--sp-8:32px;--sp-10:40px;--sp-12:48px;
+  --sp-16:64px;--sp-20:80px;
+
+  /* Radius — sharp for data, soft for friendly */
+  --r-xs:2px;--r-sm:4px;--r-md:6px;--r-lg:10px;--r-xl:16px;--r-pill:9999px;
+
+  /* Shadows — tinted, not generic */
+  --sh-0:none;
+  --sh-1:0 1px 0 0 #c9d3de;
+  --sh-2:0 2px 8px -2px rgba(26,54,93,.1);
+  --sh-3:0 8px 24px -6px rgba(26,54,93,.12);
+  --sh-elevate:0 12px 40px -8px rgba(26,54,93,.16), 0 4px 12px -4px rgba(26,54,93,.08);
+
+  /* Layout constants — tighter than AI defaults */
+  --nav-w: 168px;
+  --top-h: 44px;
+  --ease: cubic-bezier(.16,1,.3,1);
+  --max-w: 1400px;
+}
+
+/* Reset */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{font-family:var(--f-ui);color:var(--t-body);background:var(--c-surface-0);line-height:1.5;overflow:hidden;height:100vh;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit;border:none;outline:none}
+
+/* =============================================
+   Shell — Left-aligned, NOT centered
+   ============================================= */
+.shell{display:flex;height:100vh}
+
+/* Nav — flat, no backdrop-filter, compact */
+.nav{width:var(--nav-w);background:var(--c-surface-1);border-right:1px solid var(--c-border-soft);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.nav-brand{padding:var(--sp-3) var(--sp-4);display:flex;align-items:center;gap:var(--sp-2);border-bottom:1px solid var(--c-border-soft)}
+.nav-mark{width:26px;height:26px;background:var(--c-primary);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;color:var(--c-primary-text);font-weight:var(--fw-b);font-size:var(--fs-sm);letter-spacing:-0.04em}
+.nav-title{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.02em}
+.nav-tag{font-size:var(--fs-xs);color:var(--t-faint);margin-left:2px;font-weight:var(--fw-n)}
+
+.nav-group{padding:var(--sp-1) 0}
+.nav-group-label{font-size:var(--fs-xs);color:var(--t-faint);font-weight:var(--fw-m);letter-spacing:.06em;padding:var(--sp-2) var(--sp-4) var(--sp-0);text-transform:uppercase}
+.nav-link{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-1) var(--sp-3);margin:1px var(--sp-2);border-radius:var(--r-sm);cursor:pointer;transition:all .1s var(--ease);font-size:var(--fs-sm);color:var(--t-muted);user-select:none;font-weight:var(--fw-n)}
+.nav-link:hover{background:var(--c-surface-2);color:var(--t-body)}
+.nav-link.active{background:var(--c-primary-bg);color:var(--c-primary);font-weight:var(--fw-m)}
+.nav-link svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* Topbar — 44px, functional only */
+.topbar{height:var(--top-h);background:var(--c-surface-1);border-bottom:1px solid var(--c-border-soft);display:flex;align-items:center;padding:0 var(--sp-4);gap:var(--sp-3);flex-shrink:0}
+.topbar-bc{font-size:var(--fs-sm);color:var(--t-muted);display:flex;align-items:center;gap:var(--sp-1)}
+.topbar-bc .sep{color:var(--c-border)}
+.topbar-bc .cur{color:var(--t-heading);font-weight:var(--fw-m)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:var(--sp-3)}
+.topbar-search{padding:var(--sp-1) var(--sp-2);font-size:var(--fs-xs);border:1px solid var(--c-border-soft);border-radius:var(--r-sm);background:var(--c-surface-0);color:var(--t-faint);width:120px;text-align:center}
+.topbar-av{width:26px;height:26px;background:var(--c-primary-bg);border-radius:var(--r-pill);display:flex;align-items:center;justify-content:center;color:var(--c-primary);font-size:var(--fs-xs);font-weight:var(--fw-s)}
+
+.viewport{flex:1;overflow-y:auto;padding:var(--sp-5) var(--sp-6);background:var(--c-surface-0)}
+
+/* =============================================
+   Section Header — left accent bar, NOT gradient banner
+   ============================================= */
+.sec{padding:var(--sp-4) var(--sp-5);background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-md);position:relative;margin-bottom:var(--sp-4)}
+.sec::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:var(--c-primary);border-radius:var(--r-md) 0 0 var(--r-md)}
+.sec-title{font-size:var(--fs-lg);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.02em;line-height:1.25}
+.sec-sub{font-size:var(--fs-sm);color:var(--t-muted);margin-top:var(--sp-1);line-height:1.4}
+.sec-tags{display:flex;gap:var(--sp-2);margin-top:var(--sp-2);flex-wrap:wrap}
+.sec-tag{font-size:var(--fs-xs);padding:2px var(--sp-2);border-radius:var(--r-xs);border:1px solid var(--c-border);color:var(--t-muted);background:var(--c-surface-0);font-weight:var(--fw-m)}
+.sec-tag.primary{border-color:var(--c-primary-soft);color:var(--c-primary);background:var(--c-primary-bg)}
+
+/* =============================================
+   KPI Row — inline metrics with dividers, NOT 4-card grid
+   ============================================= */
+.kpi-row{display:flex;align-items:stretch;gap:0;margin-bottom:var(--sp-4);background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4)}
+.kpi{display:flex;flex-direction:column;gap:var(--sp-0);padding:var(--sp-2) var(--sp-4);flex:1}
+.kpi-label{font-size:var(--fs-xs);color:var(--t-faint);letter-spacing:.02em;font-weight:var(--fw-m)}
+.kpi-val{font-size:var(--fs-xl);font-weight:var(--fw-b);color:var(--t-heading);letter-spacing:-0.03em;line-height:1}
+.kpi-note{font-size:var(--fs-xs);color:var(--t-muted);margin-top:2px}
+.kpi-sep{width:1px;background:var(--c-border-soft);flex-shrink:0}
+.kpi.ok .kpi-val{color:var(--c-ok)}
+.kpi.warn .kpi-val{color:var(--c-warn)}
+.kpi.danger .kpi-val{color:var(--c-danger)}
+.kpi.primary .kpi-val{color:var(--c-primary)}
+
+/* =============================================
+   Hint — contextual, not flashy
+   ============================================= */
+.hint{padding:var(--sp-2) var(--sp-3);background:var(--c-primary-bg);border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--c-primary-soft);margin-bottom:var(--sp-3);border-left:2px solid var(--c-primary);line-height:1.5}
+
+/* =============================================
+   Tabs — sharp underline, NOT pill tabs
+   ============================================= */
+.tabs{display:flex;gap:0;margin-bottom:var(--sp-3);border-bottom:1px solid var(--c-border-soft)}
+.tab{padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);color:var(--t-muted);cursor:pointer;background:none;border-bottom:2px solid transparent;transition:all .1s var(--ease);font-family:var(--f-ui);font-weight:var(--fw-m)}
+.tab:hover{color:var(--t-body);background:var(--c-surface-2)}
+.tab.active{color:var(--c-primary);border-bottom-color:var(--c-primary)}
+
+/* =============================================
+   Panel — flat section, NOT card-in-card
+   ============================================= */
+.panel{background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-md);overflow:hidden}
+.panel-head{padding:var(--sp-2) var(--sp-3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-border-soft);font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)}
+.panel-bar{padding:var(--sp-2) var(--sp-3);display:flex;gap:var(--sp-2);align-items:center;border-bottom:1px solid var(--c-border-soft);flex-wrap:wrap;background:var(--c-surface-0)}
+.panel-body{padding:var(--sp-3)}
+
+/* =============================================
+   Bento Grid — dashboard layout, NOT 3-column cards
+   ============================================= */
+.bento{display:grid;gap:var(--sp-3);margin-bottom:var(--sp-4)}
+.bento-2x2{grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
+.bento-70-30{grid-template-columns:7fr 3fr}
+.bento-3col{grid-template-columns:3fr 5fr 4fr}
+.bento-card{background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-md);padding:var(--sp-4);transition:border-color .12s var(--ease)}
+.bento-card:hover{border-color:var(--c-primary-soft)}
+.bento-card-title{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.01em;margin-bottom:var(--sp-2)}
+.bento-card-sub{font-size:var(--fs-xs);color:var(--t-muted)}
+
+/* =============================================
+   Table — dense ops, NOT padded showcase
+   ============================================= */
+.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
+.tbl th{text-align:left;padding:var(--sp-1) var(--sp-2);font-size:var(--fs-xs);color:var(--t-faint);font-weight:var(--fw-m);border-bottom:1px solid var(--c-border);background:var(--c-surface-0);white-space:nowrap;letter-spacing:.02em}
+.tbl td{padding:var(--sp-1) var(--sp-2);color:var(--t-body);border-bottom:1px solid var(--c-border-soft);vertical-align:middle}
+.tbl tr:hover td{background:var(--c-surface-2)}
+
+/* =============================================
+   Buttons — functional hierarchy
+   ============================================= */
+.b{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-1);padding:var(--sp-1) var(--sp-3);font-size:var(--fs-sm);font-weight:var(--fw-m);font-family:var(--f-ui);border:1px solid var(--c-border);border-radius:var(--r-sm);cursor:pointer;transition:all .1s var(--ease);background:var(--c-surface-1);color:var(--t-body);user-select:none;line-height:1}
+.b:hover{background:var(--c-surface-2);border-color:var(--c-border)}
+.b-p{background:var(--c-primary);color:var(--c-primary-text);border-color:var(--c-primary)}
+.b-p:hover{background:var(--c-primary-hover)}
+.b-xs{padding:2px var(--sp-2);font-size:var(--fs-xs)}
+.b-danger{color:var(--c-danger);border-color:var(--c-danger-soft);background:var(--c-danger-bg)}
+.b-ok{color:var(--c-ok);border-color:var(--c-ok-soft);background:var(--c-ok-bg)}
+
+/* =============================================
+   Status — dot+text, NOT badge-pill
+   ============================================= */
+.st{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-xs);font-weight:var(--fw-m);white-space:nowrap;line-height:1}
+.st-dot{width:5px;height:5px;border-radius:var(--r-pill);flex-shrink:0}
+.st.ok .st-dot{background:var(--c-ok)}.st.ok{color:var(--c-ok)}
+.st.warn .st-dot{background:var(--c-warn)}.st.warn{color:var(--c-warn)}
+.st.danger .st-dot{background:var(--c-danger)}.st.danger{color:var(--c-danger)}
+.st.neutral .st-dot{background:var(--t-faint)}.st.neutral{color:var(--t-muted)}
+.st.primary .st-dot{background:var(--c-primary)}.st.primary{color:var(--c-primary)}
+
+/* =============================================
+   Label — compact tag
+   ============================================= */
+.lbl{font-size:var(--fs-xs);font-weight:var(--fw-m);padding:2px var(--sp-1);border-radius:var(--r-xs);border:1px solid;white-space:nowrap;line-height:1.5}
+.lbl-ok{color:var(--c-ok);border-color:var(--c-ok-soft);background:var(--c-ok-bg)}
+.lbl-warn{color:var(--c-warn);border-color:var(--c-warn-soft);background:var(--c-warn-bg)}
+.lbl-danger{color:var(--c-danger);border-color:var(--c-danger-soft);background:var(--c-danger-bg)}
+.lbl-primary{color:var(--c-primary);border-color:var(--c-primary-soft);background:var(--c-primary-bg)}
+.lbl-neutral{color:var(--t-muted);border-color:var(--c-border);background:var(--c-surface-0)}
+
+/* =============================================
+   Inputs
+   ============================================= */
+.inp{padding:var(--sp-1) var(--sp-2);font-size:var(--fs-sm);border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface-1);color:var(--t-body);font-family:var(--f-ui);transition:border-color .1s var(--ease)}
+.inp:focus{border-color:var(--c-primary-soft);box-shadow:0 0 0 2px var(--c-primary-bg)}
+.sel{padding:var(--sp-1) var(--sp-2);font-size:var(--fs-sm);border:1px solid var(--c-border);border-radius:var(--r-sm);background:var(--c-surface-1);color:var(--t-muted);font-family:var(--f-ui);appearance:none;cursor:pointer;min-width:80px}
+
+/* =============================================
+   Chat — AIOps specific, asymmetric
+   ============================================= */
+.chat-wrap{display:grid;grid-template-columns:180px 1fr;gap:0;height:calc(100vh - var(--top-h) - 40px);border:1px solid var(--c-border-soft);border-radius:var(--r-md);overflow:hidden;background:var(--c-surface-1)}
+.chat-side{background:var(--c-surface-0);border-right:1px solid var(--c-border-soft);padding:var(--sp-2);display:flex;flex-direction:column;gap:var(--sp-1)}
+.chat-side-label{font-size:var(--fs-xs);color:var(--t-faint);font-weight:var(--fw-m);padding:var(--sp-1) var(--sp-2);letter-spacing:.04em;text-transform:uppercase}
+.chat-item{padding:var(--sp-1) var(--sp-2);border-radius:var(--r-sm);cursor:pointer;font-size:var(--fs-sm);color:var(--t-muted);transition:background .08s var(--ease);font-weight:var(--fw-n)}
+.chat-item:hover{background:var(--c-surface-2)}
+.chat-item.active{background:var(--c-primary-bg);color:var(--c-primary);font-weight:var(--fw-m)}
+.chat-area{display:flex;flex-direction:column}
+.chat-msgs{flex:1;padding:var(--sp-3);overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-3)}
+.chat-msg{max-width:76%;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-md);font-size:var(--fs-sm);line-height:1.6}
+.chat-msg.u{background:var(--c-primary);color:var(--c-primary-text);align-self:flex-end;border-bottom-right-radius:var(--r-xs)}
+.chat-msg.ai{background:var(--c-surface-2);color:var(--t-body);align-self:flex-start;border-bottom-left-radius:var(--r-xs)}
+.chat-msg.ai .ai-label{font-size:var(--fs-xs);color:var(--c-primary);font-weight:var(--fw-s);margin-bottom:var(--sp-1);letter-spacing:.02em}
+.chat-bar{padding:var(--sp-2) var(--sp-3);border-top:1px solid var(--c-border-soft);display:flex;gap:var(--sp-2);align-items:center}
+.chat-inp{flex:1;padding:var(--sp-2) var(--sp-3);border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:var(--fs-sm);font-family:var(--f-ui);background:var(--c-surface-1);resize:none;height:36px}
+
+/* =============================================
+   Tree Nav — K8s specific
+   ============================================= */
+.tree{width:176px;border-right:1px solid var(--c-border-soft);background:var(--c-surface-0);padding:var(--sp-2);flex-shrink:0}
+.tree-node{padding:var(--sp-1) var(--sp-2);font-size:var(--fs-sm);color:var(--t-muted);cursor:pointer;border-radius:var(--r-xs);display:flex;align-items:center;gap:var(--sp-1);margin:1px 0;transition:background .08s var(--ease);font-weight:var(--fw-n)}
+.tree-node:hover{background:var(--c-surface-2);color:var(--t-body)}
+.tree-node.active{background:var(--c-primary-bg);color:var(--c-primary);font-weight:var(--fw-m)}
+.tree-node.d1{padding-left:var(--sp-4)}
+.tree-node.d2{padding-left:var(--sp-6)}
+
+/* =============================================
+   Code Block — ops terminal feel
+   ============================================= */
+.code{background:#0f1d2e;border-radius:var(--r-md);padding:var(--sp-2);font-family:var(--f-mono);font-size:var(--fs-sm);color:#94a3b8;overflow:auto;border:1px solid #1e3a5f;line-height:1.6}
+.code .kw{color:var(--c-primary-soft)}.code .fn{color:var(--c-ok)}.code .str{color:var(--c-warn)}
+
+/* =============================================
+   Chart placeholder
+   ============================================= */
+.chart-box{background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-md);padding:var(--sp-3)}
+.chart-title{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);margin-bottom:var(--sp-2)}
+.chart-area{height:140px;background:var(--c-surface-0);border-radius:var(--r-sm);position:relative;overflow:hidden}
+
+/* =============================================
+   Host Grid — functional, NOT decorative
+   ============================================= */
+.host-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--sp-2)}
+.host{background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-sm);padding:var(--sp-3);cursor:pointer;transition:border-color .1s var(--ease)}
+.host:hover{border-color:var(--c-primary-soft)}
+.host-name{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)}
+.host-ip{font-size:var(--fs-xs);color:var(--t-muted);margin-top:2px}
+.host-st{font-size:var(--fs-xs);margin-top:var(--sp-1)}
+
+/* =============================================
+   Toggle
+   ============================================= */
+.toggle{width:30px;height:16px;background:var(--c-border);border-radius:var(--r-pill);position:relative;cursor:pointer;transition:background .1s var(--ease)}
+.toggle.on{background:var(--c-primary)}
+.toggle-dot{width:12px;height:12px;background:var(--c-surface-1);border-radius:var(--r-pill);position:absolute;top:2px;left:2px;transition:left .1s var(--ease)}
+.toggle.on .toggle-dot{left:16px}
+
+/* =============================================
+   Login — asymmetric split
+   ============================================= */
+.login-split{display:grid;grid-template-columns:5fr 4fr;height:100vh}
+.login-brand{background:var(--c-primary);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:var(--sp-12) var(--sp-10);color:var(--c-primary-text)}
+.login-brand-mark{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:var(--fw-b)}
+.login-brand-title{font-size:var(--fs-3xl);font-weight:var(--fw-b);margin-top:var(--sp-4);letter-spacing:-0.03em}
+.login-brand-sub{font-size:var(--fs-md);opacity:.7;margin-top:var(--sp-2);line-height:1.5}
+.login-brand-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-top:var(--sp-8)}
+.login-brand-cell{background:rgba(255,255,255,.06);border-radius:var(--r-md);padding:var(--sp-3);border:1px solid rgba(255,255,255,.1)}
+.login-brand-cell h{font-size:var(--fs-sm);font-weight:var(--fw-m)}
+.login-brand-cell p{font-size:var(--fs-xs);opacity:.6;margin-top:2px}
+.login-form-area{background:var(--c-surface-1);display:flex;align-items:center;justify-content:center;padding:var(--sp-8)}
+.login-form{width:320px}
+.login-form-title{font-size:var(--fs-xl);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.02em}
+.login-form-sub{font-size:var(--fs-sm);color:var(--t-muted);margin-top:var(--sp-1);margin-bottom:var(--sp-5)}
+.fld{margin-bottom:var(--sp-3)}
+.fld-label{font-size:var(--fs-xs);color:var(--t-muted);font-weight:var(--fw-m);margin-bottom:var(--sp-1);display:block}
+.fld-ctrl{width:100%;padding:var(--sp-2) var(--sp-3);font-size:var(--fs-md);border:1px solid var(--c-border);border-radius:var(--r-sm);font-family:var(--f-ui);background:var(--c-surface-1);color:var(--t-body);transition:border-color .1s var(--ease)}
+.fld-ctrl:focus{border-color:var(--c-primary-soft);box-shadow:0 0 0 2px var(--c-primary-bg)}
+.fld-hint{font-size:var(--fs-xs);color:var(--t-faint);margin-top:var(--sp-1)}
+
+/* =============================================
+   Source Cards
+   ============================================= */
+.src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--sp-2)}
+.src{background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-sm);padding:var(--sp-3)}
+.src-head{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-1)}
+.src-icon{width:26px;height:26px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:var(--fw-s)}
+.src-icon.primary{background:var(--c-primary-bg);color:var(--c-primary)}
+.src-icon.ok{background:var(--c-ok-bg);color:var(--c-ok)}
+.src-icon.warn{background:var(--c-warn-bg);color:var(--c-warn)}
+.src-name{font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading)}
+.src-desc{font-size:var(--fs-xs);color:var(--t-muted)}
+.src-count{font-size:var(--fs-xs);color:var(--t-faint);margin-top:var(--sp-1)}
+
+/* =============================================
+   Pagination
+   ============================================= */
+.pg-bar{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2);border-top:1px solid var(--c-border-soft);font-size:var(--fs-xs);color:var(--t-faint)}
+.pg-btn{padding:2px var(--sp-2);border:1px solid var(--c-border);border-radius:var(--r-xs);cursor:pointer;background:var(--c-surface-1);font-size:var(--fs-xs)}
+.pg-btn.active{background:var(--c-primary);color:var(--c-primary-text);border-color:var(--c-primary)}
+
+/* =============================================
+   Graph visualization
+   ============================================= */
+.graph-vp{background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-md);height:340px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.g-node{position:absolute;padding:var(--sp-1) var(--sp-2);border-radius:var(--r-sm);font-size:var(--fs-xs);text-align:center;font-weight:var(--fw-m)}
+.g-node.primary{background:var(--c-primary-bg);border:2px solid var(--c-primary);color:var(--c-primary)}
+.g-node.ok{background:var(--c-ok-bg);border:2px solid var(--c-ok);color:var(--c-ok)}
+.g-node.neutral{background:var(--c-surface-2);border:2px solid var(--c-border);color:var(--t-muted)}
+
+/* =============================================
+   Grafana dark frame
+   ============================================= */
+.grafana{background:#0f1d2e;border-radius:var(--r-md);border:2px solid #1e3a5f;min-height:300px;display:flex;align-items:center;justify-content:center;color:var(--t-muted);font-size:var(--fs-sm);position:relative;overflow:hidden}
+
+/* =============================================
+   Timeline bar
+   ============================================= */
+.tl-bar{height:32px;background:var(--c-surface-0);border-radius:var(--r-sm);position:relative;margin-bottom:var(--sp-2);border:1px solid var(--c-border-soft)}
+.tl-dot{position:absolute;width:6px;height:6px;border-radius:var(--r-pill);top:13px}
+
+/* =============================================
+   Module Row
+   ============================================= */
+.mod-row{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--c-border-soft)}
+.mod-name{font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1}
+.mod-desc{font-size:var(--fs-xs);color:var(--t-muted);flex:2}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:var(--r-pill)}
+::-webkit-scrollbar-thumb:hover{background:var(--t-faint)}
+
+/* Animation */
+.page-in{animation:pgIn .2s var(--ease)}
+@keyframes pgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav class="nav" id="nav">
+    <div class="nav-brand">
+      <div class="nav-mark">K</div>
+      <div><div class="nav-title">KuberPilot<span class="nav-tag">v3</span></div></div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">概览</div>
+      <div class="nav-link active" onclick="go('dash')" data-p="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">AIOps</div>
+      <div class="nav-link" onclick="go('chat')" data-p="chat"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 对话</div>
+      <div class="nav-link" onclick="go('aicfg')" data-p="aicfg"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.83 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>AI 配置</div>
+      <div class="nav-link" onclick="go('audit')" data-p="audit"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>AI 审计</div>
+      <div class="nav-link" onclick="go('graph')" data-p="graph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>知识图谱</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">可观测性</div>
+      <div class="nav-link" onclick="go('obs')" data-p="obs"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>总览</div>
+      <div class="nav-link" onclick="go('logs')" data-p="logs"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>日志查询</div>
+      <div class="nav-link" onclick="go('metrics')" data-p="metrics"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>指标查询</div>
+      <div class="nav-link" onclick="go('tracing')" data-p="tracing"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>链路追踪</div>
+      <div class="nav-link" onclick="go('alerts')" data-p="alerts"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>告警中心</div>
+      <div class="nav-link" onclick="go('grafana')" data-p="grafana"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Grafana 看板</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">事件中心</div>
+      <div class="nav-link" onclick="go('wall')" data-p="wall"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>事件墙</div>
+      <div class="nav-link" onclick="go('evenv')" data-p="evenv"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>事件环境</div>
+      <div class="nav-link" onclick="go('evsrc')" data-p="evsrc"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>事件源</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">任务中心</div>
+      <div class="nav-link" onclick="go('tw')" data-p="tw"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>任务工作台</div>
+      <div class="nav-link" onclick="go('tres')" data-p="tres"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"/></svg>任务资源</div>
+      <div class="nav-link" onclick="go('tsch')" data-p="tsch"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>任务调度</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">工单</div>
+      <div class="nav-link" onclick="go('deploy')" data-p="deploy"><svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>发布工单</div>
+      <div class="nav-link" onclick="go('txn')" data-p="txn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>事务工单</div>
+      <div class="nav-link" onclick="go('sqla')" data-p="sqla"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>SQL 审计</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">容器</div>
+      <div class="nav-link" onclick="go('k8s')" data-p="k8s"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>K8s 管理</div>
+      <div class="nav-link" onclick="go('docker')" data-p="docker"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>Docker 管理</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">系统</div>
+      <div class="nav-link" onclick="go('users')" data-p="users"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</div>
+      <div class="nav-link" onclick="go('sysa')" data-p="sysa"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>操作审计</div>
+      <div class="nav-link" onclick="go('mods')" data-p="mods"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>模块管理</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">基础设施</div>
+      <div class="nav-link" onclick="go('hosts')" data-p="hosts"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>主机管理</div>
+    </div>
+    <div style="margin-top:auto;padding:var(--sp-2) var(--sp-3)">
+      <div class="nav-link" onclick="go('login')" data-p="login" style="color:var(--t-faint)"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录页</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar" id="topbar">
+      <div class="topbar-bc"><span>KuberPilot</span><span class="sep">/</span><span class="cur" id="bcCur">仪表盘</span></div>
+      <div class="topbar-right">
+        <div class="topbar-search">⌘K 搜索</div>
+        <div class="topbar-av">吕</div>
+      </div>
+    </header>
+    <div class="viewport" id="vp"></div>
+  </div>
+</div>
+
+<script>
+const PAGES={
+  dash:{bc:'仪表盘',r:rDash},
+  chat:{bc:'AIOps / AI 对话',r:rChat},
+  aicfg:{bc:'AIOps / AI 配置',r:rAiCfg},
+  audit:{bc:'AIOps / AI 审计',r:rAudit},
+  graph:{bc:'AIOps / 知识图谱',r:rGraph},
+  obs:{bc:'可观测性 / 总览',r:rObs},
+  logs:{bc:'可观测性 / 日志查询',r:rLogs},
+  metrics:{bc:'可观测性 / 指标查询',r:rMetrics},
+  tracing:{bc:'可观测性 / 链路追踪',r:rTrace},
+  alerts:{bc:'可观测性 / 告警中心',r:rAlerts},
+  grafana:{bc:'可观测性 / Grafana 看板',r:rGrafana},
+  wall:{bc:'事件中心 / 事件墙',r:rWall},
+  evenv:{bc:'事件中心 / 事件环境',r:rEvEnv},
+  evsrc:{bc:'事件中心 / 事件源',r:rEvSrc},
+  tw:{bc:'任务中心 / 任务工作台',r:rTW},
+  tres:{bc:'任务中心 / 任务资源',r:rTRes},
+  tsch:{bc:'任务中心 / 任务调度',r:rTSch},
+  deploy:{bc:'工单 / 发布工单',r:rDeploy},
+  txn:{bc:'工单 / 事务工单',r:rTxn},
+  sqla:{bc:'工单 / SQL 审计',r:rSqlA},
+  k8s:{bc:'容器 / K8s 管理',r:rK8s},
+  docker:{bc:'容器 / Docker 管理',r:rDocker},
+  users:{bc:'系统 / 用户管理',r:rUsers},
+  sysa:{bc:'系统 / 操作审计',r:rSysA},
+  mods:{bc:'系统 / 模块管理',r:rMods},
+  hosts:{bc:'基础设施 / 主机管理',r:rHosts},
+  login:{bc:'登录',r:rLogin}
+};
+
+let cur='dash';
+function go(id){
+  cur=id;
+  const p=PAGES[id];
+  document.querySelectorAll('.nav-link').forEach(e=>e.classList.toggle('active',e.dataset.p===id));
+  document.getElementById('bcCur').textContent=p.bc;
+  const tb=document.getElementById('topbar'),nv=document.getElementById('nav');
+  if(id==='login'){tb.style.display='none';nv.style.display='none'}else{tb.style.display='';nv.style.display=''}
+  document.getElementById('vp').innerHTML='<div class="page-in">'+p.r()+'</div>';
+}
+
+const IC={
+  chk:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+  plus:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  refresh:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-8.36L23 10"/></svg>',
+  search:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+};
+
+/* =============================================
+   PAGE RENDERERS — each page has UNIQUE rhythm
+   ============================================= */
+
+/* ── 仪表盘: Bento Grid — NOT cookie-cutter hero+stats ── */
+function rDash(){
+  return '<div class="bento bento-3col">'
+  /* Col 1: Compact KPI stack */
+  + '<div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-faint);font-weight:var(--fw-m);letter-spacing:.04em;text-transform:uppercase;margin-bottom:var(--sp-2)">平台概览</div>'
+  + '<div class="bento-card" style="margin-bottom:var(--sp-3)">'
+  + '<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="kpi-val" style="font-size:var(--fs-2xl);color:var(--c-primary)">12</span><span style="font-size:var(--fs-xs);color:var(--t-muted)">在线 10</span></div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-faint);margin-top:2px">主机总数 · prod / staging / dev</div>'
+  + '</div>'
+  + '<div class="bento-card" style="margin-bottom:var(--sp-3)">'
+  + '<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="kpi-val" style="font-size:var(--fs-2xl);color:var(--c-warn)">5</span><span style="font-size:var(--fs-xs);color:var(--t-muted)">未确认 2</span></div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-faint);margin-top:2px">活跃告警 · 最近 24h</div>'
+  + '</div>'
+  + '<div class="bento-card" style="margin-bottom:var(--sp-3)">'
+  + '<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="kpi-val" style="font-size:var(--fs-2xl);color:var(--c-ok)">24</span><span style="font-size:var(--fs-xs);color:var(--t-muted)">今日 +6</span></div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-faint);margin-top:2px">AI 会话 · 本周累计</div>'
+  + '</div>'
+  + '<div class="bento-card">'
+  + '<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="kpi-val" style="font-size:var(--fs-lg)">8</span><span style="font-size:var(--fs-xs);color:var(--t-muted)">本周 +3</span></div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-faint);margin-top:2px">部署工单</div>'
+  + '</div>'
+  + '</div>'
+  /* Col 2: Host health grid */
+  + '<div>'
+  + '<div class="bento-card">'
+  + '<div class="bento-card-title">主机健康状态</div>'
+  + '<div class="host-grid">'
+  + '<div class="host"><div class="host-name">sz-prod-01</div><div class="host-ip">10.0.1.10 · CentOS 7.9</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+  + '<div class="host"><div class="host-name">sz-prod-02</div><div class="host-ip">10.0.1.11 · CentOS 7.9</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+  + '<div class="host" style="border-color:var(--c-warn-soft)"><div class="host-name" style="color:var(--c-warn)">sz-prod-03</div><div class="host-ip">10.0.1.12 · CentOS 7.9</div><div class="host-st"><span class="st warn"><span class="st-dot"></span>CPU >85%</span></div></div>'
+  + '<div class="host"><div class="host-name">bj-prod-04</div><div class="host-ip">10.0.2.13 · Ubuntu 22.04</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+  + '<div class="host"><div class="host-name">sz-staging-01</div><div class="host-ip">10.0.3.10 · Ubuntu 22.04</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+  + '<div class="host"><div class="host-name">sz-staging-02</div><div class="host-ip">10.0.3.11 · Ubuntu 22.04</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+  + '</div></div></div>'
+  /* Col 3: Alert feed + AI insight */
+  + '<div>'
+  + '<div class="bento-card" style="margin-bottom:var(--sp-3);border-left:3px solid var(--c-danger);padding-left:calc(var(--sp-4) - 1px)">'
+  + '<div class="bento-card-title" style="color:var(--c-danger)">未确认告警</div>'
+  + '<div style="font-size:var(--fs-sm);color:var(--t-body);margin-bottom:var(--sp-2)">sz-prod-03 CPU 持续超 85%</div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-muted)">Prometheus · 15:30 · prod</div>'
+  + '<div style="font-size:var(--fs-sm);color:var(--t-body);margin-top:var(--sp-2);margin-bottom:var(--sp-1)">Redis-01 连接超时</div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-muted)">SkyWalking · 15:22 · prod</div>'
+  + '</div>'
+  + '<div class="bento-card" style="border-left:3px solid var(--c-primary);padding-left:calc(var(--sp-4) - 1px)">'
+  + '<div class="bento-card-title" style="color:var(--c-primary)">AI 洞察</div>'
+  + '<div style="font-size:var(--fs-sm);color:var(--t-body);line-height:1.6">sz-prod-03 近 24h 出现 2 次告警，java 进程占 CPU 72%。建议检查 JVM GC 频率并评估 Pod 扩容。</div>'
+  + '<div style="margin-top:var(--sp-2)"><button class="b b-xs b-p">进入 AI 对话</button></div>'
+  + '</div>'
+  + '</div>'
+  + '</div>'
+  + hint('sz-prod-03 最近 24h 出现 2 次告警，建议检查 CPU 使用率');
+}
+
+/* ── AI 对话: Full chat layout — no pgHead, no kpiRow ── */
+function rChat(){
+  let h='<div class="chat-wrap">';
+  h+='<div class="chat-side"><div class="chat-side-label">会话历史</div>';
+  h+='<div class="chat-item active">sz-prod-03 CPU 高</div>';
+  h+='<div class="chat-item">Redis 连接超时排查</div>';
+  h+='<div class="chat-item">Pod OOMKilled 分析</div>';
+  h+='<div class="chat-item">Grafana 看板异常</div>';
+  h+='<div class="chat-item">配置变更审计</div>';
+  h+='<div style="margin-top:auto;padding:var(--sp-1)"><button class="b b-xs" style="width:100%">'+IC.plus+' 新会话</button></div></div>';
+  h+='<div class="chat-area">';
+  h+='<div style="padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--c-border-soft);display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm)"><span class="lbl lbl-primary">prod</span><span class="lbl lbl-neutral">web-service</span><span style="color:var(--t-faint);font-size:var(--fs-xs)">sz-prod-03</span></div>';
+  h+='<div class="chat-msgs">';
+  h+='<div class="chat-msg u">sz-prod-03 最近 CPU 使用率持续超过 85%，帮忙排查一下</div>';
+  h+='<div class="chat-msg ai"><div class="ai-label">KuberPilot AI</div>根据近 24h 监控分析：<br><br>1. <strong>高负载时段</strong>: 14:00–16:00 (工作日高峰)<br>2. <strong>主要进程</strong>: java (web-service) 占 72% CPU<br>3. <strong>关联告警</strong>: 2 条 Memory Warning 同期触发<br><br>建议：<br>- 检查 web-service 近期流量突增<br>- 查看 JVM GC 频率是否异常<br>- 评估 Pod 副本数是否需要扩容<br><br><span class="lbl lbl-neutral">关联: 事件墙 #E-2024-0312</span></div>';
+  h+='<div class="chat-msg u">查一下这个 Pod 最近的重启记录</div>';
+  h+='<div class="chat-msg ai"><div class="ai-label">KuberPilot AI</div>已查询 web-service Pod 重启记录：<br><br>'+tbl(['时间','原因','次数'],['07-14 15:30 · OOMKilled · 2','07-13 14:22 · OOMKilled · 1'])+'<br>Pod 因内存超限 OOMKilled，建议调整 memoryLimit 至 1024Mi</div>';
+  h+='</div>';
+  h+='<div class="chat-bar"><input class="chat-inp" placeholder="输入问题或指令…"><button class="b b-p">发送</button></div>';
+  h+='</div></div>';return h;
+}
+
+/* ── AI 配置: Multi-column form — NOT stacked single-col ── */
+function rAiCfg(){
+  return sec('智能体配置中心','管理 LLM Provider、MCP 工具与编排任务',[['Provider: 3',1],['MCP: 6'],['Skill: 4']])
+  + kpiRow([['Provider','3','OpenAI / Azure / Qwen','primary'],['MCP 工具','6','已连接 5','ok'],['Skill 技能','4','已激活 3'],['编排任务','12','运行中 4','warn']])
+  + hint('默认 Provider: OpenAI (gpt-4o), 已启用 MCP 文件系统和 K8s 管理工具')
+  + tabs(['策略','动作','技能','MCP','编排','Providers','知识库'],0)
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">'
+  + '<div class="panel"><div class="panel-head">策略配置</div><div class="panel-body">'
+  + '<div class="fld"><div class="fld-label">默认 Provider</div><select class="fld-ctrl" style="width:200px"><option>OpenAI (gpt-4o)</option><option>Azure GPT-4</option><option>Qwen-max</option></select></div>'
+  + '<div class="fld"><div class="fld-label">欢迎消息</div><textarea class="fld-ctrl" style="height:56px;font-size:var(--fs-sm)">你好，我是 KuberPilot AI 运维助手。</textarea></div>'
+  + '<div class="fld"><div class="fld-label">推荐问题</div><div style="display:flex;gap:var(--sp-2);flex-wrap:wrap"><span class="lbl lbl-primary">CPU 异常排查</span><span class="lbl lbl-primary">Pod 重启分析</span><span class="lbl lbl-primary">日志查询</span></div></div>'
+  + '</div></div>'
+  + '<div class="panel"><div class="panel-head">运行时配置</div><div class="panel-body">'
+  + '<div style="display:flex;flex-direction:column;gap:var(--sp-3)">'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">启用助手</span><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">允许动作执行</span><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">最大历史消息</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">20</span></div>'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">单次 Token 上限</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">4,096</span></div>'
+  + '</div></div></div>'
+  + '</div>';
+}
+
+/* ── AI 审计: Split chart + table — NOT stacked vertical ── */
+function rAudit(){
+  return sec('调用审计与成本分析','追踪 LLM 调用、工具使用和模型消耗',[['本月调用: 1,240',1],['成本: ¥186'])
+  + kpiRow([['总调用','1,240','本月累计','primary'],['总 Token','580K','输入 320K · 输出 260K'],['总费用','¥186','日均 ¥6.2','warn'],['平均延迟','1.2s','P95: 3.8s']])
+  + tabs(['概览','会话','工具','模型','动作'],0)
+  + '<div style="display:grid;grid-template-columns:5fr 4fr;gap:var(--sp-3)">'
+  + '<div class="chart-box"><div class="chart-title">成本趋势 (近 7 天)</div><div class="chart-area"><svg width="100%" height="100%" viewBox="0 0 280 140"><polyline points="0,110 40,95 80,88 120,75 160,80 200,62 240,55 280,65" fill="none" stroke="#1a365d" stroke-width="2"/><polyline points="0,120 40,110 80,105 120,98 160,100 200,92 240,88 280,95" fill="none" stroke="#3b6fa0" stroke-width="1.5" stroke-dasharray="4 2"/></svg></div></div>'
+  + '<div class="panel"><div class="panel-head">模型调用占比</div><div class="panel-body" style="display:flex;flex-direction:column;gap:var(--sp-2)">'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2)"><div style="width:8px;height:8px;background:var(--c-primary);border-radius:2px"></div><span style="font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1">GPT-4o</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">65%</span></div>'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2)"><div style="width:8px;height:8px;background:var(--c-border);border-radius:2px"></div><span style="font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1">Qwen-max</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">20%</span></div>'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2)"><div style="width:8px;height:8px;background:var(--c-ok);border-radius:2px"></div><span style="font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1">Azure GPT-4</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">15%</span></div>'
+  + '</div></div>'
+  + '</div>';
+}
+
+/* ── 知识图谱: Full canvas ── */
+function rGraph(){
+  return sec('知识图谱可视化','展示环境与服务间的拓扑关系',[['环境: 3',1],['节点: 24'],['边: 48']])
+  + hint('点击节点可展开关联服务和数据源配置')
+  + panel('知识图谱',fl(['环境']),
+    '<div class="graph-vp">'
+    + '<div class="g-node primary" style="left:24%;top:16%">web-service</div>'
+    + '<div class="g-node neutral" style="left:48%;top:10%">api-gateway</div>'
+    + '<div class="g-node ok" style="left:70%;top:20%">MySQL</div>'
+    + '<div class="g-node primary" style="left:16%;top:44%">user-service</div>'
+    + '<div class="g-node neutral" style="left:46%;top:38%">Redis</div>'
+    + '<div class="g-node ok" style="left:66%;top:48%">Kafka</div>'
+    + '<div class="g-node primary" style="left:28%;top:66%">order-service</div>'
+    + '<div class="g-node neutral" style="left:56%;top:70%">Nacos</div>'
+    + '<div class="g-node ok" style="left:76%;top:60%">Prometheus</div>'
+    + '</div>');
+}
+
+/* ── 可观测性总览: Table-dominant, no kpiRow ── */
+function rObs(){
+  return sec('可观测性总览','统一展示日志、链路、指标与告警接入规模',[['监控看板: 12',1],['未确认告警: 2','warn']])
+  + tabs(['总览','日志','指标','链路','看板','告警','数据源','关联配置'],0)
+  + panel('关联配置概览','',
+    tbl(['关联名称','数据源关系','跳转能力','状态'],
+    [['prod-loki↔tempo','Loki ↔ Tempo','日志↔链路 双向','<span class="st ok"><span class="st-dot"></span>已启用</span>'],
+     ['prod-loki↔grafana','Loki ↔ Grafana','日志↔看板','<span class="st ok"><span class="st-dot"></span>已启用</span>'],
+     ['staging-loki↔tempo','Loki ↔ Tempo','日志↔链路','<span class="st warn"><span class="st-dot"></span>待配置</span>']]));
+}
+
+/* ── 日志查询: Query + result split ── */
+function rLogs(){
+  return sec('日志查询','多数据源日志查询，支持 Loki / ELK / SLS',[['数据源: Loki',1],['结果: 2,340条'])
+  + hint('Ctrl+Enter 快速执行查询，支持多标签页并发')
+  + tabs(['日志','指标','链路','看板','告警'],0)
+  + panel('日志查询',
+    '<select class="sel"><option>Loki · prod</option><option>ELK · staging</option></select><select class="sel"><option>最近 15min</option><option>最近 1h</option></select><input class="inp" style="width:220px;font-family:var(--f-mono);font-size:var(--fs-xs)" value="{app=&quot;web-service&quot;,level=&quot;error&quot;}">',
+    '<div class="code" style="min-height:120px">'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:30:22Z</span> <span style="color:var(--c-danger)">[ERROR]</span> web-service pod-web-03 OOMKilled container=java limit=512Mi</div>'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:28:18Z</span> <span style="color:var(--c-warn)">[WARN]</span> web-service pod-web-03 memory usage 85%</div>'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:25:10Z</span> <span style="color:var(--c-primary-soft)">[INFO]</span> web-service pod-web-03 request latency P95=2.3s</div>'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:22:05Z</span> <span style="color:var(--c-danger)">[ERROR]</span> redis connection timeout host=redis-01 port=6379</div>'
+    + '</div>');
+}
+
+/* ── 指标查询: Query + chart ── */
+function rMetrics(){
+  return sec('指标查询','PromQL 指标查询与可视化',[['数据源: Prometheus',1]])
+  + tabs(['日志','指标','链路','看板','告警'],1)
+  + '<div class="code" style="margin-bottom:var(--sp-2)"><span class="kw">rate</span>(<span class="fn">http_requests_total</span>{<span class="str">job</span>=&quot;web-service&quot;}[<span style="color:var(--c-danger)">5m</span>])</div>'
+  + '<div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)"><button class="b b-p">执行查询</button><button class="b">复制 PromQL</button></div>'
+  + '<div class="chart-box"><div class="chart-title">HTTP 500 Rate — web-service</div><div class="chart-area"><svg width="100%" height="100%" viewBox="0 0 280 140"><polyline points="0,120 25,118 50,115 75,110 100,106 125,102 150,98 175,94 200,90 225,86 250,82 275,78 280,75" fill="none" stroke="#dc2626" stroke-width="1.5"/><polyline points="0,95 25,90 50,85 75,78 100,75 125,70 150,65 175,62 200,58 225,54 250,50 275,48 280,45" fill="none" stroke="#1a365d" stroke-width="1.5"/></svg></div></div>';
+}
+
+/* ── 链路追踪: Table-dominant ── */
+function rTrace(){
+  return sec('链路追踪查询','分布式链路追踪，支持 SkyWalking / Tempo / Jaeger',[['数据源: SkyWalking',1],['匹配: 86 条'])
+  + hint('点击 trace ID 可展开瀑布图')
+  + tabs(['日志','指标','链路','看板','告警'],2)
+  + panel('链路追踪',
+    '<select class="sel"><option>SkyWalking · prod</option></select><select class="sel"><option>web-service</option></select><input class="inp" style="width:110px;font-family:var(--f-mono);font-size:var(--fs-xs)" placeholder="Trace ID…"><select class="sel"><option>最近 15min</option></select>',
+    tbl(['Trace ID','服务','耗时','Span','状态','时间'],
+    [['trace-0714-001','web-service','1.2s','8','<span class="st ok"><span class="st-dot"></span>正常</span>','15:30'],
+     ['trace-0714-002','api-gateway','3.8s','12','<span class="st warn"><span class="st-dot"></span>慢</span>','15:28'],
+     ['trace-0714-003','order-service','0.5s','6','<span class="st ok"><span class="st-dot"></span>正常</span>','15:25'],
+     ['trace-0714-004','user-service','5.2s','15','<span class="st danger"><span class="st-dot"></span>异常</span>','15:22']])+pgBar());
+}
+
+/* ── 告警中心: Alert-dominant ── */
+function rAlerts(){
+  return sec('告警<think>','统一管理告警事件、策略、通知和集成配置',[['未确认: 2','warn'],['事件模式',1]])
+  + hint('2 条未确认告警: sz-prod-03 CPU >85%, redis-01 连接超时')
+  + tabs(['事件','策略','通知','日志','集成'],0)
+  + panel('告警事件',fl(['状态','来源','环境','级别']),
+    tbl(['告警名','级别','状态','来源','环境','时间','操作'],
+    [['CPU >85%','<span class="lbl lbl-danger">严重</span>','<span class="st warn"><span class="st-dot"></span>未确认</span>','Prometheus','prod','15:30','<button class="b b-xs">确认</button>'],
+     ['Redis 连接超时','<span class="lbl lbl-warn">警告</span>','<span class="st warn"><span class="st-dot"></span>未确认</span>','SkyWalking','prod','15:22','<button class="b b-xs">确认</button>'],
+     ['Pod OOMKilled','<span class="lbl lbl-danger">严重</span>','<span class="st ok"><span class="st-dot"></span>已确认</span>','K8s','prod','15:30','<button class="b b-xs">详情</button>'],
+     ['Memory >80%','<span class="lbl lbl-warn">警告</span>','<span class="st ok"><span class="st-dot"></span>已确认</span>','Prometheus','staging','14:20','<button class="b b-xs">详情</button>']])+pgBar());
+}
+
+function rGrafana(){
+  return sec('Grafana 看板','集成 Grafana 监控看板，支持全屏沉浸',[['文件夹: 4',1],['看板: 12']])
+  + tabs(['日志','指标','链路','看板','告警'],3)
+  + '<div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-3)">'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-left:3px solid var(--c-primary);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);cursor:pointer"><strong>prod-overview</strong><br><span style="font-size:var(--fs-xs);color:var(--t-faint)">主机 · CPU · Memory</span></div>'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);cursor:pointer"><strong>k8s-cluster</strong><br><span style="font-size:var(--fs-xs);color:var(--t-faint)">Pod · Deployment</span></div>'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border-soft);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);cursor:pointer"><strong>app-metrics</strong><br><span style="font-size:var(--fs-xs);color:var(--t-faint)">HTTP 延迟 · 错误率</span></div>'
+  + '</div>'
+  + '<div class="grafana" style="min-height:320px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:24px;width:100%">'
+  + '<div style="background:#162032;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-primary-soft);margin-bottom:6px">CPU Usage</div><div style="height:60px;background:linear-gradient(180deg,rgba(59,111,160,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '<div style="background:#162032;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-ok);margin-bottom:6px">Memory</div><div style="height:60px;background:linear-gradient(180deg,rgba(22,163,74,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '<div style="background:#162032;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-warn);margin-bottom:6px">Request Rate</div><div style="height:60px;background:linear-gradient(180deg,rgba(217,119,6,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '<div style="background:#162032;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-danger);margin-bottom:6px">Error Rate</div><div style="height:60px;background:linear-gradient(180deg,rgba(220,38,38,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '</div></div>';
+}
+
+/* ── 事件墙: Timeline + table ── */
+function rWall(){
+  return sec('事件中心','汇聚发布、变更、任务与外部事件，按时间线沉淀排障线索',[['当前环境: prod',1],['命中: 48'],['失败: 3','danger']])
+  + hint('拖拽时间轴定位事件区间，点击事件点查看详情')
+  + tabs(['时间线','应用发布','DB变更','配置变更','运维事务','任务调度'],0)
+  + panel('事件时间线',fl(['环境','系统','事件源','结果']),
+    '<div class="tl-bar"><div class="tl-dot" style="left:10%;background:var(--c-ok)"></div><div class="tl-dot" style="left:25%;background:var(--c-primary)"></div><div class="tl-dot" style="left:40%;background:var(--c-warn)"></div><div class="tl-dot" style="left:55%;background:var(--c-primary)"></div><div class="tl-dot" style="left:65%;background:var(--c-danger)"></div><div class="tl-dot" style="left:80%;background:var(--c-ok)"></div></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);color:var(--t-faint);margin-bottom:var(--sp-2)"><span>07-13 00:00</span><span>07-14 00:00</span></div>'
+    + tbl(['事件','分类','系统','结果','时间','操作人'],
+    [['web-service v2.1.0 发布','<span class="lbl lbl-neutral">应用发布</span>','web-service','<span class="st ok"><span class="st-dot"></span>成功</span>','07-14 15:00','吕文杰'],
+     ['MySQL schema 变更','<span class="lbl lbl-warn">DB变更</span>','order-db','<span class="st ok"><span class="st-dot"></span>成功</span>','07-14 14:30','张运维'],
+     ['Nacos 配置更新','<span class="lbl lbl-neutral">配置变更</span>','nacos','<span class="st danger"><span class="st-dot"></span>失败</span>','07-14 14:20','AI Agent'],
+     ['Pod 扩容 2→4','<span class="lbl lbl-neutral">运维事务</span>','web-service','<span class="st ok"><span class="st-dot"></span>成功</span>','07-14 13:00','AI Agent']])+pgBar());
+}
+
+function rEvEnv(){
+  return sec('事件环境管理','统一维护外部事件的 environment 标识映射',[['环境总数: 3',1],['未映射: 1','warn']])
+  + tabs(['环境字典','未映射'],0)
+  + panel('环境字典',fl(['搜索']),
+    tbl(['环境标识','显示名称','别名','事件数','最近事件','说明'],
+    [['prod','生产环境','production','32','07-14 15:30','正式生产环境'],
+     ['staging','预发环境','pre-release','12','07-14 14:20','预发测试环境'],
+     ['dev','开发环境','development','4','07-13 10:00','日常开发环境']])+pgBar());
+}
+
+function rEvSrc(){
+  return sec('事件源管理','维护平台内置和外部 Webhook 接入的事件来源',[['内置: 4',1],['外部: 3'],['近7天: 48 事件']])
+  + tabs(['内置来源','外部接入','接入帮助'],0)
+  + '<div style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);margin-bottom:var(--sp-2)">平台内置来源</div>'
+  + '<div class="src-grid">'
+  + '<div class="src"><div class="src-head"><div class="src-icon primary">K8s</div><div class="src-name">Kubernetes</div></div><div class="src-desc">Pod 生命周期事件</div><div class="src-count">事件: 12 · <span class="st ok"><span class="st-dot"></span>已启用</span></div></div>'
+  + '<div class="src"><div class="src-head"><div class="src-icon ok">SQL</div><div class="src-name">SQL 审计</div></div><div class="src-desc">数据库变更事件</div><div class="src-count">事件: 8 · <span class="st ok"><span class="st-dot"></span>已启用</span></div></div>'
+  + '<div class="src"><div class="src-head"><div class="src-icon warn">CI</div><div class="src-name">CI/CD</div></div><div class="src-desc">构建部署事件</div><div class="src-count">事件: 16 · <span class="st ok"><span class="st-dot"></span>已启用</span></div></div>'
+  + '</div>'
+  + '<div style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);margin:var(--sp-3) 0 var(--sp-2)">外部接入来源</div>'
+  + '<div class="src-grid">'
+  + '<div class="src"><div class="src-head"><div class="src-icon primary">WH</div><div class="src-name">Jenkins Webhook</div></div><div class="src-desc">构建结果推送</div><div class="src-count">事件: 8 · <span class="st ok"><span class="st-dot"></span>已启用</span></div></div>'
+  + '<div class="src"><div class="src-head"><div class="src-icon ok">WH</div><div class="src-name">GitLab Webhook</div></div><div class="src-desc">Merge 事件推送</div><div class="src-count">事件: 4 · <span class="st warn"><span class="st-dot"></span>待配置</span></div></div>'
+  + '<div class="src"><div class="src-head"><div class="src-icon warn">WH</div><div class="src-name">Zabbix Webhook</div></div><div class="src-desc">告警转发</div><div class="src-count">事件: 2 · <span class="st ok"><span class="st-dot"></span>已启用</span></div></div>'
+  + '</div>';
+}
+
+/* ── 任务工作台: Tree + table split ── */
+function rTW(){
+  return sec('任务工作台','基于 CMDB 资源树执行批量运维任务',[['环境: 3',1],['资源树: 已加载']])
+  + hint('选择环境和系统后，在资源树中勾选目标主机执行批量任务')
+  + panel('资源树 + 任务执行',
+    '<select class="sel"><option>prod 生产</option><option>staging 预发</option></select><select class="sel"><option>全部系统</option><option>web-service</option></select>',
+    '<div style="display:flex;gap:var(--sp-3)">'
+    + '<div class="tree" style="min-height:180px">'
+    + '<div class="tree-node active">prod 环境</div>'
+    + '<div class="tree-node d1">web-service</div>'
+    + '<div class="tree-node d2">sz-prod-01</div>'
+    + '<div class="tree-node d2">sz-prod-02</div>'
+    + '<div class="tree-node d2" style="color:var(--c-warn)">sz-prod-03</div>'
+    + '<div class="tree-node d1">order-service</div>'
+    + '<div class="tree-node d2">bj-prod-04</div>'
+    + '<div class="tree-node d1">MySQL</div>'
+    + '<div class="tree-node d2">db-node-01</div>'
+    + '</div>'
+    + '<div style="flex:1"><div style="font-size:var(--fs-sm);font-weight:var(--fw-m);margin-bottom:var(--sp-2)">已选主机 (3)</div>'
+    + tbl(['主机','IP','状态','系统','操作'],
+    [['sz-prod-01','10.0.1.10','<span class="st ok"><span class="st-dot"></span>在线</span>','web-service','<button class="b b-xs">执行</button>'],
+     ['sz-prod-02','10.0.1.11','<span class="st ok"><span class="st-dot"></span>在线</span>','web-service','<button class="b b-xs">执行</button>'],
+     ['sz-prod-03','10.0.1.12','<span class="st warn"><span class="st-dot"></span>CPU告警</span>','web-service','<button class="b b-xs b-danger">排查</button>']])
+    + '<div style="margin-top:var(--sp-2);display:flex;gap:var(--sp-2)"><button class="b b-p">批量执行</button><button class="b">导出</button></div>'
+    + '</div></div>');
+}
+
+function rTRes(){
+  return sec('任务资源管理','展示可执行任务的资源类型、范围和执行入口',[['资源类型: 5',1],['范围: 3 环境']])
+  + hint('资源类型与 CMDB 资源树联动，支持动态扩展')
+  + panel('资源类型列表','',
+    tbl(['资源类型','关联环境','可用操作','主机数','状态'],
+    [['Linux 主机','prod, staging, dev','Shell / Python / Ansible','12','<span class="st ok"><span class="st-dot"></span>正常</span>'],
+     ['K8s Pod','prod, staging','kubectl / Helm','48','<span class="st ok"><span class="st-dot"></span>正常</span>'],
+     ['MySQL','prod','SQL 执行 / 备份','2','<span class="st ok"><span class="st-dot"></span>正常</span>'],
+     ['Redis','prod, staging','健康检查 / 配置','2','<span class="st ok"><span class="st-dot"></span>正常</span>'],
+     ['Docker 容器','staging, dev','docker CLI','6','<span class="st ok"><span class="st-dot"></span>正常</span>']]));
+}
+
+function rTSch(){
+  return sec('任务调度中心','管理定时任务编排和执行调度',[['环境: 3',1],['调度: Cron'])
+  + hint('定时任务支持 Cron 表达式和手动触发两种模式')
+  + panel('调度任务列表',fl(['环境','状态']),
+    tbl(['任务名','Cron','环境','上次执行','下次执行','状态'],
+    [['日志清理','0 2 * * *','prod','07-14 02:00','07-15 02:00','<span class="st ok"><span class="st-dot"></span>正常</span>'],
+     ['健康检查','*/10 * * *','prod','07-14 15:20','07-14 15:30','<span class="st primary"><span class="st-dot"></span>运行中</span>'],
+     ['数据库备份','0 0 * * 0','prod','07-13 00:00','07-20 00:00','<span class="st ok"><span class="st-dot"></span>正常</span>'],
+     ['配置同步','0 8 * * 1-5','staging','07-14 08:00','07-15 08:00','<span class="st warn"><span class="st-dot"></span>延迟</span>']])+pgBar());
+}
+
+function rDeploy(){
+  return sec('发布工单','覆盖应用发布的审批、执行全链路',[['发布单模式',1],['本周: 3 单'])
+  + kpiRow([['发布工单','8','本周 +3','primary'],['待审批','2','需处理','warn'],['执行中','1','当前','ok'],['已完成','5','近30天']])
+  + hint('2 个工单待审批: web-service v2.2.0 和 order-service v1.5.0')
+  + tabs(['发布单','审批流'],0)
+  + panel('发布单列表',fl(['环境','业务','策略','审批','状态']),
+    tbl(['应用','版本','策略','环境','审批','状态','提交人','时间'],
+    [['web-service','v2.2.0','<span class="lbl lbl-primary">灰度</span>','prod','<span class="st warn"><span class="st-dot"></span>待审批</span>','<span class="st neutral"><span class="st-dot"></span>排队</span>','吕文杰','07-14'],
+     ['order-service','v1.5.0','<span class="lbl lbl-neutral">全量</span>','prod','<span class="st warn"><span class="st-dot"></span>待审批</span>','<span class="st neutral"><span class="st-dot"></span>排队</span>','张运维','07-14'],
+     ['user-service','v3.0.1','<span class="lbl lbl-primary">灰度</span>','staging','<span class="st ok"><span class="st-dot"></span>已通过</span>','<span class="st ok"><span class="st-dot"></span>已完成</span>','陈开发','07-13'],
+     ['api-gateway','v1.8.0','<span class="lbl lbl-neutral">全量</span>','prod','<span class="st ok"><span class="st-dot"></span>已通过</span>','<span class="st ok"><span class="st-dot"></span>已完成</span>','王运维','07-12']])+pgBar());
+}
+
+function rTxn(){
+  return sec('事务工单','统一走审批流处理变更、巡检、权限和故障事务',[['待审批: 2','warn'],['高优先级: 1','danger']])
+  + panel('事务工单列表',fl(['类型','优先级','状态']),
+    tbl(['标题','类型','环境','优先级','状态','申请人','处理人','操作'],
+    [['sz-prod-03 CPU 故障','<span class="lbl lbl-danger">故障处理</span>','prod','<span class="lbl lbl-danger">P0</span>','<span class="st warn"><span class="st-dot"></span>处理中</span>','吕文杰','AI Agent','<button class="b b-xs b-ok">完成</button>'],
+     ['巡检任务 — 7月','<span class="lbl lbl-neutral">巡检</span>','prod','<span class="lbl lbl-neutral">P2</span>','<span class="st warn"><span class="st-dot"></span>待审批</span>','张运维','—','<button class="b b-xs">审批</button>'],
+     ['DBA 权限开通','<span class="lbl lbl-neutral">权限</span>','staging','<span class="lbl lbl-neutral">P3</span>','<span class="st ok"><span class="st-dot"></span>已完成</span>','陈DBA','王运维','<button class="b b-xs">详情</button>']])+pgBar());
+}
+
+function rSqlA(){
+  return sec('SQL 审计','SQL 变更工单、只读查询和数据源管理',[['工单: 6',1],['待审核: 2','warn']])
+  + tabs(['工单','查询','数据源'],0)
+  + panel('SQL 变更工单',fl(['数据源','类型','状态']),
+    tbl(['标题','数据源','类型','数据库','状态','提交人','审核人','时间'],
+    [['order 表增加索引','prod-mysql','<span class="lbl lbl-primary">DDL</span>','order_db','<span class="st warn"><span class="st-dot"></span>待审核</span>','陈DBA','—','07-14 14:00'],
+     ['清理过期数据','prod-mysql','<span class="lbl lbl-neutral">DML</span>','log_db','<span class="st ok"><span class="st-dot"></span>已通过</span>','吕文杰','张DBA主管','07-13'],
+     ['用户表新增字段','staging-mysql','<span class="lbl lbl-primary">DDL</span>','user_db','<span class="st warn"><span class="st-dot"></span>待审核</span>','陈开发','—','07-14 10:00']])+pgBar());
+}
+
+/* ── K8s 管理: Tree + table ── */
+function rK8s(){
+  return sec('Kubernetes 多集群管理','集群、负载、网络、存储和配置的全面管理',[['集群: prod-k8s',1],['连接: 正常','ok']])
+  + hint('prod-k8s 集群 6 个 Pod Pending，资源不足需扩容')
+  + tabs(['集群','工作负载','网络','存储','配置'],0)
+  + panel('集群列表',
+    '<select class="sel"><option>prod-k8s</option><option>staging-k8s</option></select><select class="sel"><option>全部命名空间</option><option>default</option><option>production</option></select>',
+    tbl(['集群','API Server','节点','Pod','状态','操作'],
+    [['prod-k8s','https://10.0.0.1:6443','6','42/48','<span class="st ok"><span class="st-dot"></span>正常</span>','<button class="b b-xs">详情</button>'],
+     ['staging-k8s','https://10.0.1.1:6443','3','18/20','<span class="st ok"><span class="st-dot"></span>正常</span>','<button class="b b-xs">详情</button>']]));
+}
+
+function rDocker(){
+  return sec('Docker 容器管理','多台 Docker 主机的容器和镜像生命周期管理',[['主机: docker-01',1],['连接: SSH'])
+  + tabs(['主机','容器','镜像'],0)
+  + panel('Docker 主机','',
+    tbl(['主机名','IP','SSH','Docker 版本','容器','状态','操作'],
+    [['docker-01','10.0.3.10','<span class="st ok"><span class="st-dot"></span>连通</span>','24.0.7','8 运行','<span class="st ok"><span class="st-dot"></span>在线</span>','<button class="b b-xs">WebShell</button>'],
+     ['docker-02','10.0.3.11','<span class="st ok"><span class="st-dot"></span>连通</span>','24.0.7','5 运行','<span class="st ok"><span class="st-dot"></span>在线</span>','<button class="b b-xs">WebShell</button>'],
+     ['docker-dev','10.0.4.10','<span class="st ok"><span class="st-dot"></span>连通</span>','24.0.5','2 运行','<span class="st ok"><span class="st-dot"></span>在线</span>','<button class="b b-xs">WebShell</button>']]));
+}
+
+function rUsers(){
+  return sec('用户身份管理','统一用户/用户组/角色的 CRUD 和权限管理',[['用户: 12',1],['角色: 6'])
+  + tabs(['用户','用户组','角色','权限字典'],0)
+  + panel('用户列表',
+    '<input class="inp" style="width:140px;font-size:var(--fs-xs)" placeholder="搜索用户…"><button class="b b-xs">'+IC.refresh+' 刷新</button><button class="b b-xs b-p">'+IC.plus+' 新增</button>',
+    tbl(['用户名','姓名','邮箱','用户组','角色','状态','操作'],
+    [['admin','吕文杰','lvwj@kuberpilot.io','管理组','<span class="lbl lbl-primary">超管</span>','<span class="st ok"><span class="st-dot"></span>启用</span>','<button class="b b-xs">编辑</button>'],
+     ['ops-zhang','张运维','zhangyw@kuberpilot.io','运维组','<span class="lbl lbl-neutral">运维管理</span>','<span class="st ok"><span class="st-dot"></span>启用</span>','<button class="b b-xs">编辑</button>'],
+     ['dba-chen','陈DBA','chendba@kuberpilot.io','DBA组','<span class="lbl lbl-neutral">DBA</span>','<span class="st ok"><span class="st-dot"></span>启用</span>','<button class="b b-xs">编辑</button>'],
+     ['dev-wang','王开发','wangkf@kuberpilot.io','开发组','<span class="lbl lbl-neutral">开发</span>','<span class="st ok"><span class="st-dot"></span>启用</span>','<button class="b b-xs">编辑</button>'],
+     ['guest','访客','guest@kuberpilot.io','—','<span class="lbl lbl-neutral">访客</span>','<span class="st warn"><span class="st-dot"></span>禁用</span>','<button class="b b-xs">编辑</button>']])+pgBar());
+}
+
+function rSysA(){
+  return sec('操作审计日志','记录所有关键写操作、执行动作与配置变更',[['成功: 92%','ok'],['失败: 3','danger']])
+  + panel('审计记录',fl(['结果','模块','操作人','时间范围']),
+    tbl(['时间','操作','模块','操作人','资源','结果'],
+    [['07-14 15:30','Pod 扩容','运维','AI Agent','web-service (prod)','<span class="st ok"><span class="st-dot"></span>成功</span>'],
+     ['07-14 14:20','配置更新','配置变更','吕文杰','nacos','<span class="st danger"><span class="st-dot"></span>失败</span>'],
+     ['07-14 14:00','SQL DDL','SQL审计','陈DBA','order_db','<span class="st warn"><span class="st-dot"></span>待审核</span>'],
+     ['07-14 10:00','用户创建','用户权限','admin','王开发','<span class="st ok"><span class="st-dot"></span>成功</span>']])+pgBar());
+}
+
+function rMods(){
+  return sec('模块管理','按需控制侧栏导航菜单的功能入口可见性',[['模块总数: 8',1],['必选: 4'])
+  + hint('必选模块不可隐藏，可选模块可按需控制侧栏入口显隐')
+  + panel('模块配置','',
+    '<div>'
+    + '<div class="mod-row"><div class="mod-name">仪表盘</div><div class="mod-desc">平台首页总览</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">AIOps</div><div class="mod-desc">智能运维与 AI 对话</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">可观测性</div><div class="mod-desc">日志 · 指标 · 链路 · 告警</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">事件中心</div><div class="mod-desc">事件墙与环境管理</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">任务中心</div><div class="mod-desc">运维任务工作台</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">工单系统</div><div class="mod-desc">发布工单与审批流</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">容器管理</div><div class="mod-desc">K8s 与 Docker 管理</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '<div class="mod-row"><div class="mod-name">SQL 审计</div><div class="mod-desc">SQL 变更工单与查询</div><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+    + '</div>'
+    + '<div style="padding:var(--sp-2);display:flex;gap:var(--sp-2)"><button class="b">'+IC.refresh+' 刷新</button><button class="b b-p">保存配置</button></div>');
+}
+
+function rHosts(){
+  return sec('主机资产管理','CMDB 主机面板，集成资产管理与调度中心',[['总数: 12',1],['在线: 10','ok'],['告警: 2','warn']])
+  + tabs(['资产','调度中心'],0)
+  + panel('主机资产',fl(['环境','状态','系统']),
+    '<div class="host-grid">'
+    + '<div class="host"><div class="host-name">sz-prod-01</div><div class="host-ip">10.0.1.10 · CentOS 7.9</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+    + '<div class="host"><div class="host-name">sz-prod-02</div><div class="host-ip">10.0.1.11 · CentOS 7.9</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+    + '<div class="host" style="border-color:var(--c-warn-soft)"><div class="host-name" style="color:var(--c-warn)">sz-prod-03</div><div class="host-ip">10.0.1.12 · CentOS 7.9</div><div class="host-st"><span class="st warn"><span class="st-dot"></span>CPU告警</span></div></div>'
+    + '<div class="host"><div class="host-name">bj-prod-04</div><div class="host-ip">10.0.2.13 · Ubuntu 22.04</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+    + '<div class="host"><div class="host-name">db-node-01</div><div class="host-ip">10.0.1.20 · CentOS 7.9</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+    + '<div class="host" style="border-color:var(--c-warn-soft)"><div class="host-name" style="color:var(--c-warn)">redis-01</div><div class="host-ip">10.0.1.30 · CentOS 7.9</div><div class="host-st"><span class="st warn"><span class="st-dot"></span>连接超时</span></div></div>'
+    + '<div class="host"><div class="host-name">sz-staging-01</div><div class="host-ip">10.0.3.10 · Ubuntu 22.04</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+    + '<div class="host"><div class="host-name">sz-staging-02</div><div class="host-ip">10.0.3.11 · Ubuntu 22.04</div><div class="host-st"><span class="st ok"><span class="st-dot"></span>在线</span></div></div>'
+    + '</div>');
+}
+
+function rLogin(){
+  return '<div class="login-split">'
+  + '<div class="login-brand">'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-6)"><div class="login-brand-mark">K</div><div class="login-brand-title">KuberPilot</div></div>'
+  + '<div class="login-brand-sub">AI驱动的云原生运维智能体平台</div>'
+  + '<div class="login-brand-grid">'
+  + '<div class="login-brand-cell"><h>AIOps 智能运维</h><p>AI驱动的故障诊断与自动化</p></div>'
+  + '<div class="login-brand-cell"><h>可观测性</h><p>日志 · 指标 · 链路统一监控</p></div>'
+  + '<div class="login-brand-cell"><h>事件中心</h><p>汇聚发布与变更事件时间线</p></div>'
+  + '<div class="login-brand-cell"><h>任务中心</h><p>基于资源树的批量运维</p></div>'
+  + '</div></div>'
+  + '<div class="login-form-area"><div class="login-form">'
+  + '<div class="login-form-title">登录 KuberPilot</div>'
+  + '<div class="login-form-sub">输入账号密码访问运维平台</div>'
+  + '<div class="fld"><div class="fld-label">用户名</div><input class="fld-ctrl" value="lvwj"></div>'
+  + '<div class="fld"><div class="fld-label">密码</div><input class="fld-ctrl" type="password" value="••••••••"><div class="fld-hint">默认: lvwj / Kp@2024!Secure</div></div>'
+  + '<button class="b b-p" style="width:100%;padding:var(--sp-2);font-size:var(--fs-md);margin-top:var(--sp-3);border-radius:var(--r-sm)">登录</button>'
+  + '</div></div></div>';
+}
+
+/* ── Helper functions ── */
+function sec(title,sub,tags){
+  let h='<div class="sec">';
+  h+='<div class="sec-title">'+title+'</div>';
+  if(sub)h+='<div class="sec-sub">'+sub+'</div>';
+  if(tags){h+='<div class="sec-tags">';tags.forEach(t=>{h+='<span class="sec-tag'+(t[1]?' primary':'')+'">'+t[0]+'</span>';});h+='</div>';}
+  h+='</div>';return h;
+}
+
+function kpiRow(items){
+  let h='<div class="kpi-row">';
+  items.forEach((it,i)=>{
+    if(i>0)h+='<div class="kpi-sep"></div>';
+    h+='<div class="kpi'+(it[3]?' '+it[3]:'')+'"><div class="kpi-label">'+it[0]+'</div><div class="kpi-val">'+it[1]+'</div>';
+    if(it[2])h+='<div class="kpi-note">'+it[2]+'</div>';
+    h+='</div>';
+  });
+  h+='</div>';return h;
+}
+
+function hint(text){return '<div class="hint">'+text+'</div>';}
+
+function tabs(items,active){
+  let h='<div class="tabs">';
+  items.forEach((t,i)=>{h+='<button class="tab'+(i===active?' active':'')+'" onclick="this.parentElement.querySelectorAll(\'.tab\').forEach(b=>b.classList.remove(\'active\'));this.classList.add(\'active\')">'+t+'</button>';});
+  h+='</div>';return h;
+}
+
+function panel(title,bar,body){
+  let h='<div class="panel">';
+  h+='<div class="panel-head"><span>'+title+'</span><div style="display:flex;gap:var(--sp-2)"><button class="b b-xs">'+IC.refresh+' 刷新</button></div></div>';
+  if(bar)h+='<div class="panel-bar">'+bar+'</div>';
+  h+='<div class="panel-body">'+body+'</div>';
+  h+='</div>';return h;
+}
+
+function tbl(hd,rows){
+  let h='<table class="tbl"><thead><tr>';
+  hd.forEach(c=>h+='<th>'+c+'</th>');
+  h+='</tr></thead><tbody>';
+  rows.forEach(r=>{h+='<tr>';r.forEach(c=>h+='<td>'+c+'</td>');h+='</tr>';});
+  h+='</tbody></table>';return h;
+}
+
+function pgBar(){return '<div class="pg-bar"><span>共 128 条</span><button class="pg-btn">1</button><button class="pg-btn active">2</button><button class="pg-btn">3</button><button class="pg-btn">…</button><button class="pg-btn">13</button></div>';}
+
+function fl(items){
+  let h='<div style="display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap">';
+  h+='<div class="inp" style="width:120px;text-align:center;color:var(--t-faint);font-size:var(--fs-xs)">'+IC.search+' 搜索…</div>';
+  items.forEach(f=>h+='<select class="sel"><option>'+f+'</option></select>');
+  h+='</div>';return h;
+}
+
+go('dash');
+</script>
+</body>
+</html>

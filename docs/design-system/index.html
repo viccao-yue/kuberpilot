@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KuberPilot Design System v1.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Cascadia+Code&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-400: #60a5fa;
+  --color-blue-600: #2563eb;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-600: #525252;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+body {
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  background: var(--color-gray-50);
+  color: var(--color-gray-900);
+  line-height: 1.6;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0; top: 0;
+  width: 240px;
+  height: 100vh;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--color-gray-200);
+  padding: 24px 16px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.sidebar .logo {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 24px;
+}
+
+.sidebar .logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #dbeafe, #2563eb);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 600; font-size: 14px;
+}
+
+.sidebar .logo-text { font-weight: 600; font-size: 15px; color: var(--color-gray-900); }
+
+.sidebar nav a {
+  display: block;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--color-gray-600);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all 150ms ease;
+  margin-bottom: 2px;
+}
+
+.sidebar nav a:hover { background: var(--color-gray-100); color: var(--color-gray-900); }
+.sidebar nav a.active { background: var(--color-blue-50); color: var(--color-blue-600); font-weight: 500; }
+
+.sidebar nav .nav-group { margin-bottom: 12px; }
+.sidebar nav .nav-group-label { font-size: 11px; color: var(--color-gray-400); font-weight: 500; letter-spacing: 0.05em; padding: 4px 12px; margin-top: 8px; }
+
+.main {
+  margin-left: 240px;
+  padding: 32px 40px;
+  max-width: 960px;
+}
+
+h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; color: var(--color-gray-900); }
+h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: var(--color-gray-800); }
+h3 { font-size: 16px; font-weight: 500; margin-bottom: 12px; color: var(--color-gray-800); }
+
+.page-desc { color: var(--color-gray-600); font-size: 14px; margin-bottom: 32px; max-width: 600px; }
+
+.section { margin-bottom: 48px; }
+
+.token-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.color-grid { grid-template-columns: repeat(9, 1fr); }
+.color-swatch {
+  border-radius: var(--radius-md);
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 11px;
+  transition: transform 150ms ease;
+  cursor: pointer;
+}
+.color-swatch:hover { transform: translateY(-2px); }
+.color-swatch .swatch-name { font-weight: 500; color: var(--color-gray-800); }
+.color-swatch .swatch-hex { color: var(--color-gray-600); }
+
+.scale-row { display: flex; gap: 4px; margin-bottom: 16px; }
+.scale-item {
+  flex: 1;
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 12px;
+  border: 1px solid var(--color-gray-200);
+  background: #fff;
+}
+.scale-item .scale-label { font-weight: 500; color: var(--color-gray-800); }
+.scale-item .scale-value { color: var(--color-gray-600); font-size: 11px; }
+
+.semantic-row { display: flex; gap: 12px; margin-bottom: 16px; }
+.semantic-card {
+  flex: 1;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  border: 1px solid var(--color-gray-200);
+}
+.semantic-card .sc-label { font-size: 13px; font-weight: 500; }
+.semantic-card .sc-bg { width: 100%; height: 48px; border-radius: var(--radius-md); margin: 8px 0; }
+.semantic-card .sc-hex { font-size: 12px; color: var(--color-gray-600); }
+
+.component-demo {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 6px 16px;
+  font-size: 13px; font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+}
+.btn:focus-visible { outline: 2px solid var(--color-blue-400); outline-offset: 2px; }
+
+.btn-primary { background: var(--color-blue-600); color: #fff; }
+.btn-primary:hover { background: #3b82f6; transform: translateY(-1px); }
+
+.btn-secondary { background: #fff; color: var(--color-gray-600); border-color: var(--color-gray-300); }
+.btn-secondary:hover { border-color: var(--color-gray-400); color: var(--color-gray-900); }
+
+.btn-ghost { background: transparent; color: var(--color-blue-600); }
+.btn-ghost:hover { background: var(--color-blue-50); }
+
+.btn-danger { background: var(--color-danger); color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-lg { padding: 10px 24px; font-size: 14px; }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+.stat-grid-demo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 300ms ease;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+.stat-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.stat-bar-info { background: var(--color-info); }
+.stat-bar-success { background: var(--color-success); }
+.stat-bar-warning { background: var(--color-warning); }
+.stat-bar-danger { background: var(--color-danger); }
+
+.stat-label { font-size: 13px; color: var(--color-gray-600); }
+.stat-value { font-size: 24px; font-weight: 600; color: var(--color-gray-900); margin-top: 4px; }
+.stat-foot { font-size: 12px; color: var(--color-gray-400); margin-top: 4px; }
+
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px;
+  font-size: 11px; font-weight: 500;
+  border-radius: 999px;
+}
+
+.badge-info { background: var(--color-blue-50); color: var(--color-blue-600); border: 1px solid var(--color-blue-200); }
+.badge-success { background: #d1fae5; color: #047857; border: 1px solid #10b981; }
+.badge-warning { background: #fef3c7; color: #d97706; border: 1px solid #f59e0b; }
+.badge-danger { background: #fee2e2; color: #dc2626; border: 1px solid #ef4444; }
+
+.input-demo {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+
+.form-input {
+  padding: 8px 12px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: 'Inter', 'Noto Sans SC', sans-serif;
+  background: #fff;
+  transition: all 150ms ease;
+  width: 200px;
+}
+.form-input:focus { outline: none; border-color: var(--color-blue-400); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.form-input::placeholder { color: var(--color-gray-400); }
+
+.form-input-mono {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 13px;
+}
+
+.page-pattern-demo {
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.hero-demo {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  padding: 24px 32px;
+  margin-bottom: 12px;
+}
+
+.hero-demo .eyebrow { font-size: 11px; color: var(--color-blue-600); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+.hero-demo .title-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.hero-demo .icon-box { width: 36px; height: 36px; background: var(--color-blue-100); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+.hero-demo h2 { font-size: 18px; font-weight: 600; margin: 0; }
+.hero-demo .subtitle { font-size: 13px; color: var(--color-gray-600); margin-top: 2px; }
+.hero-demo .chips { display: flex; gap: 8px; margin-top: 12px; }
+
+.strip-demo {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+.strip-demo .strip-title { font-size: 13px; color: var(--color-gray-600); }
+.strip-demo .strip-chips { display: flex; gap: 6px; }
+.strip-demo .count { font-size: 12px; color: var(--color-gray-400); margin-left: auto; }
+
+.tab-demo {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab-item {
+  padding: 4px 16px;
+  font-size: 12px; font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.tab-item.active { background: var(--color-blue-600); color: #fff; }
+.tab-item:not(.active) { background: var(--color-gray-100); color: var(--color-gray-600); border: 1px solid var(--color-gray-300); }
+.tab-item:not(.active):hover { background: var(--color-gray-200); }
+
+.table-demo {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.table-demo .toolbar {
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+.table-demo .toolbar h3 { font-size: 14px; font-weight: 500; margin: 0; }
+
+.table-demo table { width: 100%; border-collapse: collapse; }
+.table-demo th { padding: 8px 16px; font-size: 12px; color: var(--color-gray-400); font-weight: 500; text-align: left; background: var(--color-gray-50); }
+.table-demo td { padding: 10px 16px; font-size: 13px; color: var(--color-gray-800); border-bottom: 1px solid var(--color-gray-100); }
+.table-demo tr:nth-child(even) td { background: var(--color-gray-50); }
+
+.mono-cell { font-family: 'Cascadia Code', monospace; font-size: 12px; }
+
+.code-block {
+  background: var(--color-gray-900);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.code-block code {
+  font-family: 'Cascadia Code', monospace;
+  font-size: 13px;
+  color: #e5e5e5;
+  line-height: 1.6;
+}
+.code-block .token-key { color: #60a5fa; }
+.code-block .token-val { color: #d1fae5; }
+.code-block .token-comment { color: #a3a3a3; }
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+.spec-table th { padding: 8px 12px; background: var(--color-gray-100); font-weight: 500; color: var(--color-gray-600); text-align: left; }
+.spec-table td { padding: 8px 12px; border-bottom: 1px solid var(--color-gray-200); }
+
+.chat-demo {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  max-width: 600px;
+}
+
+.chat-bubble-user {
+  background: var(--color-blue-600);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 16px 16px 4px 16px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  margin-left: auto;
+  max-width: 280px;
+}
+
+.chat-bubble-ai {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  padding: 12px 16px;
+  border-radius: 16px 16px 16px 4px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  max-width: 400px;
+}
+
+.chat-input-area {
+  display: flex; gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.chat-chips { display: flex; gap: 6px; margin-top: 8px; }
+
+.overview-badge {
+  display: inline-flex;
+  padding: 4px 12px;
+  background: var(--color-blue-50);
+  color: var(--color-blue-600);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-right: 8px;
+}
+
+.wcag-badge {
+  display: inline-flex;
+  padding: 4px 8px;
+  background: #d1fae5;
+  color: #047857;
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 500;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">KP</div>
+    <div class="logo-text">KuberPilot<br><span style="font-size:11px;color:var(--color-gray-400);">Design System v1.0</span></div>
+  </div>
+  <nav>
+    <div class="nav-group">
+      <div class="nav-group-label">Foundations</div>
+      <a href="#colors" class="active">Color tokens</a>
+      <a href="#typography">Typography</a>
+      <a href="#spacing">Spacing & radius</a>
+      <a href="#shadows">Shadows & transitions</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Components</div>
+      <a href="#buttons">Buttons</a>
+      <a href="#inputs">Inputs & forms</a>
+      <a href="#tags">Tags & badges</a>
+      <a href="#stats">Stat cards</a>
+      <a href="#tables">Tables</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Page patterns</div>
+      <a href="#hero">Hero panel</a>
+      <a href="#workbench">Workbench card</a>
+      <a href="#chat">Chat panel</a>
+      <a href="#tree">Tree navigator</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Scenarios</div>
+      <a href="#task-page">Task workbench</a>
+      <a href="#aiops-page">AIOps chat</a>
+      <a href="#k8s-page">K8s management</a>
+      <a href="#observability-page">Observability</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Handoff</div>
+      <a href="#tokens-ref">Token reference</a>
+      <a href="#accessibility">Accessibility</a>
+    </div>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- ========== HEADER ========== -->
+  <h1>KuberPilot Design System</h1>
+  <p class="page-desc">
+    飞书蓝色系迭代设计方案。基于 #2563eb 主色，建立完整的色彩梯度、排版、间距、组件与页面模式体系。
+    <span class="wcag-badge">WCAG AA</span> <span class="overview-badge">38 pages</span> <span class="overview-badge">4 priority scenarios</span>
+  </p>
+
+  <!-- ========== COLOR TOKENS ========== -->
+  <div class="section" id="colors">
+    <h2>Color tokens</h2>
+    <p class="page-desc">Primary blue 50-900 梯度，中性灰 surface 系列，语义状态色。</p>
+
+    <h3>Primary blue — 飞书工作台主色</h3>
+    <div class="scale-row">
+      <div class="scale-item" style="background:#eff6ff;"><div class="scale-label">50</div><div class="scale-value">#eff6ff</div></div>
+      <div class="scale-item" style="background:#dbeafe;"><div class="scale-label">100</div><div class="scale-value">#dbeafe</div></div>
+      <div class="scale-item" style="background:#bfdbfe;"><div class="scale-label">200</div><div class="scale-value">#bfdbfe</div></div>
+      <div class="scale-item" style="background:#93c5fd;color:#fff;"><div class="scale-label">300</div><div class="scale-value">#93c5fd</div></div>
+      <div class="scale-item" style="background:#60a5fa;color:#fff;"><div class="scale-label">400</div><div class="scale-value">#60a5fa</div></div>
+      <div class="scale-item" style="background:#3b82f6;color:#fff;"><div class="scale-label">500</div><div class="scale-value">#3b82f6</div></div>
+      <div class="scale-item" style="background:#2563eb;color:#fff;font-weight:600;border:2px solid #1d4ed8;"><div class="scale-label">600 PRIMARY</div><div class="scale-value">#2563eb</div></div>
+      <div class="scale-item" style="background:#1d4ed8;color:#fff;"><div class="scale-label">700</div><div class="scale-value">#1d4ed8</div></div>
+      <div class="scale-item" style="background:#1e40af;color:#fff;"><div class="scale-label">800</div><div class="scale-value">#1e40af</div></div>
+      <div class="scale-item" style="background:#1e3a8a;color:#fff;"><div class="scale-label">900</div><div class="scale-value">#1e3a8a</div></div>
+    </div>
+    <p style="font-size:12px;color:var(--color-gray-400);">50-200: light fills/bgs | 400: hover/accent | 600: primary/action CTA | 800-900: text on light bg</p>
+
+    <h3>Neutral gray — 文本层级 + 表面色</h3>
+    <div class="scale-row">
+      <div class="scale-item" style="background:#fafafa;"><div class="scale-label">50 page</div><div class="scale-value">#fafafa</div></div>
+      <div class="scale-item" style="background:#f5f5f5;"><div class="scale-label">100 surface</div><div class="scale-value">#f5f5f5</div></div>
+      <div class="scale-item" style="background:#e5e5e5;"><div class="scale-label">200 divider</div><div class="scale-value">#e5e5e5</div></div>
+      <div class="scale-item" style="background:#d4d4d4;"><div class="scale-label">300 border</div><div class="scale-value">#d4d4d4</div></div>
+      <div class="scale-item"><div class="scale-label">400 muted</div><div class="scale-value">#a3a3a3</div></div>
+      <div class="scale-item"><div class="scale-label">600 body</div><div class="scale-value">#525252</div></div>
+      <div class="scale-item"><div class="scale-label">800 heading</div><div class="scale-value">#262626</div></div>
+      <div class="scale-item"><div class="scale-label">900 title</div><div class="scale-value">#171717</div></div>
+    </div>
+
+    <h3>Semantic status — 运维场景专属</h3>
+    <div class="semantic-row">
+      <div class="semantic-card">
+        <div class="sc-label" style="color:#047857;">Success</div>
+        <div class="sc-bg" style="background:#d1fae5;"></div>
+        <div class="sc-hex">#10b981 / bg: #d1fae5</div>
+      </div>
+      <div class="semantic-card">
+        <div class="sc-label" style="color:#d97706;">Warning</div>
+        <div class="sc-bg" style="background:#fef3c7;"></div>
+        <div class="sc-hex">#f59e0b / bg: #fef3c7</div>
+      </div>
+      <div class="semantic-card">
+        <div class="sc-label" style="color:#dc2626;">Danger</div>
+        <div class="sc-bg" style="background:#fee2e2;"></div>
+        <div class="sc-hex">#ef4444 / bg: #fee2e2</div>
+      </div>
+      <div class="semantic-card">
+        <div class="sc-label" style="color:#2563eb;">Info</div>
+        <div class="sc-bg" style="background:#dbeafe;"></div>
+        <div class="sc-hex">#3b82f6 / bg: #dbeafe</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--color-gray-400);">success=运行/在线/已通过 | warning=待审批/pending | danger=失败/CrashLoop | info=排队/默认</p>
+  </div>
+
+  <!-- ========== TYPOGRAPHY ========== -->
+  <div class="section" id="typography">
+    <h2>Typography</h2>
+    <table class="spec-table">
+      <tr><th>Token</th><th>Size</th><th>Rem</th><th>Usage</th></tr>
+      <tr><td>--font-size-xs</td><td>12px</td><td>0.75</td><td>Captions, tags, meta</td></tr>
+      <tr><td>--font-size-sm</td><td>14px</td><td>0.875</td><td>Secondary text, table cells, buttons</td></tr>
+      <tr><td>--font-size-base</td><td>16px</td><td>1</td><td>Body text, inputs</td></tr>
+      <tr><td>--font-size-lg</td><td>18px</td><td>1.125</td><td>Subheadings</td></tr>
+      <tr><td>--font-size-xl</td><td>20px</td><td>1.25</td><td>Section titles</td></tr>
+      <tr><td>--font-size-2xl</td><td>24px</td><td>1.5</td><td>Page titles, stat values</td></tr>
+      <tr><td>--font-size-3xl</td><td>30px</td><td>1.875</td><td>Hero titles</td></tr>
+      <tr><td>--font-size-4xl</td><td>36px</td><td>2.25</td><td>Splash titles</td></tr>
+    </table>
+    <table class="spec-table">
+      <tr><th>Family</th><th>Usage</th><th>Fallback</th></tr>
+      <tr><td>'Inter'</td><td>Primary: all UI text</td><td>system-ui, -apple-system, 'Segoe UI'</td></tr>
+      <tr><td>'Noto Sans SC'</td><td>Chinese text rendering</td><td>'PingFang SC', 'Microsoft YaHei'</td></tr>
+      <tr><td>'Cascadia Code'</td><td>Mono: K8s names, YAML, SQL, terminal</td><td>'Fira Code', 'JetBrains Mono', 'Consolas'</td></tr>
+    </table>
+    <table class="spec-table">
+      <tr><th>Weight</th><th>Token</th><th>Usage</th></tr>
+      <tr><td>400</td><td>--font-weight-regular</td><td>Body text, descriptions</td></tr>
+      <tr><td>500</td><td>--font-weight-medium</td><td>Labels, buttons, table headers</td></tr>
+      <tr><td>600</td><td>--font-weight-semibold</td><td>Titles, stat values, emphasis</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== SPACING ========== -->
+  <div class="section" id="spacing">
+    <h2>Spacing & radius</h2>
+    <h3>Spacing scale — 4px base unit</h3>
+    <table class="spec-table">
+      <tr><th>Token</th><th>Value</th><th>Px</th><th>Usage</th></tr>
+      <tr><td>--space-1</td><td>0.25rem</td><td>4</td><td>Tight gaps, inline spacing</td></tr>
+      <tr><td>--space-2</td><td>0.5rem</td><td>8</td><td>Compact padding, btn padding</td></tr>
+      <tr><td>--space-3</td><td>0.75rem</td><td>12</td><td>Standard gap, input padding</td></tr>
+      <tr><td>--space-4</td><td>1rem</td><td>16</td><td>Default padding, page gap</td></tr>
+      <tr><td>--space-5</td><td>1.25rem</td><td>20</td><td>Comfortable gap</td></tr>
+      <tr><td>--space-6</td><td>1.5rem</td><td>24</td><td>Section gap, hero padding</td></tr>
+      <tr><td>--space-8</td><td>2rem</td><td>32</td><td>Large gap, content padding</td></tr>
+      <tr><td>--space-10</td><td>2.5rem</td><td>40</td><td>Page section margin</td></tr>
+      <tr><td>--space-12</td><td>3rem</td><td>48</td><td>Hero section, major gap</td></tr>
+      <tr><td>--space-16</td><td>4rem</td><td>64</td><td>Major section spacing</td></tr>
+    </table>
+
+    <h3>Radius scale</h3>
+    <table class="spec-table">
+      <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+      <tr><td>--radius-sm</td><td>4px</td><td>Tags, small elements</td></tr>
+      <tr><td>--radius-md</td><td>8px</td><td>Inputs, buttons, pills</td></tr>
+      <tr><td>--radius-lg</td><td>12px</td><td>Cards, panels, stat cards</td></tr>
+      <tr><td>--radius-xl</td><td>16px</td><td>Hero panels, modals, chat bubbles</td></tr>
+      <tr><td>--radius-2xl</td><td>20px</td><td>Splash cards, major panels</td></tr>
+      <tr><td>--radius-full</td><td>9999px</td><td>Pill tags, avatars, status badges</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== SHADOWS ========== -->
+  <div class="section" id="shadows">
+    <h2>Shadows & transitions</h2>
+    <h3>Shadow scale</h3>
+    <table class="spec-table">
+      <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+      <tr><td>--shadow-xs</td><td>0 1px 2px rgba(0,0,0,0.05)</td><td>Card default, subtle elevation</td></tr>
+      <tr><td>--shadow-sm</td><td>0 1px 3px rgba(0,0,0,0.08)</td><td>Workbench card, hero panel</td></tr>
+      <tr><td>--shadow-md</td><td>0 4px 6px rgba(0,0,0,0.08)</td><td>Hover elevation, dropdown</td></tr>
+      <tr><td>--shadow-lg</td><td>0 10px 15px rgba(0,0,0,0.08)</td><td>Modal, popover</td></tr>
+      <tr><td>--shadow-xl</td><td>0 20px 25px rgba(0,0,0,0.1)</td><td>Overlay, full-screen modal</td></tr>
+      <tr><td>--shadow-focus</td><td>0 0 0 3px rgba(37,99,235,0.15)</td><td>Focus ring (WCAG required)</td></tr>
+    </table>
+
+    <h3>Transition scale</h3>
+    <table class="spec-table">
+      <tr><th>Token</th><th>Value</th><th>Usage</th></tr>
+      <tr><td>--transition-fast</td><td>150ms ease</td><td>Button hover, tag hover, micro-interactions</td></tr>
+      <tr><td>--transition-normal</td><td>300ms ease</td><td>Card hover, panel expand, tab switch</td></tr>
+      <tr><td>--transition-slow</td><td>500ms ease</td><td>Page transition, modal appear</td></tr>
+      <tr><td>--transition-spring</td><td>400ms cubic-bezier(0.34,1.56,0.64,1)</td><td>Notification bounce, toast appear</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== BUTTONS ========== -->
+  <div class="section" id="buttons">
+    <h2>Buttons</h2>
+    <div class="component-demo">
+      <h3>Variants</h3>
+      <div class="btn-row">
+        <button class="btn btn-primary">Primary action</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-ghost">Ghost link</button>
+        <button class="btn btn-danger">Danger delete</button>
+      </div>
+      <h3>Sizes</h3>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm">Small (28px)</button>
+        <button class="btn btn-primary">Medium (36px)</button>
+        <button class="btn btn-primary btn-lg">Large (44px)</button>
+      </div>
+      <h3>States</h3>
+      <div class="btn-row">
+        <button class="btn btn-primary">Default</button>
+        <button class="btn btn-primary" style="opacity:0.85;">Hover (opacity 0.85)</button>
+        <button class="btn btn-primary" style="background:#1d4ed8;">Active (pressed)</button>
+        <button class="btn btn-primary" style="outline:2px solid #60a5fa;outline-offset:2px;">Focus</button>
+        <button class="btn btn-primary" disabled>Disabled (opacity 0.4)</button>
+      </div>
+    </div>
+    <table class="spec-table">
+      <tr><th>Property</th><th>Value</th></tr>
+      <tr><td>Height</td><td>sm: 28px | md: 36px | lg: 44px</td></tr>
+      <tr><td>Padding</td><td>sm: 4px 12px | md: 6px 16px | lg: 10px 24px</td></tr>
+      <tr><td>Radius</td><td>--radius-md (8px)</td></tr>
+      <tr><td>Font</td><td>--font-size-sm (13px) weight 500</td></tr>
+      <tr><td>Focus ring</td><td>--shadow-focus (3px blue ring, WCAG AA)</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== INPUTS ========== -->
+  <div class="section" id="inputs">
+    <h2>Inputs & forms</h2>
+    <div class="component-demo">
+      <div class="input-demo">
+        <input class="form-input" placeholder="Default input">
+        <input class="form-input" value="Focused" style="outline:none;border-color:#60a5fa;box-shadow:0 0 0 3px rgba(37,99,235,0.15);">
+        <input class="form-input" value="Error" style="border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,0.15);">
+        <input class="form-input mono" value="nginx-web-7d4b8" placeholder="Mono (K8s names)">
+      </div>
+    </div>
+    <table class="spec-table">
+      <tr><th>Property</th><th>Value</th></tr>
+      <tr><td>Height</td><td>36px (--input-height)</td></tr>
+      <tr><td>Padding</td><td>8px 12px</td></tr>
+      <tr><td>Radius</td><td>--radius-md (8px)</td></tr>
+      <tr><td>Border</td><td>1px solid --border-default</td></tr>
+      <tr><td>Focus</td><td>border-color: primary + 3px ring</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== TAGS ========== -->
+  <div class="section" id="tags">
+    <h2>Tags & badges</h2>
+    <div class="component-demo">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <span class="badge badge-info">排队中</span>
+        <span class="badge badge-success">Running</span>
+        <span class="badge badge-warning">待审批</span>
+        <span class="badge badge-danger">CrashLoop</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="padding:4px 12px;background:#f5f5f5;border-radius:4px;font-size:12px;color:#525252;">服务重启</span>
+        <span style="padding:4px 12px;background:#f5f5f5;border-radius:4px;font-size:12px;color:#525252;">扩容</span>
+        <span style="padding:4px 12px;background:#f5f5f5;border-radius:4px;font-size:12px;color:#525252;">数据备份</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== STAT CARDS ========== -->
+  <div class="section" id="stats">
+    <h2>Stat cards</h2>
+    <div class="component-demo">
+      <div class="stat-grid-demo">
+        <div class="stat-card">
+          <div class="stat-bar stat-bar-info"></div>
+          <div class="stat-label">任务总数</div>
+          <div class="stat-value">156</div>
+          <div class="stat-foot">近7天 +12</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-bar stat-bar-warning"></div>
+          <div class="stat-label">待审批</div>
+          <div class="stat-value">23</div>
+          <div class="stat-foot">需人工确认</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-bar stat-bar-success"></div>
+          <div class="stat-label">运行中</div>
+          <div class="stat-value">12</div>
+          <div class="stat-foot">执行正常</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-bar stat-bar-danger"></div>
+          <div class="stat-label">执行失败</div>
+          <div class="stat-value">3</div>
+          <div class="stat-foot">需排查重试</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TABLES ========== -->
+  <div class="section" id="tables">
+    <h2>Tables</h2>
+    <div class="component-demo">
+      <div class="table-demo">
+        <div class="toolbar">
+          <h3>Pod 列表</h3>
+          <span style="font-size:12px;color:var(--color-gray-400);margin-left:8px;">prod-cluster-01 / default</span>
+        </div>
+        <table>
+          <tr><th>名称</th><th>状态</th><th>CPU</th><th>内存</th><th>年龄</th></tr>
+          <tr><td><span class="mono-cell">nginx-web-7d4b8</span></td><td><span class="badge badge-success">Running</span></td><td>85m</td><td>256Mi</td><td>3d</td></tr>
+          <tr><td><span class="mono-cell">api-server-e4f1a</span></td><td><span class="badge badge-danger">Error</span></td><td>120m</td><td>384Mi</td><td>1d</td></tr>
+          <tr><td><span class="mono-cell">redis-cache-2a3b5</span></td><td><span class="badge badge-info">Pending</span></td><td>-</td><td>-</td><td>12m</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== HERO PANEL ========== -->
+  <div class="section" id="hero">
+    <h2>Hero panel pattern</h2>
+    <div class="page-pattern-demo">
+      <div class="hero-demo">
+        <div class="eyebrow">EXECUTION CONSOLE</div>
+        <div class="title-row">
+          <div class="icon-box">&#9654;</div>
+          <div>
+            <h2>任务工作台</h2>
+            <div class="subtitle">管理并执行运维任务，追踪资源状态与执行进度</div>
+          </div>
+        </div>
+        <div class="chips">
+          <span class="badge badge-info">全量视图</span>
+          <span class="badge" style="padding:4px 12px;background:#f5f5f5;border-radius:999px;font-size:12px;color:#525252;">dev</span>
+          <span class="badge badge-success">运行中: 12</span>
+        </div>
+      </div>
+      <div class="strip-demo">
+        <span class="strip-title">当前视图</span>
+        <div class="strip-chips">
+          <span class="badge badge-info">全量</span>
+          <span style="padding:4px 12px;background:#f5f5f5;border-radius:999px;font-size:12px;color:#525252;">按类型</span>
+        </div>
+        <span class="count">共 156 项</span>
+      </div>
+    </div>
+    <table class="spec-table">
+      <tr><th>Layer</th><th>Height</th><th>Token</th><th>Content</th></tr>
+      <tr><td>Hero panel</td><td>72-80px</td><td>--hero-padding / --hero-radius</td><td>eyebrow + icon-box(36px) + title + subtitle + chips</td></tr>
+      <tr><td>Stats grid</td><td>72px</td><td>--stat-card-padding / --stat-bar-height: 2px</td><td>4-col grid, label + badge + value(22px) + foot</td></tr>
+      <tr><td>Context strip</td><td>32px</td><td>--strip-padding</td><td>title + pill chips + count</td></tr>
+      <tr><td>Tabs / toolbar</td><td>36-40px</td><td>--radius-md</td><td>neo-tabs pill selector + filters</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== WORKBENCH ========== -->
+  <div class="section" id="workbench">
+    <h2>Workbench card pattern</h2>
+    <div class="component-demo">
+      <div class="table-demo">
+        <div class="toolbar">
+          <h3>任务列表</h3>
+          <span style="font-size:12px;color:var(--color-gray-400);">近期运维执行任务</span>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm">新建任务</button>
+            <button class="btn btn-secondary btn-sm">刷新</button>
+            <button class="btn btn-secondary btn-sm">筛选</button>
+          </div>
+        </div>
+        <table>
+          <tr><th>任务名称</th><th>类型</th><th>状态</th><th>目标主机</th><th>执行人</th></tr>
+          <tr><td>重启 Nginx 服务</td><td><span style="padding:4px 8px;background:#f5f5f5;border-radius:4px;font-size:11px;">服务重启</span></td><td><span class="badge badge-success">运行中</span></td><td>web-node-03</td><td>张运维</td></tr>
+          <tr><td>扩容 Prometheus 存储卷</td><td><span style="padding:4px 8px;background:#f5f5f5;border-radius:4px;font-size:11px;">扩容</span></td><td><span class="badge badge-warning">待审批</span></td><td>mon-node-01</td><td>李工</td></tr>
+          <tr><td>清理日志文件 (&gt;30天)</td><td><span style="padding:4px 8px;background:#f5f5f5;border-radius:4px;font-size:11px;">清理</span></td><td><span class="badge badge-danger">失败</span></td><td>log-node-02</td><td>自动</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== CHAT ========== -->
+  <div class="section" id="chat">
+    <h2>Chat panel pattern (AIOps)</h2>
+    <div class="component-demo">
+      <div class="chat-demo">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--color-gray-200);padding-bottom:8px;">
+          <h3 style="margin:0;">智能运维对话</h3>
+          <span style="font-size:12px;color:var(--color-gray-400);">诊断专家模式</span>
+        </div>
+        <div class="chat-bubble-user">web-node-03 CPU 超过 85%，帮我排查</div>
+        <div class="chat-bubble-ai">
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <div style="width:28px;height:28px;background:#dbeafe;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#2563eb;">AI</div>
+            <span style="font-size:12px;color:#525252;">诊断专家</span>
+          </div>
+          <p>根据 prod-cluster-01 监控数据：</p>
+          <div style="background:#f5f5f5;border-radius:8px;padding:8px;margin:8px 0;font-family:'Cascadia Code',monospace;font-size:12px;">
+            CPU: 87.3% (threshold: 85%)<br>Mem: 4.2GB / 8GB (52%)
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span class="badge badge-success">重启 Nginx worker</span>
+            <span class="badge badge-warning">扩容连接数</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-primary btn-sm">一键执行</button>
+            <button class="btn btn-secondary btn-sm">仅查看详情</button>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input class="form-input" style="flex:1;" placeholder="输入运维问题，AI将自动关联上下文...">
+          <button class="btn btn-primary" style="min-width:36px;">&#8593;</button>
+        </div>
+        <div class="chat-chips">
+          <span class="badge badge-info">快速诊断</span>
+          <span style="padding:4px 12px;background:#f5f5f5;border-radius:999px;font-size:12px;color:#525252;">查看日志</span>
+          <span style="padding:4px 12px;background:#f5f5f5;border-radius:999px;font-size:12px;color:#525252;">执行修复</span>
+        </div>
+      </div>
+    </div>
+    <table class="spec-table">
+      <tr><th>Layout</th><th>Width</th><th>Content</th></tr>
+      <tr><td>Context sidebar</td><td>200px</td><td>Cluster/NS/Host context + Knowledge graph + Agent config</td></tr>
+      <tr><td>Chat area</td><td>388px (fill)</td><td>Header + Bubble messages + Inline metrics</td></tr>
+      <tr><td>Input area</td><td>72px height</td><td>Input + Send button + Quick action chips</td></tr>
+    </table>
+  </div>
+
+  <!-- ========== TREE NAV ========== -->
+  <div class="section" id="tree">
+    <h2>Tree navigator pattern (K8s)</h2>
+    <div class="component-demo">
+      <div style="background:#fff;border:1px solid var(--color-gray-200);border-radius:12px;padding:16px;max-width:240px;">
+        <h3 style="margin-bottom:12px;font-size:14px;">集群导航</h3>
+        <div style="background:#dbeafe;border:1px solid #2563eb;border-radius:6px;padding:8px 12px;font-size:11px;font-weight:500;color:#2563eb;margin-bottom:6px;">&#9679; prod-cluster-01</div>
+        <div style="background:#fff;border:1px solid var(--color-gray-200);border-radius:4px;padding:6px 12px;font-size:12px;color:#525252;margin-left:20px;margin-bottom:4px;">&#9656; default (32 pods)</div>
+        <div style="background:#fff;border:1px solid var(--color-gray-200);border-radius:4px;padding:6px 12px;font-size:12px;color:#525252;margin-left:20px;margin-bottom:4px;">&#9656; monitoring (18)</div>
+        <div style="background:#fff;border:1px solid var(--color-gray-200);border-radius:6px;padding:8px 12px;font-size:11px;color:#525252;margin-bottom:6px;">&#9679; staging-cluster</div>
+        <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:8px 12px;font-size:11px;color:#d97706;margin-bottom:6px;">&#9679; test-cluster (warn)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TASK PAGE ========== -->
+  <div class="section" id="task-page">
+    <h2>Scenario: Task workbench</h2>
+    <p class="page-desc">运维工程师日常入口。Hero + Stats + Context Strip + Workbench Card 组合。信息密度适中，操作路径清晰。</p>
+    <div class="page-pattern-demo">
+      <div class="hero-demo" style="padding:16px 24px;">
+        <div class="eyebrow">EXECUTION CONSOLE</div>
+        <div class="title-row" style="margin-top:4px;">
+          <div class="icon-box" style="width:32px;height:32px;font-size:14px;">&#9654;</div>
+          <div><h2 style="font-size:16px;">任务工作台</h2><div class="subtitle">运维任务追踪与执行</div></div>
+          <div class="chips" style="margin-left:auto;">
+            <span class="badge badge-success">运行中: 12</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;">
+        <div class="stat-card" style="padding:12px 16px;"><div class="stat-bar stat-bar-info"></div><div class="stat-label" style="font-size:12px;">总数</div><div class="stat-value" style="font-size:20px;">156</div></div>
+        <div class="stat-card" style="padding:12px 16px;"><div class="stat-bar stat-bar-warning"></div><div class="stat-label" style="font-size:12px;">待审批</div><div class="stat-value" style="font-size:20px;">23</div></div>
+        <div class="stat-card" style="padding:12px 16px;"><div class="stat-bar stat-bar-success"></div><div class="stat-label" style="font-size:12px;">运行中</div><div class="stat-value" style="font-size:20px;">12</div></div>
+        <div class="stat-card" style="padding:12px 16px;"><div class="stat-bar stat-bar-danger"></div><div class="stat-label" style="font-size:12px;">失败</div><div class="stat-value" style="font-size:20px;">3</div></div>
+      </div>
+      <div class="strip-demo" style="margin-bottom:8px;">
+        <span class="strip-title">视图</span>
+        <div class="strip-chips"><span class="badge badge-info">全量</span><span style="padding:4px 12px;background:#f5f5f5;border-radius:999px;font-size:12px;color:#525252;">按主机</span></div>
+        <span class="count">156 项</span>
+      </div>
+      <div style="background:#fff;border-radius:12px;border:1px solid var(--color-gray-200);padding:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--color-gray-200);">
+          <div><h3 style="margin:0;font-size:14px;">任务列表</h3></div>
+          <div style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm">新建任务</button><button class="btn btn-secondary btn-sm">刷新</button></div>
+        </div>
+        <table style="width:100%;font-size:13px;">
+          <tr><th style="padding:6px 12px;font-size:11px;color:var(--color-gray-400);">名称</th><th style="padding:6px 12px;font-size:11px;color:var(--color-gray-400);">状态</th><th style="padding:6px 12px;font-size:11px;color:var(--color-gray-400);">主机</th></tr>
+          <tr><td style="padding:6px 12px;">重启 Nginx</td><td style="padding:6px 12px;"><span class="badge badge-success">运行中</span></td><td style="padding:6px 12px;">web-03</td></tr>
+          <tr style="background:var(--color-gray-50);"><td style="padding:6px 12px;">扩容存储卷</td><td style="padding:6px 12px;"><span class="badge badge-warning">待审批</span></td><td style="padding:6px 12px;">mon-01</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TOKENS REFERENCE ========== -->
+  <div class="section" id="tokens-ref">
+    <h2>Token reference (CSS)</h2>
+    <p class="page-desc">完整令牌定义见 docs/design-system/tokens.css。以下是核心令牌速查。</p>
+    <div class="code-block">
+      <code>
+<span class="token-comment">/* Primary colors */</span>
+<span class="token-key">--color-primary</span>: <span class="token-val">#2563eb</span>;
+<span class="token-key">--color-primary-light</span>: <span class="token-val">#3b82f6</span>;
+<span class="token-key">--color-primary-dark</span>: <span class="token-val">#1d4ed8</span>;
+<span class="token-key">--color-primary-bg</span>: <span class="token-val">#eff6ff</span>;
+
+<span class="token-comment">/* Text hierarchy */</span>
+<span class="token-key">--text-primary</span>: <span class="token-val">#171717</span>;   <span class="token-comment">/* titles */</span>
+<span class="token-key">--text-secondary</span>: <span class="token-val">#525252</span>; <span class="token-comment">/* body */</span>
+<span class="token-key">--text-muted</span>: <span class="token-val">#a3a3a3</span>;   <span class="token-comment">/* captions */</span>
+
+<span class="token-comment">/* Surface colors */</span>
+<span class="token-key">--bg-page</span>: <span class="token-val">#fafafa</span>;
+<span class="token-key">--bg-surface</span>: <span class="token-val">#f5f5f5</span>;
+<span class="token-key">--bg-card</span>: <span class="token-val">#ffffff</span>;
+
+<span class="token-comment">/* Layout */</span>
+<span class="token-key">--sidebar-width</span>: <span class="token-val">188px</span>;
+<span class="token-key">--header-height</span>: <span class="token-val">56px</span>;
+<span class="token-key">--radius-lg</span>: <span class="token-val">12px</span>;
+<span class="token-key">--shadow-focus</span>: <span class="token-val">0 0 0 3px rgba(37,99,235,0.15)</span>;
+      </code>
+    </div>
+  </div>
+
+  <!-- ========== ACCESSIBILITY ========== -->
+  <div class="section" id="accessibility">
+    <h2>Accessibility (WCAG AA)</h2>
+    <table class="spec-table">
+      <tr><th>Requirement</th><th>Standard</th><th>Implementation</th></tr>
+      <tr><td>Color contrast (normal text)</td><td>4.5:1 minimum</td><td>#171717 on #fafafa = 15.4:1 | #525252 on #fff = 7.6:1 | #2563eb on #fff = 4.7:1</td></tr>
+      <tr><td>Color contrast (large text)</td><td>3:1 minimum</td><td>#2563eb on #fff = 4.7:1 (pass)</td></tr>
+      <tr><td>Focus indicators</td><td>Visible focus ring</td><td>--shadow-focus: 3px blue ring on all interactive elements</td></tr>
+      <tr><td>Keyboard navigation</td><td>All functions available via keyboard</td><td>Logical tab order, skip-to-content link</td></tr>
+      <tr><td>Touch targets</td><td>44px minimum</td><td>Buttons: 44px (lg), 36px (md) + padding extends click area</td></tr>
+      <tr><td>Screen reader</td><td>Semantic HTML + ARIA</td><td>role="img" + aria-label on charts, aria-expanded on tree</td></tr>
+      <tr><td>Text scaling</td><td>Works at 200% zoom</td><td>rem-based sizing, no fixed px layouts</td></tr>
+      <tr><td>Motion sensitivity</td><td>Respects prefers-reduced-motion</td><td>--transition-fast with CSS @media guard</td></tr>
+    </table>
+  </div>
+
+  <div style="padding:32px 0;border-top:1px solid var(--color-gray-200);margin-top:48px;color:var(--color-gray-400);font-size:12px;">
+    KuberPilot Design System v1.0 | Feishu-blue iteration (#2563eb) | WCAG AA compliant | 2026-07-14
+  </div>
+
+</div>
+
+<script>
+// Simple sidebar navigation highlighting
+const navLinks = document.querySelectorAll('.sidebar nav a');
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    navLinks.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

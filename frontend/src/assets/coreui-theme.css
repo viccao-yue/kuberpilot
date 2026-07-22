@@ -1,0 +1,1406 @@
+html[data-theme="coreui"] {
+  --primary: #321fdb;
+  --primary-light: #4f3cf7;
+  --primary-dark: #2a19c3;
+  --primary-rgb: 50, 31, 219;
+
+  --content-bg: #f3f4f7;
+  --card-bg: #ffffff;
+
+  --text-primary: rgba(14, 16, 26, 0.92);
+  --text-secondary: rgba(14, 16, 26, 0.70);
+  --text-muted: rgba(14, 16, 26, 0.52);
+
+  --border-color: rgba(14, 16, 26, 0.10);
+  --border-color-strong: rgba(14, 16, 26, 0.16);
+
+  --sidebar-bg: #ffffff;
+  --sidebar-hover: rgba(14, 16, 26, 0.045);
+  --sidebar-active: rgba(var(--primary-rgb), 0.12);
+  --sidebar-text: rgba(14, 16, 26, 0.74);
+  --sidebar-text-active: var(--primary);
+  --sidebar-width: 216px;
+  --sidebar-collapsed-width: 68px;
+
+  --header-height: 56px;
+  --header-bg: rgba(255, 255, 255, 0.90);
+  --header-shadow: none;
+
+  --card-shadow: 0 1px 2px rgba(14, 16, 26, 0.06);
+  --card-radius: 10px;
+
+  --success: #2eb85c;
+  --warning: #f9b115;
+  --danger: #e55353;
+  --info: #39f;
+
+  --transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+
+html[data-theme="coreui"] body {
+  background: var(--content-bg);
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .sidebar {
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .sidebar-logo {
+  min-height: 64px;
+  padding: 0 12px;
+}
+
+html[data-theme="coreui"] .sidebar-logo .logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(var(--primary-rgb), 0.06);
+  border-color: rgba(var(--primary-rgb), 0.14);
+}
+
+html[data-theme="coreui"] .sidebar-logo .logo-text {
+  font-size: 15px;
+  letter-spacing: -0.12px;
+}
+
+html[data-theme="coreui"] .sidebar-logo .logo-subtext {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+
+html[data-theme="coreui"] .sidebar-nav {
+  padding: 8px 8px 12px;
+  --el-menu-item-height: 38px;
+}
+
+html[data-theme="coreui"] .sidebar .el-menu-item,
+html[data-theme="coreui"] .sidebar .el-sub-menu__title {
+  height: 38px;
+  line-height: 38px;
+  margin: 1px 0;
+  padding: 0 10px !important;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+html[data-theme="coreui"] .sidebar .el-menu-item .el-icon,
+html[data-theme="coreui"] .sidebar .el-sub-menu__title .el-icon {
+  width: 16px;
+  margin-right: 8px;
+}
+
+html[data-theme="coreui"] .sidebar .el-menu-item.is-active {
+  background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.12) 0%, rgba(var(--primary-rgb), 0.09) 100%) !important;
+}
+
+html[data-theme="coreui"] .header {
+  height: 54px;
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  padding: 0 18px;
+}
+
+html[data-theme="coreui"] .header-left .breadcrumb {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+html[data-theme="coreui"] .header-left,
+html[data-theme="coreui"] .header-right {
+  gap: 10px;
+}
+
+html[data-theme="coreui"] .header-left .collapse-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+html[data-theme="coreui"] .header-left .collapse-btn:hover {
+  background: rgba(var(--primary-rgb), 0.06);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+
+html[data-theme="coreui"] .main-area {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.26) 0%, rgba(255, 255, 255, 0) 180px), var(--content-bg);
+}
+
+html[data-theme="coreui"] .content {
+  padding: 10px 18px 14px;
+}
+
+html[data-theme="coreui"] .assistant-trigger,
+html[data-theme="coreui"] .notice-trigger {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: none;
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .assistant-trigger {
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.07);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+
+html[data-theme="coreui"] .assistant-trigger::after {
+  display: none;
+}
+
+html[data-theme="coreui"] .assistant-trigger:hover,
+html[data-theme="coreui"] .notice-trigger:hover {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .assistant-trigger:hover {
+  background: rgba(var(--primary-rgb), 0.11);
+  border-color: rgba(var(--primary-rgb), 0.24);
+  color: var(--primary-dark);
+}
+
+html[data-theme="coreui"] .notice-trigger:hover {
+  background: rgba(14, 16, 26, 0.035);
+  border-color: rgba(14, 16, 26, 0.14);
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .user-trigger {
+  min-height: 36px;
+  padding: 2px 6px 2px 2px;
+  border-radius: 12px;
+}
+
+html[data-theme="coreui"] .user-trigger:hover {
+  background: rgba(14, 16, 26, 0.035);
+}
+
+html[data-theme="coreui"] .user-avatar {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .user-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+html[data-theme="coreui"] .user-role {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+html[data-theme="coreui"] .header-notice-popover {
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 12px 32px rgba(14, 16, 26, 0.10);
+}
+
+html[data-theme="coreui"] .notice-panel {
+  gap: 10px;
+}
+
+html[data-theme="coreui"] .notice-panel__title {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .notice-panel__subtitle,
+html[data-theme="coreui"] .notice-item__desc,
+html[data-theme="coreui"] .notice-item__time,
+html[data-theme="coreui"] .notice-group__title,
+html[data-theme="coreui"] .notice-group__count,
+html[data-theme="coreui"] .notice-empty {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .notice-group__count {
+  background: rgba(14, 16, 26, 0.05);
+}
+
+html[data-theme="coreui"] .notice-item {
+  padding: 9px 10px 9px 8px;
+  border-radius: 10px;
+  border-color: var(--border-color);
+  background: #ffffff;
+}
+
+html[data-theme="coreui"] .notice-item:hover {
+  border-color: rgba(var(--primary-rgb), 0.18);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+
+html[data-theme="coreui"] .notice-item__title {
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .sidebar .el-menu-item.is-active {
+  border-color: rgba(var(--primary-rgb), 0.30);
+}
+
+html[data-theme="coreui"] .stat-card .stat-icon.primary {
+  background: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary);
+}
+
+.cui-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+.cui-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.70);
+}
+
+.cui-muted {
+  color: var(--text-muted);
+}
+
+.cui-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.cui-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  height: 22px;
+  font-size: 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .workbench-page-shell {
+  gap: 6px;
+}
+
+html[data-theme="coreui"] .workbench-card,
+html[data-theme="coreui"] .workbench-inline-tip--panel,
+html[data-theme="coreui"] .audit-card,
+html[data-theme="coreui"] .release-stat-card,
+html[data-theme="coreui"] .tabs-card {
+  border-radius: 10px;
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .workbench-card {
+  padding: 12px;
+}
+
+html[data-theme="coreui"] .workbench-card-head,
+html[data-theme="coreui"] .section-toolbar,
+html[data-theme="coreui"] .workbench-toolbar {
+  margin-bottom: 6px;
+}
+
+html[data-theme="coreui"] .toolbar-title,
+html[data-theme="coreui"] .workbench-card-title strong {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+html[data-theme="coreui"] .toolbar-desc,
+html[data-theme="coreui"] .workbench-card-title span {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .workbench-toolbar.workbench-toolbar--history,
+html[data-theme="coreui"] .cui-strip {
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .workbench-inline-tip {
+  padding: 7px 10px;
+  border-radius: 10px;
+  border-color: rgba(var(--primary-rgb), 0.10);
+  background: rgba(var(--primary-rgb), 0.05);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .workbench-inline-tip--panel {
+  padding: 10px 12px;
+}
+
+html[data-theme="coreui"] .tip-panel-item {
+  border-radius: 10px;
+  border-color: var(--border-color);
+  background: rgba(14, 16, 26, 0.02);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .tip-panel-item::before {
+  background: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.10);
+}
+
+html[data-theme="coreui"] .audit-grid {
+  gap: 10px;
+}
+
+html[data-theme="coreui"] .audit-card,
+html[data-theme="coreui"] .release-stat-card {
+  min-height: 72px;
+  padding: 14px;
+}
+
+html[data-theme="coreui"] .audit-card strong,
+html[data-theme="coreui"] .audit-card .stat-value,
+html[data-theme="coreui"] .release-stat-card .stat-value {
+  font-size: 24px;
+}
+
+html[data-theme="coreui"] .release-stat-card:hover,
+html[data-theme="coreui"] .audit-card--action:hover {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .release-stat-card:hover {
+  border-color: rgba(var(--primary-rgb), 0.22);
+  background: rgba(var(--primary-rgb), 0.02);
+}
+
+html[data-theme="coreui"] .audit-card--action:hover {
+  border-color: rgba(var(--primary-rgb), 0.22);
+}
+
+html[data-theme="coreui"] .release-stat-card.active-card,
+html[data-theme="coreui"] .audit-card--action.is-active {
+  border-color: rgba(var(--primary-rgb), 0.36);
+  box-shadow: inset 0 0 0 1px rgba(var(--primary-rgb), 0.08);
+}
+
+html[data-theme="coreui"] .workbench-page-shell .el-input__wrapper,
+html[data-theme="coreui"] .workbench-page-shell .el-textarea__inner,
+html[data-theme="coreui"] .workbench-page-shell .el-select__wrapper {
+  min-height: 34px;
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .workbench-page-shell .el-button {
+  min-height: 32px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+html[data-theme="coreui"] .workbench-page-shell .el-button:not(.el-button--primary):not(.is-link) {
+  border-color: var(--border-color);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .workbench-page-shell .el-table {
+  --el-table-border-color: rgba(14, 16, 26, 0.08);
+  --el-table-header-bg-color: rgba(14, 16, 26, 0.03);
+  --el-table-row-hover-bg-color: rgba(var(--primary-rgb), 0.04);
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .workbench-page-shell .el-table th.el-table__cell {
+  background: rgba(14, 16, 26, 0.03);
+}
+
+html[data-theme="coreui"] section.hero.panel {
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="coreui"] section.hero.panel .hero-icon,
+html[data-theme="coreui"] section.hero.panel .release-header-icon,
+html[data-theme="coreui"] section.hero.panel .host-header-icon,
+html[data-theme="coreui"] section.hero.panel .title-icon,
+html[data-theme="coreui"] section.hero.panel .ticket-header-icon {
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  border-radius: 12px !important;
+}
+
+html[data-theme="coreui"] section.hero.panel .hero-actions .el-button:not(.is-link) {
+  min-height: 30px !important;
+  padding: 0 12px !important;
+  border-radius: 9px !important;
+}
+
+html[data-theme="coreui"] .query-pill {
+  border-radius: 999px;
+  border: 1px solid rgba(var(--primary-rgb), 0.14);
+  background: rgba(var(--primary-rgb), 0.05);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .query-pill--clear {
+  border-color: rgba(229, 83, 83, 0.18);
+  background: rgba(229, 83, 83, 0.06);
+  color: #b42318;
+}
+
+html[data-theme="coreui"] .search-summary-bar {
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .toolbar-actions--compact,
+html[data-theme="coreui"] .trace-query-actions,
+html[data-theme="coreui"] .query-actions,
+html[data-theme="coreui"] .hero-actions {
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .section-head,
+html[data-theme="coreui"] .query-head,
+html[data-theme="coreui"] .metric-query-unified-head,
+html[data-theme="coreui"] .log-query-unified-head,
+html[data-theme="coreui"] .trace-query-unified-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(14, 16, 26, 0.06);
+}
+
+html[data-theme="coreui"] .query-head-meta,
+html[data-theme="coreui"] .section-title-summary,
+html[data-theme="coreui"] .quick-panel-count,
+html[data-theme="coreui"] .toolbar-count {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .query-head-meta span,
+html[data-theme="coreui"] .section-head-actions span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(14, 16, 26, 0.04);
+}
+
+html[data-theme="coreui"] .search-panel,
+html[data-theme="coreui"] .trace-query-unified-body,
+html[data-theme="coreui"] .query-body {
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .metric-query-provider-strip,
+html[data-theme="coreui"] .log-query-provider-strip,
+html[data-theme="coreui"] .trace-query-provider-strip,
+html[data-theme="coreui"] .source-toolbar,
+html[data-theme="coreui"] .unmatched-strip,
+html[data-theme="coreui"] .list-toolbar,
+html[data-theme="coreui"] .query-summary-caption {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+html[data-theme="coreui"] .query-summary-caption {
+  margin-bottom: 8px;
+}
+
+html[data-theme="coreui"] .metric-query-provider-label,
+html[data-theme="coreui"] .log-query-provider-label,
+html[data-theme="coreui"] .trace-query-provider-label,
+html[data-theme="coreui"] .source-toolbar-title {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+html[data-theme="coreui"] .source-toolbar-desc,
+html[data-theme="coreui"] .query-summary-caption em,
+html[data-theme="coreui"] .section-inline-note em {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .query-spotlight-grid,
+html[data-theme="coreui"] .trace-query-layout,
+html[data-theme="coreui"] .query-console,
+html[data-theme="coreui"] .source-board {
+  gap: 10px;
+}
+
+html[data-theme="coreui"] .query-spotlight-card,
+html[data-theme="coreui"] .trace-source-card,
+html[data-theme="coreui"] .quick-promql-card,
+html[data-theme="coreui"] .source-card,
+html[data-theme="coreui"] .dashboard-card,
+html[data-theme="coreui"] .group-head,
+html[data-theme="coreui"] .notice-item {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .query-spotlight-card,
+html[data-theme="coreui"] .trace-source-card,
+html[data-theme="coreui"] .source-card,
+html[data-theme="coreui"] .dashboard-card {
+  padding: 12px;
+}
+
+html[data-theme="coreui"] .query-spotlight-card span,
+html[data-theme="coreui"] .query-spotlight-card em,
+html[data-theme="coreui"] .trace-source-desc,
+html[data-theme="coreui"] .summary-text,
+html[data-theme="coreui"] .sub-text,
+html[data-theme="coreui"] .dashboard-row__meta span,
+html[data-theme="coreui"] .group-head__meta span {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .query-spotlight-card strong,
+html[data-theme="coreui"] .trace-source-title,
+html[data-theme="coreui"] .quick-card-title,
+html[data-theme="coreui"] .source-card strong,
+html[data-theme="coreui"] .dashboard-row strong,
+html[data-theme="coreui"] .group-head strong {
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .query-spotlight-card.is-highlight,
+html[data-theme="coreui"] .query-spotlight-card.is-warning,
+html[data-theme="coreui"] .source-card:hover,
+html[data-theme="coreui"] .dashboard-card:hover,
+html[data-theme="coreui"] .group-head.is-selected {
+  border-color: rgba(var(--primary-rgb), 0.22);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+
+html[data-theme="coreui"] .quick-promql-panel,
+html[data-theme="coreui"] .trace-info-panel,
+html[data-theme="coreui"] .metric-result-card,
+html[data-theme="coreui"] .source-map-panel,
+html[data-theme="coreui"] .timeline-panel {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .quick-category-tab,
+html[data-theme="coreui"] .source-filter-pill,
+html[data-theme="coreui"] .unmatched-chip,
+html[data-theme="coreui"] .dashboard-chip {
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .quick-category-tab.active,
+html[data-theme="coreui"] .source-filter-pill.active,
+html[data-theme="coreui"] .unmatched-chip:hover {
+  border-color: rgba(var(--primary-rgb), 0.2);
+  background: rgba(var(--primary-rgb), 0.06);
+  color: var(--primary);
+}
+
+html[data-theme="coreui"] .quick-promql-card.active,
+html[data-theme="coreui"] .dashboard-card.active,
+html[data-theme="coreui"] .source-card--clickable:hover {
+  border-color: rgba(var(--primary-rgb), 0.26);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+
+html[data-theme="coreui"] .quick-promql-card p,
+html[data-theme="coreui"] .source-card p {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .quick-promql-card code,
+html[data-theme="coreui"] .source-card footer b,
+html[data-theme="coreui"] .code-cell span,
+html[data-theme="coreui"] .trace-summary-item strong {
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .source-meta span,
+html[data-theme="coreui"] .source-card footer em,
+html[data-theme="coreui"] .trace-summary-item span {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .section-inline-note {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px dashed rgba(var(--primary-rgb), 0.16);
+  background: rgba(var(--primary-rgb), 0.04);
+}
+
+html[data-theme="coreui"] .section-inline-note span,
+html[data-theme="coreui"] .unmatched-title span {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+html[data-theme="coreui"] .tabs-panel--session,
+html[data-theme="coreui"] .query-panel,
+html[data-theme="coreui"] .event-env-card,
+html[data-theme="coreui"] .tracing-datasource-card {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .tabs-session-bar {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+html[data-theme="coreui"] .session-add-btn {
+  min-height: 30px;
+}
+
+html[data-theme="coreui"] .lane-row,
+html[data-theme="coreui"] .axis-track,
+html[data-theme="coreui"] .lane-track {
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .lane-label {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+}
+
+html[data-theme="coreui"] .lane-row.active .lane-label,
+html[data-theme="coreui"] .lane-label:hover {
+  border-color: rgba(var(--primary-rgb), 0.2);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+
+html[data-theme="coreui"] .event-env-table .alias-wrap .el-tag,
+html[data-theme="coreui"] .trace-source-tags .el-tag,
+html[data-theme="coreui"] .name-cell .el-tag {
+  border-radius: 999px;
+}
+
+html[data-theme="coreui"] .dashboard-groups {
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .group-head__count,
+html[data-theme="coreui"] .immersive-toolbar__hint,
+html[data-theme="coreui"] .event-overview-value,
+html[data-theme="coreui"] .grafana-overview-value,
+html[data-theme="coreui"] .trace-overview-value,
+html[data-theme="coreui"] .logs-overview-value {
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .dashboard-row__kind,
+html[data-theme="coreui"] .group-head__folder-icon,
+html[data-theme="coreui"] .source-avatar {
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .immersive-shell,
+html[data-theme="coreui"] .immersive-toolbar {
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .list-toolbar__summary,
+html[data-theme="coreui"] .source-filter-bar,
+html[data-theme="coreui"] .workbench-card-actions {
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .task-page-shell,
+html[data-theme="coreui"] .task-center-page,
+html[data-theme="coreui"] .release-page,
+html[data-theme="coreui"] .transaction-ticket-page,
+html[data-theme="coreui"] .sql-audit-page {
+  gap: 6px;
+}
+
+html[data-theme="coreui"] .task-hero-panel,
+html[data-theme="coreui"] .release-context-strip,
+html[data-theme="coreui"] .task-context-strip,
+html[data-theme="coreui"] .task-view-panel,
+html[data-theme="coreui"] .glass-card {
+  border-radius: 10px !important;
+  border: 1px solid var(--border-color) !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="coreui"] .task-hero-panel {
+  padding: 10px 12px !important;
+}
+
+html[data-theme="coreui"] .task-hero-eyebrow,
+html[data-theme="coreui"] .release-hero-eyebrow {
+  color: var(--primary);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+html[data-theme="coreui"] .task-header-icon,
+html[data-theme="coreui"] .hero-icon-monitor,
+html[data-theme="coreui"] .sql-header-icon,
+html[data-theme="coreui"] .ticket-header-icon {
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="coreui"] .task-hero-chip,
+html[data-theme="coreui"] .release-hero-chip,
+html[data-theme="coreui"] .task-view-chip,
+html[data-theme="coreui"] .task-context-item,
+html[data-theme="coreui"] .release-context-item,
+html[data-theme="coreui"] .release-toolbar-tag {
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .task-context-title,
+html[data-theme="coreui"] .release-context-strip-title,
+html[data-theme="coreui"] .task-view-title {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+html[data-theme="coreui"] .task-context-desc,
+html[data-theme="coreui"] .release-context-strip-desc,
+html[data-theme="coreui"] .task-view-desc {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .task-metric-grid,
+html[data-theme="coreui"] .composer-grid {
+  gap: 10px;
+}
+
+html[data-theme="coreui"] .task-metric-card,
+html[data-theme="coreui"] .preset-card,
+html[data-theme="coreui"] .dispatch-inline-item,
+html[data-theme="coreui"] .selection-pill,
+html[data-theme="coreui"] .detail-chip,
+html[data-theme="coreui"] .detail-card {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .task-metric-card,
+html[data-theme="coreui"] .preset-card {
+  padding: 12px;
+}
+
+html[data-theme="coreui"] .task-metric-card__label,
+html[data-theme="coreui"] .task-metric-card__foot,
+html[data-theme="coreui"] .preset-desc,
+html[data-theme="coreui"] .dispatch-inline-label,
+html[data-theme="coreui"] .selection-pill,
+html[data-theme="coreui"] .detail-kv.compact-kv {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .task-metric-card__value,
+html[data-theme="coreui"] .preset-title,
+html[data-theme="coreui"] .inner-tab-title,
+html[data-theme="coreui"] .task-form-head-actions .el-tag {
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .task-metric-card.is-active,
+html[data-theme="coreui"] .preset-card.active,
+html[data-theme="coreui"] .selection-pill-button:hover {
+  border-color: rgba(var(--primary-rgb), 0.24);
+  background: rgba(var(--primary-rgb), 0.04);
+}
+
+html[data-theme="coreui"] .task-inner-tab-btn {
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .task-inner-tab-btn.active {
+  background: rgba(var(--primary-rgb), 0.06);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+
+html[data-theme="coreui"] .inner-tab-desc,
+html[data-theme="coreui"] .task-context-copy span:last-child {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .task-inline-tip,
+html[data-theme="coreui"] .dispatch-inline-strip,
+html[data-theme="coreui"] .toolbar.toolbar--targets {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+html[data-theme="coreui"] .script-editor-shell,
+html[data-theme="coreui"] .sql-editor-wrapper,
+html[data-theme="coreui"] .detail-section,
+html[data-theme="coreui"] .trace-workbench,
+html[data-theme="coreui"] .timeline-detail {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .script-editor-head,
+html[data-theme="coreui"] .script-editor-head--meta {
+  border-bottom: 1px solid rgba(14, 16, 26, 0.06);
+  background: rgba(14, 16, 26, 0.02);
+}
+
+html[data-theme="coreui"] .script-editor-textarea,
+html[data-theme="coreui"] .sql-editor,
+html[data-theme="coreui"] .sql-display,
+html[data-theme="coreui"] .output-dialog-block {
+  background: rgba(14, 16, 26, 0.015);
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .cmdb-resource-tree-panel,
+html[data-theme="coreui"] .resource-list-card,
+html[data-theme="coreui"] .task-view-panel,
+html[data-theme="coreui"] .dispatch-form-panel,
+html[data-theme="coreui"] .dispatch-preset-panel {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .tree-panel-head,
+html[data-theme="coreui"] .task-view-head,
+html[data-theme="coreui"] .card-head {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(14, 16, 26, 0.06);
+}
+
+html[data-theme="coreui"] .tree-panel-title,
+html[data-theme="coreui"] .card-head span:first-child,
+html[data-theme="coreui"] .request-toolbar .toolbar-label {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+html[data-theme="coreui"] .resource-tree,
+html[data-theme="coreui"] .resource-table-wrap {
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .tree-node-content,
+html[data-theme="coreui"] .cmdb-stat-card,
+html[data-theme="coreui"] .detail-section,
+html[data-theme="coreui"] .detail-summary,
+html[data-theme="coreui"] .detail-grid .detail-card {
+  border-radius: 10px;
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .cmdb-stat-card.active,
+html[data-theme="coreui"] .tree-node-content:hover {
+  background: rgba(var(--primary-rgb), 0.04);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+
+html[data-theme="coreui"] .tree-env-tag,
+html[data-theme="coreui"] .release-inline-tag,
+html[data-theme="coreui"] .release-status-tag {
+  border-radius: 999px;
+}
+
+html[data-theme="coreui"] .release-summary-strip,
+html[data-theme="coreui"] .release-context-strip,
+html[data-theme="coreui"] .ticket-filter-bar,
+html[data-theme="coreui"] .operation-audit-toolbar {
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .release-context-strip,
+html[data-theme="coreui"] .task-context-strip {
+  padding: 8px 10px;
+}
+
+html[data-theme="coreui"] .release-summary-strip .stat-card-badge,
+html[data-theme="coreui"] .task-metric-card__badge {
+  border-radius: 999px;
+  background: rgba(14, 16, 26, 0.05);
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .release-summary-strip.is-active,
+html[data-theme="coreui"] .release-summary-strip:hover {
+  border-color: rgba(var(--primary-rgb), 0.24);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+
+html[data-theme="coreui"] .release-row-actions,
+html[data-theme="coreui"] .row-actions {
+  gap: 4px 8px;
+}
+
+html[data-theme="coreui"] .ticket-title,
+html[data-theme="coreui"] .app-name,
+html[data-theme="coreui"] .name-text {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html[data-theme="coreui"] .stack-cell .sub-text,
+html[data-theme="coreui"] .app-cell .sub-text,
+html[data-theme="coreui"] .scope-cell__mode,
+html[data-theme="coreui"] .scope-cell__system,
+html[data-theme="coreui"] .content-hint,
+html[data-theme="coreui"] .check-msg,
+html[data-theme="coreui"] .check-rule {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .tabs-card .event-like-tabs,
+html[data-theme="coreui"] .sql-audit-tabs {
+  background: transparent;
+}
+
+html[data-theme="coreui"] .sql-audit-tabs .tab-label {
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .sql-audit-tabs .is-active .tab-label,
+html[data-theme="coreui"] .sql-audit-tabs .el-tabs__item.is-active .tab-label {
+  color: var(--primary);
+}
+
+html[data-theme="coreui"] .check-item {
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+html[data-theme="coreui"] .check-item.error {
+  border-color: rgba(229, 83, 83, 0.18);
+  background: rgba(229, 83, 83, 0.04);
+}
+
+html[data-theme="coreui"] .check-item.warning {
+  border-color: rgba(249, 177, 21, 0.22);
+  background: rgba(249, 177, 21, 0.05);
+}
+
+html[data-theme="coreui"] .resource-dialog .el-dialog,
+html[data-theme="coreui"] .event-source-dialog .el-dialog,
+html[data-theme="coreui"] .docker-console-dialog .el-dialog,
+html[data-theme="coreui"] .el-dialog,
+html[data-theme="coreui"] .el-drawer {
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 18px 48px rgba(14, 16, 26, 0.12);
+}
+
+html[data-theme="coreui"] .el-dialog__header,
+html[data-theme="coreui"] .el-drawer__header {
+  margin-right: 0;
+  padding: 18px 20px 8px;
+  border-bottom: 1px solid rgba(14, 16, 26, 0.06);
+}
+
+html[data-theme="coreui"] .el-dialog__body,
+html[data-theme="coreui"] .el-drawer__body {
+  padding: 16px 20px 20px;
+  background: #ffffff;
+}
+
+html[data-theme="coreui"] .el-dialog__footer {
+  padding: 10px 20px 18px;
+  border-top: 1px solid rgba(14, 16, 26, 0.06);
+}
+
+html[data-theme="coreui"] .overlay-head strong,
+html[data-theme="coreui"] .docker-dialog-header strong,
+html[data-theme="coreui"] .detail-main-title {
+  color: var(--text-primary);
+}
+
+html[data-theme="coreui"] .overlay-eyebrow,
+html[data-theme="coreui"] .docker-dialog-eyebrow {
+  color: var(--primary);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+html[data-theme="coreui"] .overlay-head p,
+html[data-theme="coreui"] .docker-dialog-header p,
+html[data-theme="coreui"] .detail-subline,
+html[data-theme="coreui"] .detail-kv {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .el-descriptions {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+html[data-theme="coreui"] .el-tabs__nav-wrap::after {
+  background-color: rgba(14, 16, 26, 0.08);
+}
+
+html[data-theme="coreui"] .el-tabs__item {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+html[data-theme="coreui"] .el-tabs__item.is-active {
+  color: var(--primary);
+}
+
+html[data-theme="coreui"] .el-tabs--card > .el-tabs__header {
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(14, 16, 26, 0.08);
+}
+
+html[data-theme="coreui"] .el-tabs--card > .el-tabs__header .el-tabs__nav {
+  border: none;
+}
+
+html[data-theme="coreui"] .el-tabs--card > .el-tabs__header .el-tabs__item {
+  border: 1px solid transparent;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+}
+
+html[data-theme="coreui"] .el-tabs--card > .el-tabs__header .el-tabs__item.is-active {
+  border-color: rgba(14, 16, 26, 0.08) rgba(14, 16, 26, 0.08) #ffffff;
+  background: #ffffff;
+}
+
+html[data-theme="coreui"] .el-empty {
+  padding: 18px 0;
+}
+
+html[data-theme="coreui"] .el-empty__description p {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .el-pagination {
+  --el-pagination-button-bg-color: #ffffff;
+  --el-pagination-hover-color: var(--primary);
+  color: var(--text-secondary);
+  gap: 4px;
+}
+
+html[data-theme="coreui"] .el-pagination .btn-prev,
+html[data-theme="coreui"] .el-pagination .btn-next,
+html[data-theme="coreui"] .el-pagination .el-pager li {
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: #ffffff;
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .el-pagination .el-pager li.is-active {
+  border-color: rgba(var(--primary-rgb), 0.24);
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--primary);
+}
+
+html[data-theme="coreui"] .el-dropdown-menu,
+html[data-theme="coreui"] .el-select-dropdown,
+html[data-theme="coreui"] .el-picker-panel,
+html[data-theme="coreui"] .el-popover.el-popper,
+html[data-theme="coreui"] .el-popconfirm {
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 12px 32px rgba(14, 16, 26, 0.10);
+}
+
+html[data-theme="coreui"] .el-dropdown-menu {
+  padding: 6px;
+}
+
+html[data-theme="coreui"] .el-dropdown-menu__item {
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .el-dropdown-menu__item:not(.is-disabled):hover,
+html[data-theme="coreui"] .el-select-dropdown__item.hover,
+html[data-theme="coreui"] .el-select-dropdown__item:hover {
+  background: rgba(var(--primary-rgb), 0.06);
+  color: var(--primary);
+}
+
+html[data-theme="coreui"] .el-select-dropdown__item.selected {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+html[data-theme="coreui"] .el-popconfirm__main,
+html[data-theme="coreui"] .el-popover {
+  color: var(--text-secondary);
+}
+
+html[data-theme="coreui"] .el-picker-panel__shortcut,
+html[data-theme="coreui"] .el-date-table td.available:hover,
+html[data-theme="coreui"] .el-date-table td.current:not(.disabled) .el-date-table-cell__text,
+html[data-theme="coreui"] .el-time-panel__btn.confirm {
+  color: var(--primary);
+}
+
+html[data-theme="coreui"] .el-date-table td.today .el-date-table-cell__text {
+  color: var(--primary-dark);
+}
+
+html[data-theme="coreui"] .el-badge__content {
+  border: 2px solid #ffffff;
+  box-shadow: none;
+}
+
+html[data-theme="coreui"] .auth-page {
+  background:
+    radial-gradient(circle at 14% 18%, rgba(var(--primary-rgb), 0.08), transparent 56%),
+    radial-gradient(circle at 84% 24%, rgba(var(--primary-rgb), 0.04), transparent 52%),
+    linear-gradient(90deg, rgba(14, 16, 26, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(14, 16, 26, 0.025) 1px, transparent 1px),
+    var(--content-bg);
+  background-size: auto, auto, 44px 44px, 44px 44px, auto;
+}
+
+html[data-theme="coreui"] .auth-shell {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 64px rgba(14, 16, 26, 0.10);
+  backdrop-filter: saturate(140%) blur(12px);
+}
+
+html[data-theme="coreui"] .auth-overview,
+html[data-theme="coreui"] .auth-panel {
+  background: transparent;
+}
+
+html[data-theme="coreui"] .auth-overview {
+  padding: 28px 34px;
+}
+
+html[data-theme="coreui"] .auth-overview::after {
+  top: 24px;
+  bottom: 24px;
+  background: linear-gradient(180deg, transparent, rgba(14, 16, 26, 0.10), transparent);
+}
+
+html[data-theme="coreui"] .brand-mark-image {
+  width: 42px;
+  height: 42px;
+}
+
+html[data-theme="coreui"] .brand-copy strong {
+  font-size: 18px;
+}
+
+html[data-theme="coreui"] .promo-link {
+  min-height: 34px;
+  padding: 0 13px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+html[data-theme="coreui"] .promo-link:hover {
+  border-color: rgba(var(--primary-rgb), 0.18);
+  background: rgba(var(--primary-rgb), 0.04);
+}
+
+html[data-theme="coreui"] .overview-content {
+  padding: 12px 0 4px;
+}
+
+html[data-theme="coreui"] .auth-overview h1 {
+  font-size: clamp(28px, 3vw, 34px);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+html[data-theme="coreui"] .overview-summary {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+html[data-theme="coreui"] .capability-list {
+  gap: 10px;
+  margin-top: 22px;
+}
+
+html[data-theme="coreui"] .capability-card {
+  min-height: 82px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+html[data-theme="coreui"] .capability-icon {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+html[data-theme="coreui"] .capability-title {
+  font-size: 13px;
+}
+
+html[data-theme="coreui"] .capability-desc {
+  font-size: 12px;
+}
+
+html[data-theme="coreui"] .ops-flow {
+  margin-top: 14px;
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+html[data-theme="coreui"] .flow-label {
+  font-size: 11px;
+}
+
+html[data-theme="coreui"] .auth-panel {
+  padding: 34px;
+}
+
+html[data-theme="coreui"] .auth-panel-inner {
+  width: min(332px, 100%);
+}
+
+html[data-theme="coreui"] .auth-panel h2 {
+  font-size: 30px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+html[data-theme="coreui"] .auth-subtitle {
+  margin: 8px 0 24px;
+  font-size: 13px;
+}
+
+html[data-theme="coreui"] .login-form :deep(.el-form-item) {
+  margin-bottom: 15px;
+}
+
+html[data-theme="coreui"] .login-form :deep(.el-form-item__label) {
+  padding-bottom: 6px;
+  font-size: 13px;
+}
+
+html[data-theme="coreui"] .login-form :deep(.el-input__wrapper) {
+  min-height: 42px;
+  border-radius: 10px;
+}
+
+html[data-theme="coreui"] .login-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow:
+    0 0 0 1px var(--primary) inset,
+    0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+
+html[data-theme="coreui"] .submit-btn {
+  height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+html[data-theme="coreui"] .default-auth-tip {
+  margin-top: 12px;
+  font-size: 11px;
+}
+
+html[data-theme="coreui"] .console-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+html[data-theme="coreui"] .console-skeleton--compact {
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .console-skeleton-card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 12px;
+}
+
+html[data-theme="coreui"] .console-skeleton-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .console-skeleton-table {
+  display: grid;
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .console-skeleton-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 0.8fr 0.8fr 0.9fr;
+  gap: 8px;
+}
+
+html[data-theme="coreui"] .console-skeleton-row--wide {
+  grid-template-columns: 1.6fr 1fr 0.8fr 0.9fr 1fr 0.9fr;
+}
+
+html[data-theme="coreui"] .console-skeleton-row--audit {
+  grid-template-columns: 1fr 1.4fr 0.8fr 0.8fr 0.8fr 1.2fr;
+}
+
+html[data-theme="coreui"] .console-skeleton-cell {
+  min-height: 34px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(14, 16, 26, 0.04), rgba(14, 16, 26, 0.07), rgba(14, 16, 26, 0.04));
+  background-size: 200% 100%;
+  animation: coreuiSkeletonShimmer 1.4s ease-in-out infinite;
+}
+
+html[data-theme="coreui"] .console-skeleton-cell--title {
+  min-height: 16px;
+}
+
+html[data-theme="coreui"] .console-skeleton-cell--short {
+  max-width: 140px;
+}
+
+@keyframes coreuiSkeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

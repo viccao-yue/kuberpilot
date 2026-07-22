@@ -1,0 +1,18 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    fill="#2F7DC3"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M16 128L62 44H166L140 84H100L72 128L100 172H140L166 212H62L16 128ZM50 128L88 64H127L114 84H100L72 128L100 172H114L127 192H88L50 128Z"
+  />
+  <path
+    fill="#2FB6C3"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M96 78L118 40H208L250 116L228 154H204L220 126L198 88H140L118 126L140 164H196L212 192H118L96 154L74 116L96 78ZM142 116L164 154H184L172 134H156L142 116Z"
+  />
+  <path
+    fill="#2FB6C3"
+    d="M192 164H228L246 196L228 228H192L174 196L192 164Z"
+  />
+</svg>

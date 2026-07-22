@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KuberPilot — 运维智能体平台</title>
+<style>
+/* =============================================
+   KuberPilot Design System v4.0 — 常青云平台风格
+   ============================================= */
+:root {
+  --c-primary: #2563eb;
+  --c-primary-hover: #1d4ed8;
+  --c-primary-bg: #eff6ff;
+  --c-primary-soft: #3b82f6;
+  --c-surface-0: #f5f7fa;
+  --c-surface-1: #ffffff;
+  --c-surface-2: #f8fafc;
+  --c-surface-3: #f9fafb;
+  --c-border: #e5e7eb;
+  --c-border-strong: #d1d5db;
+  --t-heading: #111827;
+  --t-body: #374151;
+  --t-muted: #6b7280;
+  --t-faint: #9ca3af;
+  --t-white: #fff;
+  --c-ok: #22c55e;
+  --c-warn: #f59e0b;
+  --c-danger: #ef4444;
+  --c-info: #3b82f6;
+  --f-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --f-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Source Code Pro", monospace;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fw-n: 400; --fw-m: 500; --fw-s: 600; --fw-b: 700;
+  --sp-0: 0; --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --r-xs: 2px; --r-sm: 4px; --r-md: 6px; --r-lg: 8px;
+  --topnav-h: 48px;
+  --sidebar-w: 200px;
+  --ease: cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{font-family:var(--f-ui);color:var(--t-body);background:var(--c-surface-0);line-height:1.5;overflow:hidden;height:100vh;font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit;border:none;outline:none;background:transparent}
+
+.topnav{height:var(--topnav-h);background:var(--c-surface-1);border-bottom:1px solid var(--c-border);display:flex;align-items:center;padding:0 var(--sp-4);flex-shrink:0;position:relative;z-index:100}
+.topnav-brand{display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0;margin-right:var(--sp-6)}
+.topnav-logo{width:28px;height:28px;background:var(--c-primary);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;color:var(--t-white);font-weight:var(--fw-b);font-size:var(--fs-sm)}
+.topnav-title{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.02em}
+.topnav-menu{display:flex;align-items:center;gap:var(--sp-1);flex:1;min-width:0;overflow:hidden}
+.topnav-item{position:relative;padding:0 var(--sp-3);height:var(--topnav-h);display:flex;align-items:center;font-size:var(--fs-sm);color:var(--t-muted);cursor:pointer;transition:color .1s var(--ease);white-space:nowrap}
+.topnav-item:hover{color:var(--t-heading)}
+.topnav-item.active{color:var(--c-primary);font-weight:var(--fw-s)}
+.topnav-item.active::after{content:'';position:absolute;bottom:0;left:var(--sp-3);right:var(--sp-3);height:2px;background:var(--c-primary);border-radius:1px 1px 0 0}
+.topnav-right{display:flex;align-items:center;gap:var(--sp-3);margin-left:auto;flex-shrink:0}
+.topnav-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--t-muted);cursor:pointer;border-radius:var(--r-sm);transition:background .1s var(--ease)}
+.topnav-icon:hover{background:var(--c-surface-2);color:var(--t-heading)}
+.topnav-icon svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.topnav-user{display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;padding:var(--sp-1) var(--sp-2);border-radius:var(--r-sm);transition:background .1s var(--ease)}
+.topnav-user:hover{background:var(--c-surface-2)}
+.topnav-av{width:26px;height:26px;background:var(--c-primary-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--c-primary);font-size:var(--fs-xs);font-weight:var(--fw-s)}
+.topnav-role{font-size:var(--fs-sm);color:var(--t-heading);font-weight:var(--fw-m)}
+
+.shell{display:flex;height:calc(100vh - var(--topnav-h));position:relative}
+.nav{width:var(--sidebar-w);background:var(--c-surface-0);border-right:1px solid var(--c-border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;padding:var(--sp-2) 0}
+.nav-group{padding:var(--sp-1) 0}
+.nav-group-label{font-size:var(--fs-xs);color:var(--t-faint);font-weight:var(--fw-m);padding:var(--sp-2) var(--sp-4) var(--sp-1);text-transform:uppercase}
+.nav-link{display:flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-3);margin:1px var(--sp-2);border-radius:var(--r-sm);cursor:pointer;transition:all .1s var(--ease);font-size:var(--fs-sm);color:var(--t-muted);user-select:none;font-weight:var(--fw-n);position:relative}
+.nav-link:hover{background:#fff;color:var(--t-heading)}
+.nav-link.active{background:#fff;color:var(--c-primary);font-weight:var(--fw-s);border:1px solid var(--c-border);border-left:3px solid var(--c-primary);padding-left:calc(var(--sp-3) - 2px)}
+.nav-link svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--c-surface-1)}
+.viewport{flex:1;overflow-y:auto;padding:var(--sp-4);background:var(--c-surface-1)}
+
+.page-hd{margin-bottom:var(--sp-4)}
+.page-bc{font-size:var(--fs-sm);color:var(--t-muted);display:flex;align-items:center;gap:var(--sp-1);margin-bottom:var(--sp-2)}
+.page-bc .sep{color:var(--c-border-strong)}
+.page-bc .cur{color:var(--t-heading);font-weight:var(--fw-m)}
+.page-title{font-size:var(--fs-xl);font-weight:var(--fw-s);color:var(--t-heading);line-height:1.4;display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+.page-meta{font-size:var(--fs-sm);color:var(--t-muted);margin-top:var(--sp-1);display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap}
+.page-actions{display:flex;align-items:center;gap:var(--sp-2);margin-top:var(--sp-3);flex-wrap:wrap}
+
+.sec{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-4);margin-bottom:var(--sp-4)}
+.sec-title{font-size:var(--fs-lg);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.01em;line-height:1.4}
+.sec-sub{font-size:var(--fs-sm);color:var(--t-muted);margin-top:var(--sp-1);line-height:1.5}
+.sec-tags{display:flex;gap:var(--sp-2);margin-top:var(--sp-2);flex-wrap:wrap}
+.sec-tag{font-size:var(--fs-xs);padding:2px var(--sp-2);border-radius:var(--r-xs);border:1px solid var(--c-border);color:var(--t-muted);background:var(--c-surface-2);font-weight:var(--fw-m)}
+.sec-tag.primary{border-color:var(--c-primary);color:var(--c-primary);background:var(--c-primary-bg)}
+
+.kpi-row{display:flex;align-items:stretch;gap:0;margin-bottom:var(--sp-4);background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-3) var(--sp-4)}
+.kpi{display:flex;flex-direction:column;gap:var(--sp-0);padding:var(--sp-2) var(--sp-4);flex:1}
+.kpi-label{font-size:var(--fs-xs);color:var(--t-muted);font-weight:var(--fw-m)}
+.kpi-val{font-size:var(--fs-xl);font-weight:var(--fw-b);color:var(--t-heading);line-height:1.2}
+.kpi-note{font-size:var(--fs-xs);color:var(--t-muted);margin-top:2px}
+.kpi-sep{width:1px;background:var(--c-border);flex-shrink:0}
+.kpi.ok .kpi-val{color:var(--c-ok)}
+.kpi.warn .kpi-val{color:var(--c-warn)}
+.kpi.danger .kpi-val{color:var(--c-danger)}
+.kpi.primary .kpi-val{color:var(--c-primary)}
+
+.hint{padding:var(--sp-2) var(--sp-3);background:var(--c-primary-bg);border-radius:var(--r-sm);font-size:var(--fs-sm);color:var(--c-primary);margin-bottom:var(--sp-3);border:1px solid #dbeafe;line-height:1.5}
+.hint-danger{background:#fef2f2;border-color:#fecaca;color:var(--c-danger)}
+.hint-warn{background:#fffbeb;border-color:#fde68a;color:#b45309}
+
+.tabs{display:flex;gap:0;margin-bottom:var(--sp-3);border-bottom:1px solid var(--c-border);background:var(--c-surface-1)}
+.tab{padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);color:var(--t-muted);cursor:pointer;background:none;border-bottom:2px solid transparent;transition:all .1s var(--ease);font-family:var(--f-ui);font-weight:var(--fw-m)}
+.tab:hover{color:var(--t-heading)}
+.tab.active{color:var(--c-primary);border-bottom-color:var(--c-primary)}
+
+.panel{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);overflow:hidden;margin-bottom:var(--sp-4)}
+.panel-head{padding:var(--sp-3) var(--sp-4);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-border);font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);background:var(--c-surface-1)}
+.panel-bar{padding:var(--sp-2) var(--sp-4);display:flex;gap:var(--sp-2);align-items:center;border-bottom:1px solid var(--c-border);flex-wrap:wrap;background:var(--c-surface-2)}
+.panel-body{padding:var(--sp-4)}
+
+.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-sm);border:1px solid var(--c-border);border-radius:var(--r-sm);overflow:hidden}
+.tbl th{text-align:left;padding:10px var(--sp-3);font-size:var(--fs-xs);color:var(--t-muted);font-weight:var(--fw-m);border-bottom:1px solid var(--c-border);background:var(--c-surface-2);white-space:nowrap;letter-spacing:.02em}
+.tbl td{padding:10px var(--sp-3);color:var(--t-body);border-bottom:1px solid var(--c-border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--c-surface-3)}
+.tbl a{color:var(--c-primary);cursor:pointer}
+.tbl a:hover{text-decoration:underline}
+
+.b{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-1);padding:0 12px;height:32px;font-size:var(--fs-sm);font-weight:var(--fw-m);font-family:var(--f-ui);border:1px solid var(--c-border-strong);border-radius:var(--r-sm);cursor:pointer;transition:all .1s var(--ease);background:var(--c-surface-1);color:var(--t-body);user-select:none;line-height:1}
+.b:hover{background:var(--c-surface-2);border-color:var(--c-border-strong)}
+.b-sm{height:28px;padding:0 10px;font-size:var(--fs-xs)}
+.b-p{background:var(--c-primary);color:var(--t-white);border-color:var(--c-primary)}
+.b-p:hover{background:var(--c-primary-hover);border-color:var(--c-primary-hover)}
+.b-d{color:var(--c-danger);border-color:var(--c-danger);background:var(--c-surface-1)}
+.b-d:hover{background:#fef2f2}
+.b-ok{color:var(--c-ok);border-color:var(--c-ok);background:var(--c-surface-1)}
+.b-ok:hover{background:#f0fdf4}
+
+.st{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);font-weight:var(--fw-m);white-space:nowrap;line-height:1}
+.st-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.st.ok .st-dot{background:var(--c-ok)} .st.ok{color:var(--c-ok)}
+.st.warn .st-dot{background:var(--c-warn)} .st.warn{color:var(--c-warn)}
+.st.danger .st-dot{background:var(--c-danger)} .st.danger{color:var(--c-danger)}
+.st.neutral .st-dot{background:var(--t-faint)} .st.neutral{color:var(--t-muted)}
+.st.primary .st-dot{background:var(--c-primary)} .st.primary{color:var(--c-primary)}
+.st.info .st-dot{background:var(--c-info)} .st.info{color:var(--c-info)}
+
+.lbl{font-size:var(--fs-xs);font-weight:var(--fw-m);padding:2px 6px;border-radius:var(--r-xs);border:1px solid;white-space:nowrap;line-height:1.5;display:inline-flex;align-items:center;gap:4px}
+.lbl-ok{color:var(--c-ok);border-color:#86efac;background:#f0fdf4}
+.lbl-warn{color:var(--c-warn);border-color:#fde68a;background:#fffbeb}
+.lbl-danger{color:var(--c-danger);border-color:#fecaca;background:#fef2f2}
+.lbl-primary{color:var(--c-primary);border-color:#bfdbfe;background:var(--c-primary-bg)}
+.lbl-neutral{color:var(--t-muted);border-color:var(--c-border);background:var(--c-surface-2)}
+
+.inp{padding:0 10px;height:32px;font-size:var(--fs-sm);border:1px solid var(--c-border-strong);border-radius:var(--r-sm);background:var(--c-surface-1);color:var(--t-body);font-family:var(--f-ui);transition:border-color .1s var(--ease)}
+.inp:focus{border-color:var(--c-primary);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+.inp::placeholder{color:var(--t-faint)}
+.sel{padding:0 10px;height:32px;font-size:var(--fs-sm);border:1px solid var(--c-border-strong);border-radius:var(--r-sm);background:var(--c-surface-1);color:var(--t-muted);font-family:var(--f-ui);appearance:none;cursor:pointer;min-width:80px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:26px}
+
+.search-box{position:relative;display:inline-flex;align-items:center}
+.search-box .inp{padding-left:30px;width:200px}
+.search-box svg{position:absolute;left:10px;width:14px;height:14px;stroke:var(--t-faint);fill:none;stroke-width:2}
+
+.chat-wrap{display:grid;grid-template-columns:200px 1fr;gap:0;height:calc(100vh - var(--topnav-h) - 90px);border:1px solid var(--c-border);border-radius:var(--r-sm);overflow:hidden;background:var(--c-surface-1)}
+.chat-side{background:var(--c-surface-0);border-right:1px solid var(--c-border);padding:var(--sp-2);display:flex;flex-direction:column;gap:var(--sp-1)}
+.chat-side-label{font-size:var(--fs-xs);color:var(--t-faint);font-weight:var(--fw-m);padding:var(--sp-1) var(--sp-2);letter-spacing:.04em;text-transform:uppercase}
+.chat-item{padding:var(--sp-2);border-radius:var(--r-sm);cursor:pointer;font-size:var(--fs-sm);color:var(--t-muted);transition:background .08s var(--ease);font-weight:var(--fw-n)}
+.chat-item:hover{background:#fff}
+.chat-item.active{background:var(--c-primary-bg);color:var(--c-primary);font-weight:var(--fw-m)}
+.chat-area{display:flex;flex-direction:column}
+.chat-msgs{flex:1;padding:var(--sp-4);overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-3)}
+.chat-msg{max-width:76%;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-md);font-size:var(--fs-sm);line-height:1.6}
+.chat-msg.u{background:var(--c-primary);color:var(--t-white);align-self:flex-end;border-bottom-right-radius:var(--r-xs)}
+.chat-msg.ai{background:var(--c-surface-0);color:var(--t-body);align-self:flex-start;border-bottom-left-radius:var(--r-xs);border:1px solid var(--c-border)}
+.chat-msg.ai .ai-label{font-size:var(--fs-xs);color:var(--c-primary);font-weight:var(--fw-s);margin-bottom:var(--sp-1)}
+.chat-bar{padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--c-border);display:flex;gap:var(--sp-2);align-items:center;background:var(--c-surface-1)}
+.chat-inp{flex:1;padding:var(--sp-2) var(--sp-3);border:1px solid var(--c-border-strong);border-radius:var(--r-sm);font-size:var(--fs-sm);font-family:var(--f-ui);background:var(--c-surface-1);resize:none;height:40px}
+
+.tree{width:180px;border-right:1px solid var(--c-border);background:var(--c-surface-0);padding:var(--sp-2);flex-shrink:0}
+.tree-node{padding:var(--sp-1) var(--sp-2);font-size:var(--fs-sm);color:var(--t-muted);cursor:pointer;border-radius:var(--r-xs);display:flex;align-items:center;gap:var(--sp-1);margin:1px 0;transition:background .08s var(--ease);font-weight:var(--fw-n)}
+.tree-node:hover{background:#fff;color:var(--t-heading)}
+.tree-node.active{background:var(--c-primary-bg);color:var(--c-primary);font-weight:var(--fw-m)}
+.tree-node.d1{padding-left:var(--sp-4)}
+.tree-node.d2{padding-left:var(--sp-6)}
+
+.code{background:#111827;border-radius:var(--r-sm);padding:var(--sp-3);font-family:var(--f-mono);font-size:var(--fs-sm);color:#9ca3af;overflow:auto;border:1px solid #374151;line-height:1.6}
+.code .kw{color:#60a5fa}.code .fn{color:#22c55e}.code .str{color:#f59e0b}
+
+.chart-box{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-4);margin-bottom:var(--sp-4)}
+.chart-title{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);margin-bottom:var(--sp-3)}
+.chart-area{height:160px;background:var(--c-surface-1);border-radius:var(--r-sm);position:relative;overflow:hidden}
+
+.host-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:var(--sp-3)}
+.host{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-3);cursor:pointer;transition:border-color .1s var(--ease)}
+.host:hover{border-color:var(--c-primary)}
+.host-name{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)}
+.host-ip{font-size:var(--fs-xs);color:var(--t-muted);margin-top:2px}
+.host-st{font-size:var(--fs-xs);margin-top:var(--sp-1)}
+
+.toggle{width:36px;height:20px;background:var(--c-border-strong);border-radius:var(--r-pill);position:relative;cursor:pointer;transition:background .1s var(--ease);flex-shrink:0}
+.toggle.on{background:var(--c-primary)}
+.toggle-dot{width:14px;height:14px;background:var(--c-surface-1);border-radius:50%;position:absolute;top:3px;left:3px;transition:left .1s var(--ease)}
+.toggle.on .toggle-dot{left:19px}
+
+.login-split{display:grid;grid-template-columns:5fr 4fr;height:100vh}
+.login-brand{background:var(--c-primary);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:var(--sp-10) var(--sp-10);color:var(--t-white)}
+.login-brand-mark{width:40px;height:40px;background:rgba(255,255,255,.12);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:var(--fw-b)}
+.login-brand-title{font-size:var(--fs-2xl);font-weight:var(--fw-b);margin-top:var(--sp-4);letter-spacing:-0.03em}
+.login-brand-sub{font-size:var(--fs-md);opacity:.8;margin-top:var(--sp-2);line-height:1.5}
+.login-brand-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-top:var(--sp-8)}
+.login-brand-cell{background:rgba(255,255,255,.08);border-radius:var(--r-sm);padding:var(--sp-3);border:1px solid rgba(255,255,255,.1)}
+.login-brand-cell h{font-size:var(--fs-sm);font-weight:var(--fw-m)}
+.login-brand-cell p{font-size:var(--fs-xs);opacity:.7;margin-top:2px}
+.login-form-area{background:var(--c-surface-1);display:flex;align-items:center;justify-content:center;padding:var(--sp-8)}
+.login-form{width:360px}
+.login-form-title{font-size:var(--fs-xl);font-weight:var(--fw-s);color:var(--t-heading);letter-spacing:-0.02em}
+.login-form-sub{font-size:var(--fs-sm);color:var(--t-muted);margin-top:var(--sp-1);margin-bottom:var(--sp-5)}
+.fld{margin-bottom:var(--sp-3)}
+.fld-label{font-size:var(--fs-sm);color:var(--t-muted);font-weight:var(--fw-m);margin-bottom:var(--sp-1);display:block}
+.fld-ctrl{width:100%;padding:0 var(--sp-3);height:40px;font-size:var(--fs-md);border:1px solid var(--c-border-strong);border-radius:var(--r-sm);font-family:var(--f-ui);background:var(--c-surface-1);color:var(--t-body);transition:border-color .1s var(--ease)}
+.fld-ctrl:focus{border-color:var(--c-primary);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+textarea.fld-ctrl{height:auto;padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm)}
+.fld-hint{font-size:var(--fs-xs);color:var(--t-faint);margin-top:var(--sp-1)}
+
+.form-row{display:flex;align-items:flex-start;gap:var(--sp-4);margin-bottom:var(--sp-4);min-height:32px}
+.form-row .form-label{width:100px;flex-shrink:0;font-size:var(--fs-sm);color:var(--t-heading);font-weight:var(--fw-m);padding-top:6px;position:relative}
+.form-row .form-label.required::after{content:'*';color:var(--c-danger);margin-left:2px}
+.form-row .form-ctrl{flex:1;min-width:0}
+.form-row .inp{width:100%;max-width:320px}
+.form-row .sel{max-width:320px}
+.form-row textarea.inp{height:80px;padding:var(--sp-2) var(--sp-3)}
+
+.form-sec-title{font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);padding-left:var(--sp-2);border-left:3px solid var(--c-primary);margin:var(--sp-4) 0 var(--sp-3);line-height:1.4;display:flex;align-items:center;gap:var(--sp-2);cursor:pointer}
+.form-sec-title svg{width:14px;height:14px;stroke:var(--t-muted);fill:none;stroke-width:2;transition:transform .1s var(--ease)}
+.form-sec-title.open svg{transform:rotate(180deg)}
+
+.opt-card{display:inline-flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-3);border:1px solid var(--c-border);border-radius:var(--r-sm);cursor:pointer;transition:all .1s var(--ease);font-size:var(--fs-sm);margin-right:var(--sp-2);margin-bottom:var(--sp-2)}
+.opt-card:hover{border-color:var(--c-primary)}
+.opt-card.active{border-color:var(--c-primary);background:var(--c-primary-bg);color:var(--c-primary)}
+.opt-card .check{width:14px;height:14px;border:1px solid var(--c-border-strong);border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center}
+.opt-card.active .check{border-color:var(--c-primary);background:var(--c-primary)}
+.opt-card.active .check svg{display:block}
+.opt-card .check svg{display:none;width:10px;height:10px;stroke:var(--t-white);fill:none;stroke-width:2.5}
+
+.steps{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:var(--sp-6);padding:var(--sp-4) 0}
+.step-item{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm);color:var(--t-muted);position:relative}
+.step-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--c-border-strong);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:var(--fw-s);background:var(--c-surface-1);color:var(--t-muted);flex-shrink:0}
+.step-item.done .step-num{border-color:var(--c-primary);background:var(--c-primary);color:var(--t-white)}
+.step-item.done .step-num::after{content:'✓';font-size:var(--fs-xs)}
+.step-item.done .step-num span{display:none}
+.step-item.current .step-num{border-color:var(--c-primary);background:var(--c-primary);color:var(--t-white)}
+.step-item.done .step-title,.step-item.current .step-title{color:var(--t-heading);font-weight:var(--fw-m)}
+.step-line{width:48px;height:1px;background:var(--c-border);margin:0 var(--sp-2)}
+.step-item.done + .step-line,.step-line.done{background:var(--c-primary)}
+
+.sticky-actions{position:sticky;bottom:0;left:0;right:0;background:var(--c-surface-1);border-top:1px solid var(--c-border);padding:var(--sp-3) var(--sp-4);display:flex;justify-content:flex-end;gap:var(--sp-2);margin:var(--sp-4) calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4));z-index:10}
+
+.src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--sp-3)}
+.src{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-3)}
+.src-head{display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-1)}
+.src-icon{width:28px;height:28px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:var(--fw-s)}
+.src-icon.primary{background:var(--c-primary-bg);color:var(--c-primary)}
+.src-icon.ok{background:#f0fdf4;color:var(--c-ok)}
+.src-icon.warn{background:#fffbeb;color:var(--c-warn)}
+.src-name{font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading)}
+.src-desc{font-size:var(--fs-xs);color:var(--t-muted)}
+.src-count{font-size:var(--fs-xs);color:var(--t-faint);margin-top:var(--sp-1)}
+
+.pg-bar{display:flex;align-items:center;justify-content:flex-end;gap:var(--sp-2);padding:var(--sp-3) 0 0;font-size:var(--fs-sm);color:var(--t-muted);border-top:1px solid var(--c-border);margin-top:var(--sp-3)}
+.pg-btn{min-width:28px;height:28px;padding:0 8px;border:1px solid var(--c-border);border-radius:var(--r-xs);cursor:pointer;background:var(--c-surface-1);font-size:var(--fs-sm);color:var(--t-muted);display:inline-flex;align-items:center;justify-content:center}
+.pg-btn:hover{border-color:var(--c-border-strong);color:var(--t-heading)}
+.pg-btn.active{background:var(--c-primary);color:var(--t-white);border-color:var(--c-primary)}
+.pg-sel{height:28px;padding:0 22px 0 8px;border:1px solid var(--c-border);border-radius:var(--r-xs);font-size:var(--fs-sm);color:var(--t-muted);background:var(--c-surface-1);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+
+.graph-vp{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);height:340px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.g-node{position:absolute;padding:var(--sp-1) var(--sp-2);border-radius:var(--r-sm);font-size:var(--fs-xs);text-align:center;font-weight:var(--fw-m)}
+.g-node.primary{background:var(--c-primary-bg);border:2px solid var(--c-primary);color:var(--c-primary)}
+.g-node.ok{background:#f0fdf4;border:2px solid var(--c-ok);color:var(--c-ok)}
+.g-node.neutral{background:var(--c-surface-2);border:2px solid var(--c-border);color:var(--t-muted)}
+
+.grafana{background:#111827;border-radius:var(--r-sm);border:1px solid #374151;min-height:300px;display:flex;align-items:center;justify-content:center;color:var(--t-muted);font-size:var(--fs-sm);position:relative;overflow:hidden}
+
+.tl-bar{height:32px;background:var(--c-surface-2);border-radius:var(--r-sm);position:relative;margin-bottom:var(--sp-2);border:1px solid var(--c-border)}
+.tl-dot{position:absolute;width:8px;height:8px;border-radius:50%;top:12px}
+
+.mod-row{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--c-border)}
+.mod-name{font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1}
+.mod-desc{font-size:var(--fs-xs);color:var(--t-muted);flex:2}
+
+.detail-layout{display:grid;grid-template-columns:340px 1fr;gap:var(--sp-4);align-items:start}
+.detail-info-card{background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);overflow:hidden}
+.detail-info-head{padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--c-border);font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading);display:flex;align-items:center;justify-content:space-between}
+.detail-info-row{display:flex;padding:var(--sp-2) var(--sp-4);border-bottom:1px solid var(--c-border);font-size:var(--fs-sm)}
+.detail-info-row:last-child{border-bottom:none}
+.detail-info-label{width:90px;color:var(--t-muted);flex-shrink:0}
+.detail-info-val{flex:1;color:var(--t-heading);word-break:break-all}
+.detail-main{min-width:0}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:var(--r-pill)}
+::-webkit-scrollbar-thumb:hover{background:var(--c-border-strong)}
+
+.page-in{animation:pgIn .2s var(--ease)}
+@keyframes pgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.text-primary{color:var(--c-primary)}
+.text-muted{color:var(--t-muted)}
+.text-sm{font-size:var(--fs-sm)}
+.text-xs{font-size:var(--fs-xs)}
+.font-medium{font-weight:var(--fw-m)}
+.flex{display:flex}
+.gap-2{gap:var(--sp-2)}
+.gap-3{gap:var(--sp-3)}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.mb-2{margin-bottom:var(--sp-2)}
+.mb-3{margin-bottom:var(--sp-3)}
+.mb-4{margin-bottom:var(--sp-4)}
+.mt-1{margin-top:var(--sp-1)}
+.mt-2{margin-top:var(--sp-2)}
+.mt-3{margin-top:var(--sp-3)}
+.detail-tabs-area{min-width:0}
+.step-on{color:var(--c-primary);font-weight:600}
+.step-num-on{width:28px;height:28px;border-radius:50%;border:2px solid var(--c-primary);background:var(--c-primary);color:var(--t-white);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;flex-shrink:0}
+.step-line{width:48px;height:2px;background:var(--c-border);flex-shrink:0}
+.step-line-on{width:48px;height:2px;background:var(--c-primary);flex-shrink:0}
+.opt-active{border-color:var(--c-primary)!important;background:var(--c-primary-bg)!important;color:var(--c-primary)!important}
+.form-value{flex:1;min-width:0}
+.form-label{width:100px;flex-shrink:0;font-size:var(--fs-sm);color:var(--t-heading);font-weight:600;padding-top:6px}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3)}
+.page-title{margin:0;font-size:var(--fs-xl);font-weight:600;color:var(--t-heading)}
+.page-desc{margin:4px 0 0;font-size:var(--fs-sm);color:var(--t-muted)}
+</style>
+</head>
+<body>
+<!-- Global Top Navigation -->
+<header class="topnav" id="topnav">
+  <div class="topnav-brand">
+    <div class="topnav-logo">K</div>
+    <div class="topnav-title">KuberPilot</div>
+  </div>
+  <div class="topnav-menu">
+    <div class="topnav-item" onclick="setTopNav(this)">首页</div>
+    <div class="topnav-item" onclick="setTopNav(this)">计算</div>
+    <div class="topnav-item" onclick="setTopNav(this)">存储</div>
+    <div class="topnav-item" onclick="setTopNav(this)">网络</div>
+    <div class="topnav-item" onclick="setTopNav(this)">基础设施</div>
+    <div class="topnav-item active" onclick="setTopNav(this)">运维管理</div>
+    <div class="topnav-item" onclick="setTopNav(this)">运营管理</div>
+    <div class="topnav-item" onclick="setTopNav(this)">系统管理</div>
+    <div class="topnav-item" onclick="setTopNav(this)">系统安全</div>
+    <div class="topnav-item" onclick="setTopNav(this)">PaaS</div>
+  </div>
+  <div class="topnav-right">
+    <div class="topnav-icon" title="搜索"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <div class="topnav-icon" title="通知"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+    <div class="topnav-icon" title="帮助"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="topnav-user">
+      <div class="topnav-av">吕</div>
+      <span class="topnav-role">超级管理员</span>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="nav" id="nav">
+    <div class="nav-group"><div class="nav-group-label">概览</div>
+      <div class="nav-link active" onclick="go('dash')" data-p="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>仪表盘</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">AIOps</div>
+      <div class="nav-link" onclick="go('chat')" data-p="chat"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>AI 对话</div>
+      <div class="nav-link" onclick="go('aicfg')" data-p="aicfg"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.83 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>AI 配置</div>
+      <div class="nav-link" onclick="go('audit')" data-p="audit"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>AI 审计</div>
+      <div class="nav-link" onclick="go('graph')" data-p="graph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>知识图谱</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">可观测性</div>
+      <div class="nav-link" onclick="go('obs')" data-p="obs"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>总览</div>
+      <div class="nav-link" onclick="go('logs')" data-p="logs"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>日志查询</div>
+      <div class="nav-link" onclick="go('metrics')" data-p="metrics"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>指标查询</div>
+      <div class="nav-link" onclick="go('tracing')" data-p="tracing"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>链路追踪</div>
+      <div class="nav-link" onclick="go('alerts')" data-p="alerts"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>告警中心</div>
+      <div class="nav-link" onclick="go('grafana')" data-p="grafana"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Grafana 看板</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">事件中心</div>
+      <div class="nav-link" onclick="go('wall')" data-p="wall"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>事件墙</div>
+      <div class="nav-link" onclick="go('evenv')" data-p="evenv"><svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>事件环境</div>
+      <div class="nav-link" onclick="go('evsrc')" data-p="evsrc"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>事件源</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">任务中心</div>
+      <div class="nav-link" onclick="go('tw')" data-p="tw"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>任务工作台</div>
+      <div class="nav-link" onclick="go('tres')" data-p="tres"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"/></svg>任务资源</div>
+      <div class="nav-link" onclick="go('tsch')" data-p="tsch"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>任务调度</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">工单</div>
+      <div class="nav-link" onclick="go('deploy')" data-p="deploy"><svg viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>发布工单</div>
+      <div class="nav-link" onclick="go('txn')" data-p="txn"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>事务工单</div>
+      <div class="nav-link" onclick="go('sqla')" data-p="sqla"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>SQL 审计</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">容器</div>
+      <div class="nav-link" onclick="go('k8s')" data-p="k8s"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>K8s 管理</div>
+      <div class="nav-link" onclick="go('docker')" data-p="docker"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>Docker 管理</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">系统</div>
+      <div class="nav-link" onclick="go('users')" data-p="users"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</div>
+      <div class="nav-link" onclick="go('sysa')" data-p="sysa"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>操作审计</div>
+      <div class="nav-link" onclick="go('mods')" data-p="mods"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>模块管理</div>
+    </div>
+    <div class="nav-group"><div class="nav-group-label">基础设施</div>
+      <div class="nav-link" onclick="go('hosts')" data-p="hosts"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>主机管理</div>
+    </div>
+    <div style="margin-top:auto;padding:var(--sp-2) var(--sp-3)">
+      <div class="nav-link" onclick="go('login')" data-p="login" style="color:var(--t-faint)"><svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录页</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="viewport" id="vp"></div>
+  </div>
+</div>
+
+<script>
+const IC={
+  chk:'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+  plus:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  refresh:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-8.36L23 10"/></svg>',
+  search:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  bell:'<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>',
+  help:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  chevron:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>',
+  download:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  setting:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.83 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  more:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>'
+};
+
+(function initTopnav(){
+  document.querySelectorAll('.topnav-icon').forEach(el=>{
+    if(el.title==='搜索') el.innerHTML=IC.search;
+    else if(el.title==='通知') el.innerHTML=IC.bell;
+    else if(el.title==='帮助') el.innerHTML=IC.help;
+  });
+})();
+
+const PAGES={
+  dash:{bc:'仪表盘',r:rDash},
+  chat:{bc:'AIOps / AI 对话',r:rChat},
+  aicfg:{bc:'AIOps / AI 配置',r:rAiCfg},
+  audit:{bc:'AIOps / AI 审计',r:rAudit},
+  graph:{bc:'AIOps / 知识图谱',r:rGraph},
+  obs:{bc:'可观测性 / 总览',r:rObs},
+  logs:{bc:'可观测性 / 日志查询',r:rLogs},
+  metrics:{bc:'可观测性 / 指标查询',r:rMetrics},
+  tracing:{bc:'可观测性 / 链路追踪',r:rTrace},
+  alerts:{bc:'可观测性 / 告警中心',r:rAlerts},
+  grafana:{bc:'可观测性 / Grafana 看板',r:rGrafana},
+  wall:{bc:'事件中心 / 事件墙',r:rWall},
+  evenv:{bc:'事件中心 / 事件环境',r:rEvEnv},
+  evsrc:{bc:'事件中心 / 事件源',r:rEvSrc},
+  tw:{bc:'任务中心 / 任务工作台',r:rTW},
+  tres:{bc:'任务中心 / 任务资源',r:rTRes},
+  tsch:{bc:'任务中心 / 任务调度',r:rTSch},
+  deploy:{bc:'工单 / 发布工单',r:rDeploy},
+  txn:{bc:'工单 / 事务工单',r:rTxn},
+  sqla:{bc:'工单 / SQL 审计',r:rSqlA},
+  k8s:{bc:'容器 / K8s 管理',r:rK8s},
+  docker:{bc:'容器 / Docker 管理',r:rDocker},
+  users:{bc:'系统 / 用户管理',r:rUsers},
+  sysa:{bc:'系统 / 操作审计',r:rSysA},
+  mods:{bc:'系统 / 模块管理',r:rMods},
+  hosts:{bc:'基础设施 / 主机管理',r:rHosts},
+  login:{bc:'登录',r:rLogin},
+  hostDetail:{bc:'基础设施 / 主机详情',r:rHostDetail},
+  hostCreate:{bc:'基础设施 / 创建主机',r:rHostCreate}
+};
+
+let cur='dash';
+function go(id){
+  cur=id;
+  const p=PAGES[id];
+  document.querySelectorAll('.nav-link').forEach(e=>e.classList.toggle('active',e.dataset.p===id));
+  document.getElementById('vp').innerHTML='<div class="page-in">'+p.r()+'</div>';
+  if(id==='login'){
+    document.getElementById('topnav').style.display='none';
+    document.querySelector('.shell').style.display='none';
+  }else{
+    document.getElementById('topnav').style.display='';
+    document.querySelector('.shell').style.display='';
+  }
+}
+
+function setTopNav(el){
+  if(el){
+    document.querySelectorAll('.topnav-item').forEach(i=>i.classList.remove('active'));
+    el.classList.add('active');
+  }
+}
+
+function showHostDetail(){document.getElementById('vp').innerHTML='<div class="page-in">'+rHostDetail()+'</div>';}
+function showHostCreate(){document.getElementById('vp').innerHTML='<div class="page-in">'+rHostCreate()+'</div>';}
+
+function rDash(){
+  return pageHeader('仪表盘','KuberPilot 运维智能体平台概览',null,
+    '<div class="page-actions">'+btn('AI 对话','pri','','','onclick="go(\'chat\')"')+btn('查看告警','pri','','','onclick="go(\'alerts\')"')+'</div>')
+  + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-4)">'
+  + kpiCard('主机总数','12','在线 10 · 告警 2','primary')
+  + kpiCard('未确认告警','5','严重 2 · 警告 3','warn')
+  + kpiCard('AI 会话','24','今日 +6','ok')
+  + kpiCard('部署工单','8','本周 +3','info')
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:7fr 3fr;gap:var(--sp-4)">'
+  + '<div class="panel"><div class="panel-head">主机健康状态</div><div class="panel-body">'
+  + '<div class="host-grid">'
+  + hostCard('sz-prod-01','10.0.1.10 · CentOS 7.9','ok','在线')
+  + hostCard('sz-prod-02','10.0.1.11 · CentOS 7.9','ok','在线')
+  + hostCard('sz-prod-03','10.0.1.12 · CentOS 7.9','warn','CPU告警')
+  + hostCard('bj-prod-04','10.0.2.13 · Ubuntu 22.04','ok','在线')
+  + hostCard('sz-staging-01','10.0.3.10 · Ubuntu 22.04','ok','在线')
+  + hostCard('sz-staging-02','10.0.3.11 · Ubuntu 22.04','ok','在线')
+  + '</div></div></div>'
+  + '<div>'
+  + '<div class="panel" style="margin-bottom:var(--sp-4)"><div class="panel-head">未确认告警</div><div class="panel-body">'
+  + '<div style="font-size:var(--fs-sm);color:var(--t-body);margin-bottom:var(--sp-2)">sz-prod-03 CPU 持续超 85%</div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-muted);margin-bottom:var(--sp-3)">Prometheus · 15:30 · prod</div>'
+  + '<div style="font-size:var(--fs-sm);color:var(--t-body);margin-bottom:var(--sp-2)">Redis-01 连接超时</div>'
+  + '<div style="font-size:var(--fs-xs);color:var(--t-muted)">SkyWalking · 15:22 · prod</div>'
+  + '</div></div>'
+  + '<div class="panel"><div class="panel-head">AI 洞察</div><div class="panel-body">'
+  + '<div style="font-size:var(--fs-sm);color:var(--t-body);line-height:1.6">sz-prod-03 近 24h 出现 2 次告警，java 进程占 CPU 72%。建议检查 JVM GC 频率并评估 Pod 扩容。</div>'
+  + '<div style="margin-top:var(--sp-3)"><button class="b b-sm b-p" onclick="go(\'chat\')">'+IC.plus+' AI 对话</button></div>'
+  + '</div></div>'
+  + '</div>'
+  + '</div>'
+  + hint('sz-prod-03 最近 24h 出现 2 次告警，建议检查 CPU 使用率','');
+}
+
+function rChat(){
+  let h='<div class="chat-wrap">';
+  h+='<div class="chat-side"><div class="chat-side-label">会话历史</div>';
+  h+='<div class="chat-item active">sz-prod-03 CPU 高</div>';
+  h+='<div class="chat-item">Redis 连接超时排查</div>';
+  h+='<div class="chat-item">Pod OOMKilled 分析</div>';
+  h+='<div class="chat-item">Grafana 看板异常</div>';
+  h+='<div class="chat-item">配置变更审计</div>';
+  h+='<div style="margin-top:auto;padding:var(--sp-1)"><button class="b b-sm" style="width:100%">'+IC.plus+' 新会话</button></div></div>';
+  h+='<div class="chat-area">';
+  h+='<div style="padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm)"><span class="lbl lbl-primary">prod</span><span class="lbl lbl-neutral">web-service</span><span style="color:var(--t-muted);font-size:var(--fs-xs)">sz-prod-03</span></div>';
+  h+='<div class="chat-msgs">';
+  h+='<div class="chat-msg u">sz-prod-03 最近 CPU 使用率持续超过 85%，帮忙排查一下</div>';
+  h+='<div class="chat-msg ai"><div class="ai-label">KuberPilot AI</div>根据近 24h 监控分析：<br><br>1. <strong>高负载时段</strong>: 14:00–16:00 (工作日高峰)<br>2. <strong>主要进程</strong>: java (web-service) 占 72% CPU<br>3. <strong>关联告警</strong>: 2 条 Memory Warning 同期触发<br><br>建议：<br>- 检查 web-service 近期流量突增<br>- 查看 JVM GC 频率是否异常<br>- 评估 Pod 副本数是否需要扩容</div>';
+  h+='<div class="chat-msg u">查一下这个 Pod 最近的重启记录</div>';
+  h+='<div class="chat-msg ai"><div class="ai-label">KuberPilot AI</div>已查询 web-service Pod 重启记录：<br><br>'+tbl(['时间','原因','次数'],['07-14 15:30 · OOMKilled · 2','07-13 14:22 · OOMKilled · 1'])+'<br>Pod 因内存超限 OOMKilled，建议调整 memoryLimit 至 1024Mi</div>';
+  h+='</div>';
+  h+='<div class="chat-bar"><input class="chat-inp" placeholder="输入问题或指令…"><button class="b b-p">发送</button></div>';
+  h+='</div></div>';return h;
+}
+
+function rAiCfg(){
+  return pageHeader('AI 配置中心','管理 LLM Provider、MCP 工具与编排任务')
+  + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-4)">'
+  + kpiCard('Provider','3','OpenAI / Azure / Qwen','primary')
+  + kpiCard('MCP 工具','6','已连接 5','ok')
+  + kpiCard('Skill 技能','4','已激活 3','info')
+  + kpiCard('编排任务','12','运行中 4','warn')
+  + '</div>'
+  + hint('默认 Provider: OpenAI (gpt-4o), 已启用 MCP 文件系统和 K8s 管理工具','')
+  + tabs(['策略','动作','技能','MCP','编排','Providers','知识库'],0)
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">'
+  + '<div class="panel"><div class="panel-head">策略配置</div><div class="panel-body">'
+  + '<div class="form-row"><div class="form-label">默认 Provider</div><div class="form-ctrl"><select class="sel" style="width:220px"><option>OpenAI (gpt-4o)</option><option>Azure GPT-4</option><option>Qwen-max</option></select></div></div>'
+  + '<div class="form-row"><div class="form-label">欢迎消息</div><div class="form-ctrl"><textarea class="inp" style="height:80px;width:100%;max-width:none">你好，我是 KuberPilot AI 运维助手。</textarea></div></div>'
+  + '<div class="form-row"><div class="form-label">推荐问题</div><div class="form-ctrl"><div style="display:flex;gap:var(--sp-2);flex-wrap:wrap"><span class="lbl lbl-primary">CPU 异常排查</span><span class="lbl lbl-primary">Pod 重启分析</span><span class="lbl lbl-primary">日志查询</span></div></div></div>'
+  + '</div></div>'
+  + '<div class="panel"><div class="panel-head">运行时配置</div><div class="panel-body">'
+  + '<div style="display:flex;flex-direction:column;gap:var(--sp-3)">'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">启用助手</span><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">允许动作执行</span><div class="toggle on"><div class="toggle-dot"></div></div></div>'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">最大历史消息</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">20</span></div>'
+  + '<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:var(--fs-sm);font-weight:var(--fw-m)">单次 Token 上限</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">4,096</span></div>'
+  + '</div></div></div>'
+  + '</div>';
+}
+
+function rAudit(){
+  return pageHeader('AI 审计','追踪 LLM 调用、工具使用和模型消耗')
+  + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-4);margin-bottom:var(--sp-4)">'
+  + kpiCard('总调用','1,240','本月累计','primary')
+  + kpiCard('总 Token','580K','输入 320K · 输出 260K','info')
+  + kpiCard('总费用','¥186','日均 ¥6.2','warn')
+  + kpiCard('平均延迟','1.2s','P95: 3.8s','ok')
+  + '</div>'
+  + tabs(['概览','会话','工具','模型','动作'],0)
+  + '<div style="display:grid;grid-template-columns:5fr 4fr;gap:var(--sp-4)">'
+  + '<div class="chart-box"><div class="chart-title">成本趋势 (近 7 天)</div><div class="chart-area"><svg width="100%" height="100%" viewBox="0 0 280 140"><polyline points="0,110 40,95 80,88 120,75 160,80 200,62 240,55 280,65" fill="none" stroke="#2563eb" stroke-width="2"/><polyline points="0,120 40,110 80,105 120,98 160,100 200,92 240,88 280,95" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4 2"/></svg></div></div>'
+  + '<div class="panel"><div class="panel-head">模型调用占比</div><div class="panel-body" style="display:flex;flex-direction:column;gap:var(--sp-3)">'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2)"><div style="width:10px;height:10px;background:var(--c-primary);border-radius:2px"></div><span style="font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1">GPT-4o</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">65%</span></div>'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2)"><div style="width:10px;height:10px;background:var(--c-border-strong);border-radius:2px"></div><span style="font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1">Qwen-max</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">20%</span></div>'
+  + '<div style="display:flex;align-items:center;gap:var(--sp-2)"><div style="width:10px;height:10px;background:var(--c-ok);border-radius:2px"></div><span style="font-size:var(--fs-sm);font-weight:var(--fw-m);color:var(--t-heading);flex:1">Azure GPT-4</span><span style="font-size:var(--fs-sm);font-weight:var(--fw-s);color:var(--t-heading)">15%</span></div>'
+  + '</div></div>'
+  + '</div>';
+}
+
+function rGraph(){
+  return pageHeader('知识图谱','展示环境与服务间的拓扑关系')
+  + hint('点击节点可展开关联服务和数据源配置','')
+  + panel('知识图谱',fl(['环境']),
+    '<div class="graph-vp">'
+    + '<div class="g-node primary" style="left:24%;top:16%">web-service</div>'
+    + '<div class="g-node neutral" style="left:48%;top:10%">api-gateway</div>'
+    + '<div class="g-node ok" style="left:70%;top:20%">MySQL</div>'
+    + '<div class="g-node primary" style="left:16%;top:44%">user-service</div>'
+    + '<div class="g-node neutral" style="left:46%;top:38%">Redis</div>'
+    + '<div class="g-node ok" style="left:66%;top:48%">Kafka</div>'
+    + '<div class="g-node primary" style="left:28%;top:66%">order-service</div>'
+    + '<div class="g-node neutral" style="left:56%;top:70%">Nacos</div>'
+    + '<div class="g-node ok" style="left:76%;top:60%">Prometheus</div>'
+    + '</div>');
+}
+
+function rObs(){
+  return pageHeader('可观测性总览','统一展示日志、链路、指标与告警接入规模')
+  + tabs(['总览','日志','指标','链路','看板','告警','数据源','关联配置'],0)
+  + panel('关联配置概览','',
+    tbl(['关联名称','数据源关系','跳转能力','状态'],
+    [['prod-loki↔tempo','Loki ↔ Tempo','日志↔链路 双向','<span class="st ok"><span class="st-dot"></span>已启用</span>'],
+     ['prod-loki↔grafana','Loki ↔ Grafana','日志↔看板','<span class="st ok"><span class="st-dot"></span>已启用</span>'],
+     ['staging-loki↔tempo','Loki ↔ Tempo','日志↔链路','<span class="st warn"><span class="st-dot"></span>待配置</span>']]));
+}
+
+function rLogs(){
+  return pageHeader('日志查询','多数据源日志查询，支持 Loki / ELK / SLS')
+  + hint('Ctrl+Enter 快速执行查询，支持多标签页并发','')
+  + tabs(['日志','指标','链路','看板','告警'],0)
+  + panel('日志查询',
+    '<div class="search-box"><input class="inp" placeholder="查询日志…" style="width:260px"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><select class="sel"><option>Loki · prod</option><option>ELK · staging</option></select><select class="sel"><option>最近 15min</option><option>最近 1h</option></select><input class="inp" style="width:260px;font-family:var(--f-mono);font-size:var(--fs-xs)" value="{app=\"web-service\",level=\"error\"}">',
+    '<div class="code" style="min-height:120px">'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:30:22Z</span> <span style="color:var(--c-danger)">[ERROR]</span> web-service pod-web-03 OOMKilled container=java limit=512Mi</div>'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:28:18Z</span> <span style="color:var(--c-warn)">[WARN]</span> web-service pod-web-03 memory usage 85%</div>'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:25:10Z</span> <span style="color:#93c5fd">[INFO]</span> web-service pod-web-03 request latency P95=2.3s</div>'
+    + '<div><span style="color:var(--c-ok)">2024-07-14T15:22:05Z</span> <span style="color:var(--c-danger)">[ERROR]</span> redis connection timeout host=redis-01 port=6379</div>'
+    + '</div>');
+}
+
+function rMetrics(){
+  return pageHeader('指标查询','PromQL 指标查询与可视化')
+  + tabs(['日志','指标','链路','看板','告警'],1)
+  + '<div class="code" style="margin-bottom:var(--sp-2)"><span class="kw">rate</span>(<span class="fn">http_requests_total</span>{<span class="str">job</span>=&quot;web-service&quot;}[<span style="color:var(--c-danger)">5m</span>])</div>'
+  + '<div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)"><button class="b b-p">执行查询</button><button class="b">复制 PromQL</button></div>'
+  + '<div class="chart-box"><div class="chart-title">HTTP 500 Rate — web-service</div><div class="chart-area"><svg width="100%" height="100%" viewBox="0 0 280 140"><polyline points="0,120 25,118 50,115 75,110 100,106 125,102 150,98 175,94 200,90 225,86 250,82 275,78 280,75" fill="none" stroke="#ef4444" stroke-width="1.5"/><polyline points="0,95 25,90 50,85 75,78 100,75 125,70 150,65 175,62 200,58 225,54 250,50 275,48 280,45" fill="none" stroke="#2563eb" stroke-width="1.5"/></svg></div></div>';
+}
+
+function rTrace(){
+  return pageHeader('链路追踪查询','分布式链路追踪，支持 SkyWalking / Tempo / Jaeger')
+  + hint('点击 trace ID 可展开瀑布图','')
+  + tabs(['日志','指标','链路','看板','告警'],2)
+  + panel('链路追踪',
+    '<select class="sel"><option>SkyWalking · prod</option></select><select class="sel"><option>web-service</option></select><input class="inp" style="width:140px;font-family:var(--f-mono);font-size:var(--fs-xs)" placeholder="Trace ID…"><select class="sel"><option>最近 15min</option></select>',
+    tbl(['Trace ID','服务','耗时','Span','状态','时间'],
+    [['trace-0714-001','web-service','1.2s','8','<span class="st ok"><span class="st-dot"></span>正常</span>','15:30'],
+     ['trace-0714-002','api-gateway','3.8s','12','<span class="st warn"><span class="st-dot"></span>慢</span>','15:28'],
+     ['trace-0714-003','order-service','0.5s','6','<span class="st ok"><span class="st-dot"></span>正常</span>','15:25'],
+     ['trace-0714-004','user-service','5.2s','15','<span class="st danger"><span class="st-dot"></span>异常</span>','15:22']])+pgBar());
+}
+
+function rAlerts(){
+  return pageHeader('告警中心','统一管理告警事件、策略、通知和集成配置')
+  + hint('2 条未确认告警: sz-prod-03 CPU >85%, redis-01 连接超时','danger')
+  + tabs(['事件','策略','通知','日志','集成'],0)
+  + panel('告警事件',fl(['状态','来源','环境','级别']),
+    tbl(['告警名','级别','状态','来源','环境','时间','操作'],
+    [['CPU >85%','<span class="lbl lbl-danger">严重</span>','<span class="st warn"><span class="st-dot"></span>未确认</span>','Prometheus','prod','15:30','<button class="b b-sm">确认</button>'],
+     ['Redis 连接超时','<span class="lbl lbl-warn">警告</span>','<span class="st warn"><span class="st-dot"></span>未确认</span>','SkyWalking','prod','15:22','<button class="b b-sm">确认</button>'],
+     ['Pod OOMKilled','<span class="lbl lbl-danger">严重</span>','<span class="st ok"><span class="st-dot"></span>已确认</span>','K8s','prod','15:30','<button class="b b-sm">详情</button>'],
+     ['Memory >80%','<span class="lbl lbl-warn">警告</span>','<span class="st ok"><span class="st-dot"></span>已确认</span>','Prometheus','staging','14:20','<button class="b b-sm">详情</button>']])+pgBar());
+}
+
+function rGrafana(){
+  return pageHeader('Grafana 看板','集成 Grafana 监控看板，支持全屏沉浸')
+  + tabs(['日志','指标','链路','看板','告警'],3)
+  + '<div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-3)">'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-left:3px solid var(--c-primary);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);cursor:pointer"><strong>prod-overview</strong><br><span style="font-size:var(--fs-xs);color:var(--t-muted)">主机 · CPU · Memory</span></div>'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);cursor:pointer"><strong>k8s-cluster</strong><br><span style="font-size:var(--fs-xs);color:var(--t-muted)">Pod · Deployment</span></div>'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-sm);cursor:pointer"><strong>app-metrics</strong><br><span style="font-size:var(--fs-xs);color:var(--t-muted)">HTTP 延迟 · 错误率</span></div>'
+  + '</div>'
+  + '<div class="grafana" style="min-height:320px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:24px;width:100%">'
+  + '<div style="background:#1f2937;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:#93c5fd;margin-bottom:6px">CPU Usage</div><div style="height:60px;background:linear-gradient(180deg,rgba(59,130,246,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '<div style="background:#1f2937;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-ok);margin-bottom:6px">Memory</div><div style="height:60px;background:linear-gradient(180deg,rgba(34,197,94,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '<div style="background:#1f2937;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-warn);margin-bottom:6px">Request Rate</div><div style="height:60px;background:linear-gradient(180deg,rgba(245,158,11,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '<div style="background:#1f2937;border-radius:var(--r-sm);padding:10px;font-size:11px"><div style="color:var(--c-danger);margin-bottom:6px">Error Rate</div><div style="height:60px;background:linear-gradient(180deg,rgba(239,68,68,.25),transparent);border-radius:var(--r-xs)"></div></div>'
+  + '</div></div>';
+}
+
+function rWall(){
+  return pageHeader('大屏看板','全局运维状态实时大屏展示')
+  + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3)">'
+  + kpiCard('主机','12','台','ok')
+  + kpiCard('Pod','156','个','ok')
+  + kpiCard('告警','2','条','warn')
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3)">'
+  + panel('CPU 使用率',fl([]),'<div style="height:120px;background:linear-gradient(180deg,rgba(37,99,235,.3),transparent);border-radius:var(--r-sm);margin-top:var(--sp-2)"></div>')
+  + panel('内存使用率',fl([]),'<div style="height:120px;background:linear-gradient(180deg,rgba(34,197,94,.3),transparent);border-radius:var(--r-sm);margin-top:var(--sp-2)"></div>')
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3)">'
+  + panel('网络流量',fl([]),'<div style="height:80px;background:linear-gradient(180deg,rgba(59,130,246,.2),transparent);border-radius:var(--r-sm);margin-top:var(--sp-2)"></div>')
+  + panel('磁盘 I/O',fl([]),'<div style="height:80px;background:linear-gradient(180deg,rgba(245,158,11,.2),transparent);border-radius:var(--r-sm);margin-top:var(--sp-2)"></div>')
+  + panel('Pod 状态',fl([]),'<div style="height:80px;display:flex;gap:var(--sp-2);align-items:center;justify-content:center;margin-top:var(--sp-2)"><span class="st ok"><span class="st-dot"></span>Running 142</span><span class="st warn"><span class="st-dot"></span>Pending 8</span><span class="st err"><span class="st-dot"></span>Error 6</span></div>')
+  + '</div>';
+}
+
+function rEvEnv(){
+  return pageHeader('混沌工程','注入故障验证系统韧性，记录演练结果')
+  + tabs(['演练','环境','场景','结果','历史'],1)
+  + panel('演练环境',fl(['状态','类型']),
+    tbl(['环境','类型','状态','主机数','创建时间','操作'],
+    [['prod-chaos','<span class="lbl lbl-danger">故障注入</span>','<span class="st ok"><span class="st-dot"></span>就绪</span>','4','2025-01-10','<button class="b b-sm b-pri">注入</button>'],
+     ['staging-chaos','<span class="lbl lbl-warn">延迟模拟</span>','<span class="st ok"><span class="st-dot"></span>就绪</span>','2','2025-01-08','<button class="b b-sm b-pri">注入</button>'],
+     ['dev-chaos','<span class="lbl lbl-info">网络切断</span>','<span class="st warn"><span class="st-dot"></span>准备中</span>','1','2025-01-06','<button class="b b-sm">配置</button>']])+pgBar());
+}
+
+function rEvSrc(){
+  return pageHeader('混沌工程','注入故障验证系统韧性，记录演练结果')
+  + tabs(['演练','环境','场景','结果','历史'],2)
+  + panel('故障场景库',fl(['分类','级别']),
+    tbl(['场景','分类','级别','描述','参数','操作'],
+    [['CPU 压力注入','<span class="lbl lbl-danger">资源</span>','<span class="lbl lbl-danger">严重</span>','持续占用 CPU 至阈值','利用率:85%','<button class="b b-sm b-pri">执行</button>'],
+     ['网络延迟注入','<span class="lbl lbl-warn">网络</span>','<span class="lbl lbl-warn">警告</span>','增加网络延迟','延迟:200ms','<button class="b b-sm b-pri">执行</button>'],
+     ['Pod Kill','<span class="lbl lbl-danger">K8s</span>','<span class="lbl lbl-danger">严重</span>','随机杀掉 Pod','比例:30%','<button class="b b-sm b-pri">执行</button>'],
+     ['磁盘 IO 压力','<span class="lbl lbl-warn">资源</span>','<span class="lbl lbl-warn">警告</span>','增加磁盘读写延迟','延迟:50ms','<button class="b b-sm">详情</button>']])+pgBar());
+}
+
+function rTW(){
+  return pageHeader('工单管理','统一管理运维工单的创建、流转和审批')
+  + tabs(['我的工单','全部工单','审批','模板'],0)
+  + '<div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)">'
+  + btn('创建工单','pri','','+')
+  + btn('批量导出','sec','','↓')
+  + '</div>'
+  + panel('我的工单',fl(['状态','优先级']),
+    tbl(['工单号','标题','类型','优先级','状态','创建人','时间','操作'],
+    [['WO-20250110-01','sz-prod-03 CPU告警处理','故障','<span class="lbl lbl-danger">紧急</span>','<span class="st warn"><span class="st-dot"></span>处理中</span>','曹工','10:30','<button class="b b-sm b-pri">处理</button>'],
+     ['WO-20250109-02','Redis集群扩容申请','变更','<span class="lbl lbl-warn">高</span>','<span class="st ok"><span class="st-dot"></span>待审批</span>','李工','09:15','<button class="b b-sm">审批</button>'],
+     ['WO-20250108-03','新增监控指标需求','需求','<span class="lbl lbl-info">中</span>','<span class="st ok"><span class="st-dot"></span>已完成</span>','张工','08:00','<button class="b b-sm">查看</button>']])+pgBar());
+}
+
+function rTRes(){
+  return pageHeader('工单管理','统一管理运维工单的创建、流转和审批')
+  + tabs(['我的工单','全部工单','审批','模板'],2)
+  + panel('审批列表',fl(['类型','状态']),
+    tbl(['工单号','标题','类型','申请人','审批人','状态','时间','操作'],
+    [['WO-20250109-02','Redis集群扩容申请','变更','李工','曹老板','<span class="st warn"><span class="st-dot"></span>待审批</span>','09:15','<button class="b b-sm b-pri">审批</button>'],
+     ['WO-20250109-01','生产环境权限申请','权限','王工','曹老板','<span class="st warn"><span class="st-dot"></span>待审批</span>','08:30','<button class="b b-sm b-pri">审批</button>']])+pgBar());
+}
+
+function rTSch(){
+  return pageHeader('工单管理','统一管理运维工单的创建、流转和审批')
+  + tabs(['我的工单','全部工单','审批','模板'],3)
+  + panel('工单模板库',fl(['分类','类型']),
+    tbl(['模板名','分类','类型','字段数','使用次数','操作'],
+    [['故障处理模板','故障','标准','8','56','<button class="b b-sm b-pri">使用</button>'],
+     ['变更申请模板','变更','标准','12','34','<button class="b b-sm b-pri">使用</button>'],
+     ['权限申请模板','权限','简化','4','22','<button class="b b-sm b-pri">使用</button>'],
+     ['需求提交模板','需求','标准','6','18','<button class="b b-sm">详情</button>']])+pgBar());
+}
+
+function rDeploy(){
+  return pageHeader('发布管理','管理应用发布流程、审批和回滚')
+  + tabs(['发布列表','审批','回滚记录','模板'],0)
+  + '<div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)">'
+  + btn('新建发布','pri','','+')
+  + btn('批量审批','sec','','✓')
+  + '</div>'
+  + panel('发布列表',fl(['状态','环境']),
+    tbl(['发布ID','应用','环境','版本','状态','审批人','时间','操作'],
+    [['REL-20250110-01','user-service','prod','v2.3.1','<span class="st warn"><span class="st-dot"></span>待审批</span>','曹老板','10:00','<button class="b b-sm b-pri">审批</button>'],
+     ['REL-20250109-02','order-service','staging','v1.8.0','<span class="st ok"><span class="st-dot"></span>已发布</span>','李工','09:30','<button class="b b-sm">详情</button>'],
+     ['REL-20250108-03','gateway','prod','v3.1.0','<span class="st err"><span class="st-dot"></span>已回滚</span>','张工','08:00','<button class="b b-sm">回滚日志</button>']])+pgBar());
+}
+
+function rTxn(){
+  return pageHeader('事务管理','追踪和分析分布式事务链路')
+  + tabs(['事务列表','异常事务','链路分析','配置'],0)
+  + panel('事务列表',fl(['状态','类型']),
+    tbl(['事务ID','类型','状态','参与服务','耗时','时间','操作'],
+    [['TXN-001','跨服务调用','<span class="st ok"><span class="st-dot"></span>已完成</span>','user → order → pay','230ms','10:30','<button class="b b-sm">链路</button>'],
+     ['TXN-002','Saga 长事务','<span class="st warn"><span class="st-dot"></span>补偿中</span>','order → inventory','1.2s','10:15','<button class="b b-sm b-pri">处理</button>'],
+     ['TXN-003','TCC 事务','<span class="st err"><span class="st-dot"></span>已回滚</span>','pay → refund','850ms','09:50','<button class="b b-sm">详情</button>']])+pgBar());
+}
+
+function rSqlA(){
+  return pageHeader('SQL 分析','智能 SQL 审核、性能分析和优化建议')
+  + tabs(['审核任务','性能分析','优化建议','规则配置'],0)
+  + panel('审核任务',fl(['状态','级别']),
+    tbl(['任务ID','SQL','数据库','级别','状态','建议','操作'],
+    [['SQL-001','SELECT * FROM orders WHERE ...','order_db','<span class="lbl lbl-warn">警告</span>','<span class="st ok"><span class="st-dot"></span>已审核</span>','缺少索引','<button class="b b-sm b-pri">优化</button>'],
+     ['SQL-002','UPDATE users SET ...','user_db','<span class="lbl lbl-danger">严重</span>','<span class="st warn"><span class="st-dot"></span>待审核</span>','全表扫描','<button class="b b-sm b-pri">审核</button>'],
+     ['SQL-003','INSERT INTO logs ...','log_db','<span class="lbl lbl-info">建议</span>','<span class="st ok"><span class="st-dot"></span>已审核</span>','批量插入优化','<button class="b b-sm">详情</button>']])+pgBar());
+}
+
+function rK8s(){
+  return pageHeader('Kubernetes 管理','集群、节点、工作负载和服务治理')
+  + tabs(['集群','节点','Pod','Deployment','Service','ConfigMap'],0)
+  + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3)">'
+  + kpiCard('集群','3','个','ok')
+  + kpiCard('节点','12','台','ok')
+  + kpiCard('Pod','156','个','warn')
+  + '</div>'
+  + panel('集群概览',fl(['状态','版本']),
+    tbl(['集群','版本','状态','节点','Pod','CPU','Memory','操作'],
+    [['sz-prod','v1.28.2','<span class="st ok"><span class="st-dot"></span>健康</span>','6','78','62%','71%','<button class="b b-sm b-pri">详情</button>'],
+     ['bj-prod','v1.27.8','<span class="st ok"><span class="st-dot"></span>健康</span>','4','52','58%','65%','<button class="b b-sm b-pri">详情</button>'],
+     ['dev','v1.28.0','<span class="st warn"><span class="st-dot"></span>告警</span>','2','26','45%','55%','<button class="b b-sm">详情</button>']])+pgBar());
+}
+
+function rDocker(){
+  return pageHeader('容器管理','镜像仓库、容器实例和编排管理')
+  + tabs(['镜像','容器','Compose','网络','存储'],0)
+  + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3)">'
+  + kpiCard('镜像','45','个','ok')
+  + kpiCard('容器','28','个','ok')
+  + kpiCard('Compose','6','个','ok')
+  + '</div>'
+  + panel('镜像仓库',fl(['类型','状态']),
+    tbl(['镜像','标签','大小','拉取次数','创建时间','操作'],
+    [['user-service','v2.3.1','256MB','120','2025-01-10','<button class="b b-sm">详情</button>'],
+     ['order-service','v1.8.0','180MB','89','2025-01-08','<button class="b b-sm">详情</button>'],
+     ['gateway','v3.1.0','320MB','56','2025-01-06','<button class="b b-sm">拉取</button>']])+pgBar());
+}
+
+function rUsers(){
+  return pageHeader('用户管理','系统用户账号、角色和权限管理')
+  + tabs(['用户列表','角色','权限','操作日志'],0)
+  + '<div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)">'
+  + btn('新增用户','pri','','+')
+  + btn('批量导入','sec','','↑')
+  + '</div>'
+  + panel('用户列表',fl(['状态','角色']),
+    tbl(['用户名','姓名','角色','状态','最后登录','操作'],
+    [['admin','曹老板','<span class="lbl lbl-danger">超级管理员</span>','<span class="st ok"><span class="st-dot"></span>活跃</span>','10:30','<button class="b b-sm">编辑</button>'],
+     ['licg','李工','<span class="lbl lbl-warn">运维工程师</span>','<span class="st ok"><span class="st-dot"></span>活跃</span>','09:15','<button class="b b-sm">编辑</button>'],
+     ['zhangg','张工','<span class="lbl lbl-info">开发工程师</span>','<span class="st warn"><span class="st-dot"></span>未激活</span>','-','<button class="b b-sm b-pri">激活</button>']])+pgBar());
+}
+
+function rSysA(){
+  return pageHeader('系统管理','系统配置、参数和全局设置')
+  + tabs(['基本配置','通知设置','安全策略','系统日志'],0)
+  + panel('基本配置',fl([]),
+    '<div style="display:grid;grid-template-columns:240px 1fr;gap:var(--sp-2) var(--sp-4);margin-top:var(--sp-2)">'
+    + sec('系统名称','KuberPilot 运维智能体平台')
+    + sec('系统版本','v3.0.1')
+    + sec('部署模式','<span class="lbl lbl-info">集群模式</span>')
+    + sec('数据保留','90 天')
+    + sec('日志级别','<span class="lbl lbl-warn">WARN</span>')
+    + sec('并发限制','100')
+    + '</div>');
+}
+
+function rMods(){
+  return pageHeader('模块管理','管理平台功能模块的启用、配置和版本')
+  + tabs(['已启用','全部模块','更新'],0)
+  + panel('已启用模块',fl(['状态','版本']),
+    tbl(['模块','版本','状态','描述','操作'],
+    [['AI 引擎','v2.1','<span class="st ok"><span class="st-dot"></span>运行中</span>','智能诊断和推荐引擎','<button class="b b-sm">配置</button>'],
+     ['监控中心','v3.0','<span class="st ok"><span class="st-dot"></span>运行中</span>','指标采集和告警中心','<button class="b b-sm">配置</button>'],
+     ['工单系统','v1.5','<span class="st ok"><span class="st-dot"></span>运行中</span>','工单创建流转审批','<button class="b b-sm">配置</button>'],
+     ['混沌工程','v1.0','<span class="st warn"><span class="st-dot"></span>试验中</span>','故障注入和韧性验证','<button class="b b-sm b-pri">启用</button>']])+pgBar());
+}
+
+function rHosts(){
+  return pageHeader('主机管理','物理机和虚拟机的全生命周期管理')
+  + tabs(['云主机','物理机','宿主机','回收站'],0)
+  + '<div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)">'
+  + btn('创建主机','pri','','+')
+  + btn('批量操作','sec','','⋯')
+  + btn('导入主机','sec','','↑')
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3)">'
+  + kpiCard('云主机','8','台','ok')
+  + kpiCard('物理机','4','台','ok')
+  + kpiCard('宿主机','3','台','warn')
+  + '</div>'
+  + panel('云主机列表',fl(['状态','规格','区域']),
+    tbl(['主机名','规格','IP','区域','状态','CPU','内存','操作'],
+    [['sz-prod-01','4C8G','10.0.1.10','<span class="lbl lbl-info">华东</span>','<span class="st ok"><span class="st-dot"></span>运行</span>','62%','71%','<button class="b b-sm b-pri" onclick="go(\'hostDetail\')">详情</button>'],
+     ['sz-prod-02','4C8G','10.0.1.11','<span class="lbl lbl-info">华东</span>','<span class="st ok"><span class="st-dot"></span>运行</span>','55%','68%','<button class="b b-sm b-pri" onclick="go(\'hostDetail\')">详情</button>'],
+     ['sz-prod-03','8C16G','10.0.1.12','<span class="lbl lbl-info">华东</span>','<span class="st warn"><span class="st-dot"></span>告警</span>','89%','82%','<button class="b b-sm b-pri" onclick="go(\'hostDetail\')">详情</button>'],
+     ['bj-prod-01','2C4G','10.1.1.10','<span class="lbl lbl-warn">华北</span>','<span class="st ok"><span class="st-dot"></span>运行</span>','38%','45%','<button class="b b-sm b-pri" onclick="go(\'hostDetail\')">详情</button>'],
+     ['bj-prod-02','4C8G','10.1.1.11','<span class="lbl lbl-warn">华北</span>','<span class="st ok"><span class="st-dot"></span>运行</span>','42%','52%','<button class="b b-sm b-pri" onclick="go(\'hostDetail\')">详情</button>']])+pgBar());
+}
+
+function rHostDetail(){
+  return '<div class="detail-layout">'
+  /* Left info card */
+  + '<div class="detail-info-card">'
+  + '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:var(--sp-3)">'
+  + '<div>'
+  + '<h2 style="margin:0;font-size:var(--fs-xl);font-weight:600">sz-prod-01</h2>'
+  + '<p style="margin:4px 0 0;font-size:var(--fs-sm);color:var(--t-muted)">云主机 · 华东区</p>'
+  + '</div>'
+  + '<span class="st ok"><span class="st-dot"></span>运行中</span>'
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2);margin-bottom:var(--sp-3)">'
+  + sec('规格','4C8G') + sec('IP','10.0.1.10')
+  + sec('系统','CentOS 7.9') + sec('区域','华东')
+  + sec('创建','2025-01-05') + sec('过期','2026-01-05')
+  + '</div>'
+  + '<div style="padding-top:var(--sp-2);border-top:1px solid var(--c-border)">'
+  + '<p style="font-size:var(--fs-sm);color:var(--t-muted);margin-bottom:var(--sp-2)">资源使用率</p>'
+  + '<div style="margin-bottom:var(--sp-2)">'
+  + '<div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:4px"><span>CPU</span><span style="font-weight:600;color:var(--c-primary)">62%</span></div>'
+  + '<div style="height:6px;background:var(--c-surface-0);border-radius:3px;overflow:hidden"><div style="height:100%;width:62%;background:var(--c-primary);border-radius:3px"></div></div>'
+  + '</div>'
+  + '<div>'
+  + '<div style="display:flex;justify-content:space-between;font-size:var(--fs-sm);margin-bottom:4px"><span>内存</span><span style="font-weight:600;color:var(--c-ok)">71%</span></div>'
+  + '<div style="height:6px;background:var(--c-surface-0);border-radius:3px;overflow:hidden"><div style="height:100%;width:71%;background:var(--c-ok);border-radius:3px"></div></div>'
+  + '</div>'
+  + '</div>'
+  + '<div style="display:flex;gap:var(--sp-2);margin-top:var(--sp-3)">'
+  + btn('重启','sec','','↻') + btn('更多操作','sec','','⋯')
+  + '</div>'
+  + '</div>'
+  /* Right tab area */
+  + '<div class="detail-tabs-area">'
+  + tabs(['监控','告警','日志','配置','操作历史'],0)
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3)">'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-3)">'
+  + '<p style="font-size:var(--fs-sm);color:var(--t-muted);margin-bottom:var(--sp-2)">CPU 使用率趋势</p>'
+  + '<div style="height:120px;background:linear-gradient(180deg,rgba(37,99,235,.3),transparent);border-radius:var(--r-sm)"></div>'
+  + '</div>'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-3)">'
+  + '<p style="font-size:var(--fs-sm);color:var(--t-muted);margin-bottom:var(--sp-2)">内存使用率趋势</p>'
+  + '<div style="height:120px;background:linear-gradient(180deg,rgba(34,197,94,.3),transparent);border-radius:var(--r-sm)"></div>'
+  + '</div>'
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)">'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-3)">'
+  + '<p style="font-size:var(--fs-sm);color:var(--t-muted);margin-bottom:var(--sp-2)">磁盘 I/O</p>'
+  + '<div style="height:80px;background:linear-gradient(180deg,rgba(245,158,11,.2),transparent);border-radius:var(--r-sm)"></div>'
+  + '</div>'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--sp-3)">'
+  + '<p style="font-size:var(--fs-sm);color:var(--t-muted);margin-bottom:var(--sp-2)">网络流量</p>'
+  + '<div style="height:80px;background:linear-gradient(180deg,rgba(59,130,246,.2),transparent);border-radius:var(--r-sm)"></div>'
+  + '</div>'
+  + '</div>'
+  + '</div>'
+  + '</div>';
+}
+
+function rHostCreate(){
+  return '<h2 style="margin:0 0 var(--sp-3);font-size:var(--fs-xl);font-weight:600;color:var(--t-heading)">创建云主机</h2>'
+  /* Steps bar */
+  + steps(['选择配置','网络设置','系统设置','确认创建'],0)
+  /* Form section 1: Region & Spec */
+  + '<div class="form-sec-title">区域与规格</div>'
+  + formRow('区域','<div style="display:flex;gap:var(--sp-2)">'
+    + '<div class="opt-card opt-active">华东</div>'
+    + '<div class="opt-card">华北</div>'
+    + '<div class="opt-card">华南</div>'
+    + '</div>')
+  + formRow('可用区','<div style="display:flex;gap:var(--sp-2)">'
+    + '<div class="opt-card opt-active">AZ-1</div>'
+    + '<div class="opt-card">AZ-2</div>'
+    + '</div>')
+  + formRow('规格','<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2)">'
+    + '<div class="opt-card">2C4G<br><span style="font-size:var(--fs-xs);color:var(--t-muted)">¥98/月</span></div>'
+    + '<div class="opt-card opt-active">4C8G<br><span style="font-size:var(--fs-xs);color:var(--t-muted)">¥196/月</span></div>'
+    + '<div class="opt-card">8C16G<br><span style="font-size:var(--fs-xs);color:var(--t-muted)">¥392/月</span></div>'
+    + '</div>')
+  /* Form section 2: Network */
+  + '<div class="form-sec-title">网络设置</div>'
+  + formRow('网络类型','<div style="display:flex;gap:var(--sp-2)">'
+    + '<div class="opt-card opt-active">基础网络</div>'
+    + '<div class="opt-card">VPC</div>'
+    + '</div>')
+  + formRow('带宽','<div style="display:flex;gap:var(--sp-2)">'
+    + '<div class="opt-card">1Mbps</div>'
+    + '<div class="opt-card opt-active">5Mbps</div>'
+    + '<div class="opt-card">10Mbps</div>'
+    + '</div>')
+  /* Form section 3: System */
+  + '<div class="form-sec-title">系统设置</div>'
+  + formRow('操作系统','<div style="display:flex;gap:var(--sp-2)">'
+    + '<div class="opt-card opt-active">CentOS 7.9</div>'
+    + '<div class="opt-card">Ubuntu 22.04</div>'
+    + '<div class="opt-card">Debian 12</div>'
+    + '</div>')
+  + formRow('主机名','<input style="width:320px;padding:var(--sp-1) var(--sp-2);border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:var(--fs-sm);font-family:var(--f-ui)" placeholder="例如: sz-prod-04" />')
+  + formRow('存储','<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-2)">'
+    + '<div class="opt-card">50GB SSD</div>'
+    + '<div class="opt-card opt-active">100GB SSD</div>'
+    + '<div class="opt-card">200GB SSD</div>'
+    + '</div>')
+  /* Sticky action bar */
+  + '<div class="sticky-actions">'
+  + '<div style="display:flex;justify-content:space-between;align-items:center;width:100%">'
+  + '<span style="font-size:var(--fs-sm);color:var(--t-muted)">预计费用: <strong style="color:var(--c-primary)">¥196/月</strong></span>'
+  + '<div style="display:flex;gap:var(--sp-2)">'
+  + btn('取消','sec','','')
+  + btn('下一步','pri','','→')
+  + '</div>'
+  + '</div>'
+  + '</div>';
+}
+
+function rLogin(){
+  return '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:var(--c-surface-0)">'
+  + '<div style="background:var(--c-surface-1);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:var(--sp-6) var(--sp-5);width:380px;box-shadow:0 4px 12px rgba(0,0,0,.08)">'
+  + '<div style="text-align:center;margin-bottom:var(--sp-4)">'
+  + '<div style="width:48px;height:48px;background:var(--c-primary);border-radius:var(--r-md);display:inline-flex;align-items:center;justify-content:center;margin-bottom:var(--sp-2)">'
+  + '<svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'
+  + '</div>'
+  + '<h1 style="margin:0;font-size:var(--fs-xl);font-weight:600;color:var(--t-heading)">KuberPilot</h1>'
+  + '<p style="margin:4px 0 0;font-size:var(--fs-sm);color:var(--t-muted)">运维智能体平台</p>'
+  + '</div>'
+  + '<div style="margin-bottom:var(--sp-3)">'
+  + '<label style="font-size:var(--fs-sm);color:var(--t-body);margin-bottom:4px;display:block">用户名</label>'
+  + '<input style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:var(--fs-sm);font-family:var(--f-ui);outline:none;transition:border .2s" placeholder="请输入用户名" />'
+  + '</div>'
+  + '<div style="margin-bottom:var(--sp-3)">'
+  + '<label style="font-size:var(--fs-sm);color:var(--t-body);margin-bottom:4px;display:block">密码</label>'
+  + '<input style="width:100%;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:var(--fs-sm);font-family:var(--f-ui);outline:none;transition:border .2s" type="password" placeholder="请输入密码" />'
+  + '</div>'
+  + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);font-size:var(--fs-sm)">'
+  + '<label style="display:flex;align-items:center;gap:4px;color:var(--t-muted)"><input type="checkbox" /> 记住登录</label>'
+  + '<a style="color:var(--c-primary);cursor:pointer">忘记密码?</a>'
+  + '</div>'
+  + '<button class="b b-pri" style="width:100%;justify-content:center;padding:10px;font-size:var(--fs-sm)" onclick="go(\'dash\')">登录</button>'
+  + '<div style="text-align:center;margin-top:var(--sp-3);font-size:var(--fs-sm);color:var(--t-muted)">'
+  + '还没有账号? <a style="color:var(--c-primary);cursor:pointer">注册</a>'
+  + '</div>'
+  + '</div>'
+  + '</div>';
+}
+
+/* ─── Helper Functions ─── */
+
+function pageHeader(title, desc, _unused, actions){
+  var a = actions ? '<div>'+actions+'</div>' : '';
+  return '<div class="page-header"><div><h2 class="page-title">'+title+'</h2><p class="page-desc">'+desc+'</p></div>'+a+'</div>';
+}
+
+function btn(text, type, id, icon, extra){
+  var cls = type==='pri' ? 'b b-p' : 'b';
+  var ic = icon ? '<span style="margin-right:4px">'+icon+'</span>' : '';
+  var ex = extra || '';
+  return '<button class="'+cls+'"'+(id?' id="'+id+'"':'')+' '+ex+'>'+ic+text+'</button>';
+}
+
+function kpiCard(label, value, unit, status){
+  var sColor = status==='ok' ? 'var(--c-ok)' : status==='warn' ? 'var(--c-warn)' : status==='danger' ? 'var(--c-danger)' : status==='info' ? 'var(--c-info)' : 'var(--c-primary)';
+  return '<div class="panel" style="text-align:center;padding:var(--sp-3)">'
+    + '<p style="font-size:var(--fs-xs);color:var(--t-muted);margin-bottom:4px">'+label+'</p>'
+    + '<p style="font-size:var(--fs-xl);font-weight:700;color:var(--t-heading);margin:0">'+value+'<span style="font-size:var(--fs-sm);color:var(--t-muted);margin-left:2px">'+unit+'</span></p>'
+    + '<div style="width:8px;height:8px;background:'+sColor+';border-radius:50%;margin-top:var(--sp-1);display:inline-block"></div>'
+    + '</div>';
+}
+
+function hostCard(name, spec, ip, region, status, cpu, mem){
+  var sCls = status==='运行' ? 'ok' : status==='告警' ? 'warn' : 'err';
+  return '<div class="host-card">'
+    + '<div style="display:flex;justify-content:space-between;margin-bottom:var(--sp-1)">'
+    + '<strong>'+name+'</strong>'
+    + '<span class="st '+sCls+'"><span class="st-dot"></span>'+status+'</span>'
+    + '</div>'
+    + '<p style="font-size:var(--fs-sm);color:var(--t-muted);margin:4px 0">'+spec+' · '+ip+' · '+region+'</p>'
+    + '<div style="display:flex;gap:var(--sp-2);margin-top:var(--sp-1);font-size:var(--fs-xs)">'
+    + '<span>CPU '+cpu+'</span><span>内存 '+mem+'</span>'
+    + '</div>'
+    + '</div>';
+}
+
+function tbl(headers, rows){
+  var h = headers.map(function(x){ return '<th>'+x+'</th>'; }).join('');
+  var r = rows.map(function(row){
+    return '<tr>'+row.map(function(c){ return '<td>'+c+'</td>'; }).join('')+'</tr>';
+  }).join('');
+  return '<table class="tbl"><thead><tr>'+h+'</tr></thead><tbody>'+r+'</tbody></table>';
+}
+
+function pgBar(){
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--sp-2);font-size:var(--fs-sm);color:var(--t-muted)">'
+    + '<span>共 4 项 · 显示 1-4</span>'
+    + '<div style="display:flex;gap:var(--sp-1)">'
+    + '<button class="b b-sm" disabled>上一页</button>'
+    + '<button class="b b-sm b-pri">1</button>'
+    + '<button class="b b-sm">2</button>'
+    + '<button class="b b-sm">下一页</button>'
+    + '</div></div>';
+}
+
+function fl(tags){
+  var t = tags.map(function(x){ return '<span class="lbl lbl-info" style="cursor:pointer">'+x+'</span>'; }).join('');
+  return '<div style="display:flex;gap:var(--sp-1);margin-bottom:var(--sp-2);align-items:center">'
+    + '<span style="font-size:var(--fs-sm);color:var(--t-muted)">筛选:</span>'
+    + t
+    + '<input style="margin-left:auto;width:180px;padding:4px 8px;border:1px solid var(--c-border);border-radius:var(--r-sm);font-size:var(--fs-xs);font-family:var(--f-ui)" placeholder="搜索..." />'
+    + '</div>';
+}
+
+function panel(title, filters, content){
+  var f = filters || '';
+  var c = content || '';
+  if(typeof f === 'string' && f.indexOf('<')===-1 && f.indexOf('tbl')===-1){
+    /* filters is just filter HTML, content follows */
+    return '<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2)">'
+      + '<h3 style="margin:0;font-size:var(--fs-sm);font-weight:600;color:var(--t-heading)">'+title+'</h3>'
+      + '</div>'+f+c+'</div>';
+  }
+  return '<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-2)">'
+    + '<h3 style="margin:0;font-size:var(--fs-sm);font-weight:600;color:var(--t-heading)">'+title+'</h3>'
+    + '</div>'+f+c+'</div>';
+}
+
+function tabs(items, active){
+  var t = items.map(function(x,i){
+    var cls = i===active ? 'tab tab-on' : 'tab';
+    return '<button class="'+cls+'">'+x+'</button>';
+  }).join('');
+  return '<div class="tabs">'+t+'</div>';
+}
+
+function hint(msg, type){
+  var bg = type==='danger' ? '#fef2f2' : type==='warn' ? '#fffbeb' : '#eff6ff';
+  var bc = type==='danger' ? 'var(--c-danger)' : type==='warn' ? 'var(--c-warn)' : 'var(--c-info)';
+  var ic = type==='danger' ? '⚠' : type==='warn' ? '⚡' : 'ℹ';
+  return '<div style="background:'+bg+';border-left:3px solid '+bc+';padding:var(--sp-2) var(--sp-3);border-radius:var(--r-sm);margin-bottom:var(--sp-3);font-size:var(--fs-sm);color:var(--t-body)">'
+    + '<span style="margin-right:var(--sp-1)">'+ic+'</span> '+msg+'</div>';
+}
+
+function sec(label, value){
+  return '<div style="font-size:var(--fs-sm);color:var(--t-muted)">'+label+'</div>'
+    + '<div style="font-size:var(--fs-sm);color:var(--t-body);font-weight:500">'+value+'</div>';
+}
+
+function steps(items, active){
+  var s = items.map(function(x,i){
+    var cls = i<=active ? 'step-on' : '';
+    var numCls = i<=active ? 'step-num-on' : 'step-num';
+    var lineCls = i<active ? 'step-line-on' : 'step-line';
+    return '<div style="display:flex;align-items:center;gap:var(--sp-2)">'
+      + '<div class="'+numCls+'">'+(i+1)+'</div>'
+      + '<span class="'+cls+'" style="font-size:var(--fs-sm)">'+x+'</span>'
+      + (i<items.length-1 ? '<div class="'+lineCls+'"></div>' : '')
+      + '</div>';
+  }).join('');
+  return '<div class="steps" style="margin-bottom:var(--sp-4)">'+s+'</div>';
+}
+
+function formRow(label, content){
+  return '<div class="form-row">'
+    + '<div class="form-label">'+label+'</div>'
+    + '<div class="form-value">'+content+'</div>'
+    + '</div>';
+}
+
+/* ─── Init ─── */
+setTopNav();
+go('dash');
+</script></body></html>
