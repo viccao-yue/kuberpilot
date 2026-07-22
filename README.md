@@ -7,6 +7,7 @@ SxDevOps 是一个面向真实运维现场的开源智能运维 Agent 平台。�
 > 看态势、找证据、问系统、确认动作。
 
 - 私有交付部署说明：[docs/DELIVERY.md](docs/DELIVERY.md)
+- 私有交付变更记录：[docs/CHANGELOG-delivery.md](docs/CHANGELOG-delivery.md)
 - 用户使用文档：[docs/用户使用文档.md](docs/用户使用文档.md)
 - 技术栈：`Django + Django REST framework + Channels + Vue 3 + Element Plus`
 - 开源协议：[Apache License 2.0](LICENSE)

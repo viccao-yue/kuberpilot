@@ -14,6 +14,12 @@
 cp .env.example .env
 ```
 
+可选：如需导入演示数据（仅用于测试/验收环境），可以拷贝一份 override 文件：
+
+```bash
+cp docker-compose.override.yml.example docker-compose.override.yml
+```
+
 至少需要修改：
 
 - `SECRET_KEY`
@@ -68,4 +74,3 @@ npm run dev
 
 - 多数为后端未启动或数据库未就绪导致
 - Docker Compose 场景优先检查：`docker compose ps`、`docker compose logs -f sxdevops`
-
