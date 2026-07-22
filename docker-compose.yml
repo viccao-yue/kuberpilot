@@ -15,21 +15,21 @@ services:
       DATABASE_ENGINE: mysql
       MYSQL_HOST: mysql
       MYSQL_PORT: "3306"
-      MYSQL_DATABASE: sxdevops
-      MYSQL_USER: sxdevops
-      MYSQL_PASSWORD: sxdevops_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-sxdevops}
+      MYSQL_USER: ${MYSQL_USER:-sxdevops}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-sxdevops_password}
       REDIS_URL: redis://redis:6379/0
       CHANNEL_REDIS_URL: redis://redis:6379/1
-      SECRET_KEY: cI3Hu4fptz1MhA3a2lsUsRyfeZ+ctDGYNOdHVlpWXPTs5snT4CPe+Z70wgZxToC3
-      DEBUG: "0"
-      ALLOWED_HOSTS: 139.198.176.205,127.0.0.1,localhost
-      CORS_ALLOW_ALL_ORIGINS: "0"
+      SECRET_KEY: ${SECRET_KEY:-change-me}
+      DEBUG: ${DEBUG:-0}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-127.0.0.1,localhost}
+      CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-0}
       SXDEVOPS_WAIT_FOR_DB: "1"
       SXDEVOPS_MIGRATE: "1"
       SXDEVOPS_SEED_DATA: "0"
       SXDEVOPS_SEED_TEMPLATES: "0"
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
 
   mysql:
     image: mysql:8.0
@@ -40,10 +40,10 @@ services:
       - --collation-server=utf8mb4_unicode_ci
       - --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_DATABASE: sxdevops
-      MYSQL_USER: sxdevops
-      MYSQL_PASSWORD: sxdevops_password
-      MYSQL_ROOT_PASSWORD: sxdevops_root_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-sxdevops}
+      MYSQL_USER: ${MYSQL_USER:-sxdevops}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-sxdevops_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-sxdevops_root_password}
       TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
