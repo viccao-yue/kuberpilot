@@ -303,6 +303,7 @@ def mark_stale_terraform_executions(stack, *, ttl_seconds=1800):
                 return_code=-1,
                 stdout=execution.stdout or '',
                 stderr=stderr,
+                update_stack=False,
             )
             updated += 1
     return updated
@@ -320,6 +321,7 @@ def _finish_execution(
     cmdb_summary=None,
     workspace=None,
     cmdb_synced=False,
+    update_stack=True,
 ):
     now = timezone.now()
     execution.status = status
@@ -330,6 +332,9 @@ def _finish_execution(
     execution.cmdb_summary = cmdb_summary or {}
     execution.finished_at = now
     execution.save()
+
+    if not update_stack:
+        return execution
 
     update_fields = ['last_execution_status', 'last_execution_action', 'last_executed_at']
     stack.last_execution_status = status

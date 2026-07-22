@@ -11,7 +11,7 @@ from rbac.permissions import RBACPermissionMixin, build_rbac_permission
 
 from .cmdb_sync import sync_stack_to_cmdb
 from .executor import mark_stale_terraform_executions, start_terraform_action
-from .models import TerraformStack
+from .models import TerraformExecution, TerraformStack
 from .serializers import (
     TerraformExecutionRequestSerializer,
     TerraformExecutionSerializer,
@@ -87,6 +87,17 @@ class TerraformStackViewSet(RBACPermissionMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def execute(self, request, pk=None):
         stack = self.get_object()
+        latest_running = stack.executions.filter(
+            status__in=[TerraformExecution.STATUS_PENDING, TerraformExecution.STATUS_RUNNING],
+        ).order_by('-created_at').first()
+        if latest_running is not None:
+            return Response(
+                {
+                    'detail': '当前方案仍有 Terraform 执行任务处于待执行或执行中，请等待结束后再执行。',
+                    'execution': TerraformExecutionSerializer(latest_running).data,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         execution = start_terraform_action(
