@@ -1,6 +1,6 @@
-# SxDevOps
+# KuberPilot
 
-SxDevOps 是一个面向真实运维现场的开源智能运维 Agent 平台。它把 **可观测性、事件中心、任务中心、工单审批、容器管理、RBAC** 等平台能力组织成 Agent 可调用、可审计、可确认的运维工作流。
+KuberPilot 是一个面向真实运维现场的开源智能运维 Agent 平台。它把 **可观测性、事件中心、任务中心、工单审批、容器管理、RBAC** 等平台能力组织成 Agent 可调用、可审计、可确认的运维工作流。
 
 项目不是简单做一个聊天框，而是希望让运维从“到处查系统”升级为：
 
@@ -12,7 +12,7 @@ SxDevOps 是一个面向真实运维现场的开源智能运维 Agent 平台。�
 - 技术栈：`Django + Django REST framework + Channels + Vue 3 + Element Plus`
 - 开源协议：[Apache License 2.0](LICENSE)
 
-<img src="docs/screenshots/sxdevops-operation-flow.png" alt="SxDevOps 运转逻辑" width="820" />
+<img src="docs/screenshots/sxdevops-operation-flow.png" alt="KuberPilot 运转逻辑" width="820" />
 
 ## 为什么需要它
 
@@ -23,11 +23,11 @@ SxDevOps 是一个面向真实运维现场的开源智能运维 Agent 平台。�
 - 巡检、批量命令、脚本模板和主机权限脱节，动作入口不统一。
 - 排障经验依赖个人记忆，结论难沉淀，下一次仍要重新查。
 
-SxDevOps 的目标是把这些碎片化能力收敛成一条链路：**可观测性取证，事件中心复盘，任务中心行动，AIOps 负责理解、规划和结构化输出**。
+KuberPilot 的目标是把这些碎片化能力收敛成一条链路：**可观测性取证，事件中心复盘，任务中心行动，AIOps 负责理解、规划和结构化输出**。
 
 ## 产品定位
 
-SxDevOps AI Agent = **可观测性 + 事件中心 + 任务中心 + AIOps**
+KuberPilot AI Agent = **可观测性 + 事件中心 + 任务中心 + AIOps**
 
 | 层次 | 说明 |
 | --- | --- |
@@ -64,7 +64,7 @@ SxDevOps AI Agent = **可观测性 + 事件中心 + 任务中心 + AIOps**
 4. 翻最近发布、任务、审批和事件记录。
 5. 手工整理结论和下一步动作。
 
-在 SxDevOps 里，可以让 Agent 串起这条链路：
+在 KuberPilot 里，可以让 Agent 串起这条链路：
 
 1. 用户用自然语言发起分析。
 2. Agent 选择告警、日志、Trace、事件中心、任务中心等工具。
@@ -75,7 +75,7 @@ SxDevOps AI Agent = **可观测性 + 事件中心 + 任务中心 + AIOps**
 
 ## Agent 工作机制
 
-SxDevOps 的 Agent 运行逻辑不是“用户提问 -> 大模型自由回答”，而是一套受控编排链路：**Action Router 先判断任务类型，Agent Mode 决定推理方式，Preflight 守住执行边界，Skill/SOP 约束专业过程，MCP 连接外部与平台工具，最终由审计和反馈闭环沉淀结果**。
+KuberPilot 的 Agent 运行逻辑不是“用户提问 -> 大模型自由回答”，而是一套受控编排链路：**Action Router 先判断任务类型，Agent Mode 决定推理方式，Preflight 守住执行边界，Skill/SOP 约束专业过程，MCP 连接外部与平台工具，最终由审计和反馈闭环沉淀结果**。
 
 ```mermaid
 %%{init: {"flowchart": {"nodeSpacing": 10, "rankSpacing": 14, "curve": "basis"}, "themeVariables": {"fontSize": "12px"}}}%%
@@ -317,7 +317,7 @@ docker compose down
 
 ## 设计文档与延伸阅读
 
-- [SxDevOps AI Agent 产品介绍](https://www.sxdevops.top/ai-agent-promo)
+- [KuberPilot AI Agent 产品介绍](https://www.sxdevops.top/ai-agent-promo)
 - [微信公众号文章：7fPrmABj2Ot2VbgTLTr3Zw](https://mp.weixin.qq.com/s/7fPrmABj2Ot2VbgTLTr3Zw)
 - [微信公众号文章：1fFcSliQ_Nw_HQvwmRxzJg](https://mp.weixin.qq.com/s/1fFcSliQ_Nw_HQvwmRxzJg)
 - [AIOps 2.0 升级优化方案](docs/AIOps2.0升级优化方案.md)
@@ -355,11 +355,11 @@ docker compose down
 
 ## 开源协议
 
-SxDevOps 基于 [Apache License 2.0](LICENSE) 开源。分发或二次开发时请保留项目中的 [NOTICE](NOTICE) 文件。
+KuberPilot 基于 [Apache License 2.0](LICENSE) 开源。分发或二次开发时请保留项目中的 [NOTICE](NOTICE) 文件。
 
 ## 特别说明
 
-SxDevOps 目前是一个纯个人开源项目，UI 设计、架构设计、功能开发、测试验证和模型调用成本都主要来自个人业余时间与个人 Token 投入。受限于个人精力，项目现阶段一定还有不少不完善的地方，也难免存在 Bug，欢迎大家多提 Issue、建议和 PR，我会在能力范围内持续迭代。
+KuberPilot 目前是一个纯个人开源项目，UI 设计、架构设计、功能开发、测试验证和模型调用成本都主要来自个人业余时间与个人 Token 投入。受限于个人精力，项目现阶段一定还有不少不完善的地方，也难免存在 Bug，欢迎大家多提 Issue、建议和 PR，我会在能力范围内持续迭代。
 
 如果这个项目、实现方式或产品思路对你有帮助，也欢迎小额打赏支持，帮我分担一点 Token 成本，也给后续继续迭代多一点动力。
 
