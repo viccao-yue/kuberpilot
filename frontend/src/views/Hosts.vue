@@ -1,46 +1,49 @@
 <template>
-  <div class="fade-in host-center-page workbench-page-shell">
-    <section class="hero panel">
-      <div class="host-hero-copy">
-        <div class="host-hero-title-row host-hero-title-inline">
-          <span class="host-header-icon"><el-icon><Monitor /></el-icon></span>
-          <h2>{{ activeTabMeta?.label || '主机中心' }}</h2>
-          <p class="host-subtitle inline-subtitle">{{ heroSubtitle }}</p>
+  <EntityListShell :title="activeTabMeta?.label || '主机中心'" :description="heroSubtitle" eyebrow="Ops Assets">
+    <template #icon>
+      <span class="host-header-icon">
+        <el-icon><component :is="activeTabMeta?.icon || Monitor" /></el-icon>
+      </span>
+    </template>
+    <template #meta>
+      <span v-for="chip in metaChips" :key="chip" class="hero-chip">{{ chip }}</span>
+    </template>
+    <template #actions>
+      <el-button size="small" :loading="overviewLoading" @click="reloadOverview">刷新</el-button>
+    </template>
+
+    <template #stats>
+      <div class="stats-grid host-stats">
+        <div v-for="card in summaryCards" :key="card.label" class="stat-card release-stat-card" :class="card.tone">
+          <div class="stat-value">{{ card.value }}</div>
+          <div class="stat-label">{{ card.label }}</div>
+          <div class="release-stat-desc">{{ card.desc }}</div>
         </div>
       </div>
-      <div class="hero-actions">
-        <el-button size="small" :loading="overviewLoading" @click="reloadOverview">刷新</el-button>
-      </div>
-    </section>
+    </template>
 
-    <div class="stats-grid host-stats">
-      <div v-for="card in summaryCards" :key="card.label" class="stat-card release-stat-card" :class="card.tone">
-        <div class="stat-value">{{ card.value }}</div>
-        <div class="stat-label">{{ card.label }}</div>
-        <div class="release-stat-desc">{{ card.desc }}</div>
-      </div>
-    </div>
+    <template #hint>
+      <section class="workbench-inline-tip--panel host-context-tip">
+        <div class="tip-panel-head">
+          <strong>主机运维上下文</strong>
+          <span>在主机资产与定时任务之间共享同一份资源视图，先锁定当前模块，再进入资产清单或调度中心继续操作。</span>
+        </div>
+        <div class="tip-panel-list">
+          <div class="tip-panel-item">{{ activeTab === 'schedule-center' ? '当前聚焦定时任务中心，适合先确认启用状态和即将到点的编排。' : '当前聚焦主机资产，适合先排查在线状态、归属和待关注主机。' }}</div>
+          <div class="tip-panel-item">资源树与主机状态共享同一套环境和系统归属，减少资产与调度口径偏差。</div>
+          <div class="tip-panel-item">切换到 {{ activeTab === 'schedule-center' ? '主机资产' : '定时任务' }} 可继续处理关联资源和执行计划。</div>
+          <div class="tip-panel-item">概览指标会随当前模块同步变化，便于先在首屏完成筛查再进入详情。</div>
+        </div>
+      </section>
+    </template>
 
-    <section class="workbench-inline-tip--panel host-context-tip">
-      <div class="tip-panel-head">
-        <strong>主机运维上下文</strong>
-        <span>在主机资产与定时任务之间共享同一份资源视图，先锁定当前模块，再进入资产清单或调度中心继续操作。</span>
-      </div>
-      <div class="tip-panel-list">
-        <div class="tip-panel-item">{{ activeTab === 'schedule-center' ? '当前聚焦定时任务中心，适合先确认启用状态和即将到点的编排。' : '当前聚焦主机资产，适合先排查在线状态、归属和待关注主机。' }}</div>
-        <div class="tip-panel-item">资源树与主机状态共享同一套环境和系统归属，减少资产与调度口径偏差。</div>
-        <div class="tip-panel-item">切换到 {{ activeTab === 'schedule-center' ? '主机资产' : '定时任务' }} 可继续处理关联资源和执行计划。</div>
-        <div class="tip-panel-item">概览指标会随当前模块同步变化，便于先在首屏完成筛查再进入详情。</div>
-      </div>
-    </section>
-
-    <section class="tabs-card host-tabs-card">
-      <div class="host-route-tabs">
+    <template #tabs>
+      <div class="neo-tabs theme-blue host-tabs">
         <button
           v-for="tab in tabs"
           :key="tab.key"
           type="button"
-          class="host-route-tab"
+          class="neo-tab-btn"
           :class="{ active: activeTab === tab.key }"
           @click="switchTab(tab.key)"
         >
@@ -48,19 +51,20 @@
           {{ tab.label }}
         </button>
       </div>
-    </section>
+    </template>
 
     <div class="host-center-content">
       <CmdbHostsPanel v-if="activeTab === 'assets'" :resource-tree="resourceTree" />
       <CmdbHostScheduleCenter v-else-if="activeTab === 'schedule-center'" :resource-tree="resourceTree" />
     </div>
-  </div>
+  </EntityListShell>
 </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Monitor, Timer } from '@element-plus/icons-vue'
+import EntityListShell from '@/components/layout/EntityListShell.vue'
 import CmdbHostsPanel from '@/components/cmdb/CmdbHostsPanel.vue'
 import CmdbHostScheduleCenter from '@/components/cmdb/CmdbHostScheduleCenter.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -93,6 +97,24 @@ const activeTabMeta = computed(() => tabs.value.find(item => item.key === active
 const heroSubtitle = computed(() => {
   if (activeTab.value === 'schedule-center') return '支持 SSH 与 Ansible 两种执行方式，可按 Cron、间隔或单次触发。'
   return '统一查看主机状态、归属与基础运行信息。'
+})
+
+const metaChips = computed(() => {
+  if (activeTab.value === 'schedule-center' && canViewSchedules.value) {
+    return [
+      `编排总数 ${scheduleSummary.value.total}`,
+      `已启用 ${scheduleSummary.value.enabled}`,
+      `1 小时内到点 ${scheduleSummary.value.due_soon}`,
+    ]
+  }
+  if (canViewAssets.value) {
+    return [
+      `主机总数 ${hostSummary.value.total}`,
+      `在线 ${hostSummary.value.online}`,
+      `待关注 ${hostSummary.value.offline + hostSummary.value.warning}`,
+    ]
+  }
+  return []
 })
 
 const summaryCards = computed(() => {
@@ -171,19 +193,24 @@ onMounted(async () => { await reloadOverview() })
 </script>
 
 <style scoped>
-.host-center-page{display:flex;flex-direction:column;gap:8px}
-.panel{background:#fff;border:1px solid #dbe4f0;border-radius:14px;box-shadow:none;padding:12px 14px}
-.hero{display:flex;gap:12px;justify-content:space-between;align-items:center}
-.host-hero-copy{display:flex;flex-direction:column}.host-hero-title-row{display:flex;align-items:center;gap:12px}.host-hero-title-inline{flex-wrap:wrap}.host-header-icon{width:42px;height:42px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;color:#fff;background:linear-gradient(135deg,#409eff,#36cfc9);box-shadow:0 10px 20px rgba(64,158,255,.2)}
-.hero-actions{display:flex;align-items:center;gap:8px}.hero h2{color:#0f172a;font-size:23px;margin:0}.host-subtitle,.inline-subtitle{margin:0;max-width:none;font-size:13px;line-height:1.45;color:#475569}
-.stats-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.host-stats{gap:8px}
-.host-header-icon{font-size:18px;color:#245bdb;background:rgba(36,91,219,.1);box-shadow:none}
-.host-tabs-card{padding:6px}
-.host-route-tabs{display:flex;flex-wrap:wrap;gap:8px}
-.host-route-tab{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;transition:background-color .18s ease,color .18s ease,border-color .18s ease}
-.host-route-tab:hover{background:rgba(36,91,219,.05);color:#245bdb}
-.host-route-tab.active{border-color:rgba(36,91,219,.16);background:rgba(36,91,219,.08);color:#245bdb}
-.host-center-content{min-width:0}
-@media (max-width: 900px) { .hero{flex-direction:column;align-items:flex-start} .stats-grid{grid-template-columns:1fr} }
-.hero.panel { border-radius: 14px; }
+.host-center-content {
+  min-width: 0;
+}
+
+.host-tabs :deep(.neo-tab-btn) {
+  height: 34px;
+}
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+}
 </style>

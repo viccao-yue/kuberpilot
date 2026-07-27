@@ -344,1035 +344,179 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Connection, InfoFilled, RefreshRight, Setting, Share } from '@element-plus/icons-vue'
-import echarts from '@/lib/echarts'
 import { getAIOpsKnowledgeGraph } from '@/api/modules/aiops'
+import {
+  capabilityLabel,
+  edgeRelationLabel,
+  envLabel,
+  hiddenNodeKinds,
+  laneDefinitions,
+  laneKinds,
+  nodeKindLabel,
+  nodeTypeBadge,
+  palette,
+} from './knowledge-graph/graphMeta'
+import {
+  buildSwimlaneLayout,
+  laneStyle as computeLaneStyle,
+  DEFAULT_GRAPH_ZOOM,
+  getGraphChartHeight,
+  getGraphChartWidth,
+  laneTitleStyle,
+  laneBodyStyle,
+  MAX_GRAPH_ZOOM,
+  MIN_GRAPH_ZOOM,
+  nodeCardStyle,
+  NODE_DOT_RADIUS,
+} from './knowledge-graph/graphLayout'
+import {
+  buildBoardEdges,
+  isDimmedNode as checkDimmedNode,
+  isFocusedNeighbor as checkFocusedNeighbor,
+} from './knowledge-graph/graphFocus'
+import {
+  getGraphNodeById,
+  getRelationLegendMap,
+  getSelectedNode,
+  getTraceTopologyDatasourceId,
+  getTraceTopologyService,
+  getVisibleGraphEdges,
+  getVisibleGraphNodes,
+} from './knowledge-graph/graphData'
+import {
+  buildSelectedFocus,
+  getActiveLaneDefinitions,
+  getNodeCategoryStats,
+  getSelectedNeighborKindStats,
+  getSelectedRelationStats,
+  getTopServices,
+  getVisibleRelationLegend,
+  getVisibleSummary,
+} from './knowledge-graph/graphSelectors'
+import { useGraphInteractions } from './knowledge-graph/useGraphInteractions'
+import { useKnowledgeGraphFlow } from './knowledge-graph/useKnowledgeGraphFlow'
+import { useKnowledgeGraphSelection } from './knowledge-graph/useKnowledgeGraphSelection'
 import AIOpsKnowledgeConfig from './AIOpsKnowledgeConfig.vue'
 import TraceObservability from './TraceObservability.vue'
 
 const route = useRoute()
 const router = useRouter()
-const chartRef = ref(null)
 const graphPanelRef = ref(null)
 const graphPanelShellRef = ref(null)
 const graphLegendRef = ref(null)
-const loading = ref(false)
 const graph = ref({ nodes: [], edges: [], summary: {}, filters: {}, relation_legend: [] })
-const selectedNodeId = ref('')
 const adoptionDocVisible = ref(false)
 const traceTopologyDialogVisible = ref(false)
 const traceTopologyDialogReady = ref(false)
-const activeTab = ref(route.query.tab === 'config' ? 'config' : 'graph')
 const filters = reactive({ environment: '', system: '', service: '' })
-const DEFAULT_GRAPH_ZOOM = 0.84
-const MIN_GRAPH_ZOOM = 0.5
-const MAX_GRAPH_ZOOM = 1.35
-const NODE_DOT_RADIUS = 24
-const NODE_DOT_CENTER_OFFSET = 32
-const LANE_MAX_VISIBLE_NODES = 36
-const LANE_MAX_ROWS = 12
-const LANE_BASE_WIDTH = 206
-const LANE_COLUMN_GAP = 14
-const LANE_GAP = 18
-const LANE_NODE_TOP = 68
-const LANE_NODE_STEP = 82
-const LANE_BODY_TOP = 76
-const LANE_LEFT_PADDING = 18
-const hiddenNodeKinds = new Set(['environment', 'external_event'])
-const graphZoom = ref(DEFAULT_GRAPH_ZOOM)
-const graphDrag = reactive({ active: false, moved: false, x: 0, y: 0, scrollLeft: 0, scrollTop: 0 })
-const legendPosition = reactive({ x: null, y: null })
-const legendDrag = reactive({ active: false, offsetX: 0, offsetY: 0 })
-let chart = null
+const {
+  selectedNodeId,
+  clearSelection,
+  selectNode,
+  openNode,
+} = useKnowledgeGraphSelection({ router })
 
-const graphNodes = computed(() => (graph.value.nodes || []).filter(node => {
-  if (hiddenNodeKinds.has(node.kind)) return false
-  if (node.infra_type === 'task_resource_environment') return false
-  if (String(node.id || '').startsWith('infrastructure:task_resource_env:')) return false
-  return !String(node.id || '').startsWith('capability:')
-}))
-const graphNodeById = computed(() => new Map((graph.value.nodes || []).map(node => [node.id, node])))
-const traceTopologyDatasourceId = computed(() => {
-  const traceNode = (graph.value.nodes || []).find(node => String(node.id || '').startsWith('trace_ds:'))
-  return traceNode ? String(traceNode.id).replace('trace_ds:', '') : ''
-})
-const traceTopologyService = computed(() => {
-  if (filters.service) return filters.service
-  if (selectedNode.value?.service) return selectedNode.value.service
-  if (selectedNode.value?.kind === 'service') return selectedNode.value.label || selectedNode.value.name || ''
-  return ''
-})
-const graphEdges = computed(() => (graph.value.edges || []).filter(edge => {
-  const source = graphNodeById.value.get(edge.source)
-  const target = graphNodeById.value.get(edge.target)
-  if (!source || !target) return false
-  const kinds = new Set([source.kind, target.kind])
-  return (
-    (edge.relation === 'system_service' && kinds.has('system') && kinds.has('service'))
-    || edge.relation === 'service_deployment'
-    || edge.relation === 'infrastructure_member'
-    || edge.relation === 'service_runtime'
-    || edge.relation === 'system_runtime'
-  )
-}))
-const visibleSummary = computed(() => {
-  const kindCounts = graphNodes.value.reduce((acc, node) => {
-    acc[node.kind] = (acc[node.kind] || 0) + 1
-    return acc
-  }, {})
-  return {
-    node_count: graphNodes.value.length,
-    edge_count: graphEdges.value.length,
-    service_count: kindCounts.service || 0,
-    datasource_count: kindCounts.datasource || 0,
-    infrastructure_count: kindCounts.infrastructure || 0,
-    runtime_component_count: kindCounts.runtime_component || 0,
-  }
-})
-const selectedNode = computed(() => graphNodes.value.find(item => item.id === selectedNodeId.value) || null)
-const graphLegendStyle = computed(() => {
-  if (legendPosition.x === null || legendPosition.y === null) {
-    return { top: '14px', right: '14px' }
-  }
-  return {
-    left: `${legendPosition.x}px`,
-    top: `${legendPosition.y}px`,
-  }
-})
-const relationLegendMap = computed(() => new Map((graph.value.relation_legend || []).map(item => [item.key, item.label])))
-const selectedFocus = computed(() => {
-  const selectedId = selectedNodeId.value
-  const nodeIds = new Set()
-  const edgeIds = new Set()
-  if (!selectedId) return { nodeIds, edgeIds }
-  nodeIds.add(selectedId)
-  graphEdges.value.forEach((edge) => {
-    if (edge.source !== selectedId && edge.target !== selectedId) return
-    edgeIds.add(edge.id)
-    nodeIds.add(edge.source)
-    nodeIds.add(edge.target)
-  })
-  return { nodeIds, edgeIds }
-})
-const selectedRelationStats = computed(() => {
-  const selectedId = selectedNodeId.value
-  if (!selectedId) return []
-  const counter = new Map()
-  graphEdges.value.forEach((edge) => {
-    if (edge.source !== selectedId && edge.target !== selectedId) return
-    const key = edge.relation || 'related'
-    counter.set(key, (counter.get(key) || 0) + 1)
-  })
-  return [...counter.entries()]
-    .map(([key, count]) => ({
-      key,
-      label: relationLegendMap.value.get(key) || edgeRelationLabel(key),
-      count,
-    }))
-    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, 'zh-Hans-CN'))
-})
-const selectedNeighborKindStats = computed(() => {
-  const selectedId = selectedNodeId.value
-  if (!selectedId) return []
-  const neighborIds = new Set()
-  graphEdges.value.forEach((edge) => {
-    if (edge.source === selectedId) neighborIds.add(edge.target)
-    if (edge.target === selectedId) neighborIds.add(edge.source)
-  })
-  const counter = new Map()
-  neighborIds.forEach((nodeId) => {
-    const node = graphNodeById.value.get(nodeId)
-    if (!node) return
-    counter.set(node.kind, (counter.get(node.kind) || 0) + 1)
-  })
-  return [...counter.entries()]
-    .map(([kind, count]) => ({
-      kind,
-      label: `${nodeKindLabel(kind)}节点`,
-      count,
-    }))
-    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label, 'zh-Hans-CN'))
-})
-const topServices = computed(() => graphNodes.value
-  .filter(item => item.kind === 'service')
-  .slice()
-  .sort((left, right) => Number(right.metric || 0) - Number(left.metric || 0))
-  .slice(0, 8))
-const activeLaneDefinitions = computed(() => {
-  const presentKinds = new Set(graphNodes.value.map(node => node.kind))
-  return laneDefinitions.filter(lane => laneKinds(lane).some(kind => presentKinds.has(kind)))
-})
-
-function laneDisplayMetrics(count) {
-  const visibleCount = Math.min(count, LANE_MAX_VISIBLE_NODES)
-  const itemCount = Math.max(1, visibleCount + (count > visibleCount ? 1 : 0))
-  const columns = Math.max(1, Math.min(3, Math.ceil(itemCount / LANE_MAX_ROWS)))
-  const rows = Math.max(1, Math.ceil(itemCount / columns))
-  return {
-    visibleCount,
-    hiddenCount: Math.max(0, count - visibleCount),
-    itemCount,
-    columns,
-    rows,
-    width: columns * LANE_BASE_WIDTH + (columns - 1) * LANE_COLUMN_GAP,
-  }
-}
-
-const graphChartHeight = computed(() => {
-  const nodes = graphNodes.value
-  const maxLaneRows = Math.max(1, ...activeLaneDefinitions.value.map(lane => {
-    const kinds = new Set(laneKinds(lane))
-    const count = nodes.filter(node => kinds.has(node.kind)).length
-    return laneDisplayMetrics(count).rows
-  }))
-  return Math.max(640, LANE_BODY_TOP + LANE_NODE_TOP + maxLaneRows * LANE_NODE_STEP + 112)
-})
-const graphChartWidth = computed(() => {
-  const nodes = graphNodes.value
-  const widths = activeLaneDefinitions.value.map((lane) => {
-    const kinds = new Set(laneKinds(lane))
-    const count = nodes.filter(node => kinds.has(node.kind)).length
-    return laneDisplayMetrics(count).width
-  })
-  const laneCount = Math.max(widths.length, 1)
-  const totalLaneWidth = widths.reduce((sum, width) => sum + width, 0)
-  return Math.max(980, LANE_LEFT_PADDING * 2 + totalLaneWidth + Math.max(0, laneCount - 1) * LANE_GAP)
-})
-const scaledGraphWidth = computed(() => Math.ceil(graphChartWidth.value * graphZoom.value))
-const scaledGraphHeight = computed(() => Math.ceil(graphChartHeight.value * graphZoom.value))
-const swimlaneLayout = computed(() => buildSwimlaneLayout())
+const graphNodes = computed(() => getVisibleGraphNodes(graph.value, hiddenNodeKinds))
+const graphNodeById = computed(() => getGraphNodeById(graph.value))
+const traceTopologyDatasourceId = computed(() => getTraceTopologyDatasourceId(graph.value))
+const selectedNode = computed(() => getSelectedNode(graphNodes.value, selectedNodeId.value))
+const traceTopologyService = computed(() => getTraceTopologyService(filters, selectedNode.value))
+const graphEdges = computed(() => getVisibleGraphEdges(graph.value, graphNodeById.value))
+const visibleSummary = computed(() => getVisibleSummary(graphNodes.value, graphEdges.value))
+const relationLegendMap = computed(() => getRelationLegendMap(graph.value))
+const selectedFocus = computed(() => buildSelectedFocus(selectedNodeId.value, graphEdges.value))
+const selectedRelationStats = computed(() => getSelectedRelationStats(
+  selectedNodeId.value,
+  graphEdges.value,
+  relationLegendMap.value,
+  edgeRelationLabel,
+))
+const selectedNeighborKindStats = computed(() => getSelectedNeighborKindStats(
+  selectedNodeId.value,
+  graphEdges.value,
+  graphNodeById.value,
+  nodeKindLabel,
+))
+const topServices = computed(() => getTopServices(graphNodes.value))
+const activeLaneDefinitions = computed(() => getActiveLaneDefinitions(graphNodes.value, laneDefinitions, laneKinds))
+const graphChartHeight = computed(() => getGraphChartHeight(graphNodes.value, activeLaneDefinitions.value))
+const graphChartWidth = computed(() => getGraphChartWidth(graphNodes.value, activeLaneDefinitions.value))
+const swimlaneLayout = computed(() => buildSwimlaneLayout(graphNodes.value, activeLaneDefinitions.value, graphChartHeight.value))
 const boardNodeMap = computed(() => new Map(swimlaneLayout.value.nodes.map(node => [node.id, node])))
-const boardEdges = computed(() => graphEdges.value
-  .map((edge, index) => {
-    const source = boardNodeMap.value.get(edge.source)
-    const target = boardNodeMap.value.get(edge.target)
-    if (!source || !target) return null
-    const leftNode = source.x <= target.x ? source : target
-    const rightNode = source.x <= target.x ? target : source
-    const sourceX = leftNode.centerX + NODE_DOT_RADIUS
-    const targetX = rightNode.centerX - NODE_DOT_RADIUS
-    const sourceY = leftNode.centerY
-    const targetY = rightNode.centerY
-    const midX = (sourceX + targetX) / 2
-    return {
-      id: `${edge.source}-${edge.target}-${edge.relation || index}`,
-      relation: edge.relation || 'default',
-      path: `M ${sourceX} ${sourceY} C ${midX} ${sourceY}, ${midX} ${targetY}, ${targetX} ${targetY}`,
-      focused: isFocusedEdge(edge.id),
-      dimmed: isDimmedEdge(edge.id),
-    }
-  })
-  .filter(Boolean))
-const nodeCategoryStats = computed(() => {
-  const counts = graphNodes.value.reduce((acc, node) => {
-    acc[node.kind] = (acc[node.kind] || 0) + 1
-    return acc
-  }, {})
-  return laneDefinitions
-    .map((lane) => ({
-      kind: lane.kind,
-      label: lane.label,
-      color: palette[lane.kind] || '#64748b',
-      count: laneKinds(lane).reduce((sum, kind) => sum + (counts[kind] || 0), 0),
-    }))
-    .filter(item => item.count > 0)
+const boardEdges = computed(() => buildBoardEdges(
+  graphEdges.value,
+  boardNodeMap.value,
+  selectedNodeId.value,
+  selectedFocus.value,
+  NODE_DOT_RADIUS,
+))
+const nodeCategoryStats = computed(() => getNodeCategoryStats(graphNodes.value, laneDefinitions, laneKinds, palette))
+const visibleRelationLegend = computed(() => getVisibleRelationLegend(graph.value.relation_legend, boardEdges.value))
+const {
+  graphZoom,
+  graphDrag,
+  legendDrag,
+  graphLegendStyle,
+  scaledGraphWidth,
+  scaledGraphHeight,
+  resetViewport,
+  handleGraphWheel,
+  startGraphDrag,
+  handleGraphDrag,
+  stopGraphDrag,
+  startLegendDrag,
+  handleGraphPanelClick,
+} = useGraphInteractions({
+  graphPanelRef,
+  graphPanelShellRef,
+  graphLegendRef,
+  graphChartWidth,
+  graphChartHeight,
+  defaultZoom: DEFAULT_GRAPH_ZOOM,
+  minZoom: MIN_GRAPH_ZOOM,
+  maxZoom: MAX_GRAPH_ZOOM,
+  clearSelection,
 })
-const visibleRelationLegend = computed(() => {
-  const visibleRelationKeys = new Set(boardEdges.value.map(edge => edge.relation))
-  return (graph.value.relation_legend || []).filter(item => visibleRelationKeys.has(item.key))
+const {
+  loading,
+  activeTab,
+  loadGraph,
+  resetFilters,
+  handleEnvironmentChange,
+  handleTabChange,
+  openTraceTopology,
+} = useKnowledgeGraphFlow({
+  route,
+  router,
+  filters,
+  graph,
+  graphNodes,
+  selectedNodeId,
+  traceTopologyDatasourceId,
+  traceTopologyDialogVisible,
+  traceTopologyDialogReady,
+  fetchGraph: (params) => getAIOpsKnowledgeGraph(params),
 })
-
-const categories = [
-  { name: '可观测性' },
-  { name: '环境' },
-  { name: '系统' },
-  { name: '服务' },
-  { name: '基础设施' },
-  { name: '运行组件' },
-  { name: '事件源' },
-]
-
-const categoryIndex = {
-  environment: 1,
-  logs: 0,
-  tracing: 0,
-  dashboard: 0,
-  alert: 0,
-  internal_event: 0,
-  system: 2,
-  service: 3,
-  infrastructure: 4,
-  runtime_component: 5,
-  datasource: 0,
-  event_source: 6,
-}
-
-const palette = {
-  observability: '#0ea5e9',
-  logs: '#0ea5e9',
-  tracing: '#8b5cf6',
-  dashboard: '#10b981',
-  alert: '#ef4444',
-  internal_event: '#64748b',
-  summary: '#94a3b8',
-  environment: '#2563eb',
-  system: '#334155',
-  service: '#0f766e',
-  infrastructure: '#f97316',
-  runtime_component: '#0891b2',
-  datasource: '#7c3aed',
-  event_source: '#db2777',
-}
-
-const LANE_TINTS = [
-  { fill: 'rgba(59, 130, 246, 0.13)', border: 'rgba(59, 130, 246, 0.28)' },
-  { fill: 'rgba(16, 185, 129, 0.13)', border: 'rgba(16, 185, 129, 0.28)' },
-  { fill: 'rgba(245, 158, 11, 0.13)', border: 'rgba(245, 158, 11, 0.28)' },
-  { fill: 'rgba(236, 72, 153, 0.11)', border: 'rgba(236, 72, 153, 0.26)' },
-  { fill: 'rgba(14, 165, 233, 0.13)', border: 'rgba(14, 165, 233, 0.28)' },
-]
-const LANE_TINT_BY_KIND = {
-  service: { fill: 'rgba(245, 158, 11, 0.13)', border: 'rgba(245, 158, 11, 0.28)' },
-  observability: { fill: 'rgba(16, 185, 129, 0.08)', border: 'rgba(16, 185, 129, 0.18)' },
-  event_source: { fill: 'rgba(16, 185, 129, 0.08)', border: 'rgba(16, 185, 129, 0.18)' },
-}
-
-const laneDefinitions = [
-  { kind: 'infrastructure', label: '基础设施' },
-  { kind: 'system', label: '系统' },
-  { kind: 'service', label: '服务' },
-  { kind: 'runtime_component', label: '中间件 / DB' },
-  { kind: 'observability', label: '可观测性', kinds: ['datasource', 'dashboard', 'logs', 'tracing'] },
-  { kind: 'alert', label: '告警' },
-  { kind: 'event_source', label: '事件源' },
-  { kind: 'internal_event', label: '内部事件' },
-]
-
-function envLabel(value) {
-  return {
-    prod: '生产',
-    test: '测试',
-    dev: '开发',
-    staging: '预发',
-    production: '生产',
-    testing: '测试',
-    development: '开发',
-  }[value] || value || '-'
-}
-
-function capabilityLabel(value) {
-  return {
-    logs: '日志',
-    tracing: '链路',
-    dashboards: '看板',
-    alerts: '告警',
-    internal_events: '内部事件',
-    external_events: '外部事件',
-  }[value] || value
-}
-
-function nodeKindLabel(value) {
-  return {
-    observability: '可观测性',
-    logs: '日志',
-    tracing: '链路',
-    dashboard: '看板',
-    alert: '告警',
-    internal_event: '内部事件',
-    external_event: '外部事件',
-    environment: '环境',
-    system: '系统',
-    service: '服务',
-    infrastructure: '基础设施',
-    runtime_component: '中间件 / DB',
-    datasource: '数据源',
-    event_source: '事件源',
-  }[value] || value || '-'
-}
-
-function edgeRelationLabel(value) {
-  return {
-    system_service: '系统承载服务',
-    service_deployment: '部署在',
-    infrastructure_member: '集群包含主机',
-    service_runtime: '服务依赖',
-    system_runtime: '系统依赖组件',
-    environment_system: '环境包含系统',
-    environment_observability: '环境关联可观测性',
-    environment_infrastructure: '环境运行于基础设施',
-  }[value] || value || '关联'
-}
 
 function isFocusedNeighbor(nodeId) {
-  return Boolean(selectedNodeId.value && nodeId !== selectedNodeId.value && selectedFocus.value.nodeIds.has(nodeId))
+  return checkFocusedNeighbor(selectedNodeId.value, selectedFocus.value, nodeId)
 }
 
 function isDimmedNode(nodeId) {
-  return Boolean(selectedNodeId.value && !selectedFocus.value.nodeIds.has(nodeId))
-}
-
-function isFocusedEdge(edgeId) {
-  return Boolean(selectedNodeId.value && selectedFocus.value.edgeIds.has(edgeId))
-}
-
-function isDimmedEdge(edgeId) {
-  return Boolean(selectedNodeId.value && !selectedFocus.value.edgeIds.has(edgeId))
-}
-
-function laneKinds(lane) {
-  return lane.kinds || [lane.kind]
-}
-
-function nodeLaneKind(node) {
-  const lane = laneDefinitions.find(item => laneKinds(item).includes(node.kind))
-  return lane?.kind || node.kind
-}
-
-function datasourceBadgeType(node) {
-  const id = String(node.id || '')
-  const category = String(node.category || '')
-  if (id.startsWith('metric_ds:') || category.includes('指标')) return 'metrics'
-  if (id.startsWith('log_ds:') || category.includes('日志')) return 'logs'
-  if (id.startsWith('trace_ds:') || category.includes('链路')) return 'tracing'
-  return ''
-}
-
-function nodeTypeBadge(node) {
-  if (!['datasource', 'dashboard', 'logs', 'tracing', 'infrastructure', 'runtime_component'].includes(node.kind)) return ''
-  const category = String(node.category || '')
-  if (node.kind === 'infrastructure') {
-    if (node.infra_type === 'k8s') return 'K8s'
-    if (node.infra_type === 'k8s_host') return '主机'
-    if (node.infra_type === 'docker') return 'Docker'
-    if (node.infra_type === 'task_resource_host') return '主机'
-    if (node.infra_type === 'task_resource_k8s') return 'K8s'
-    if (node.infra_type === 'task_resource_environment') return ''
-    return '主机'
-  }
-  if (node.kind === 'runtime_component') return node.runtime_type || '组件'
-  if (node.kind === 'dashboard') return '看板'
-  if (node.kind === 'logs' || category.includes('日志')) return '日志'
-  if (node.kind === 'tracing' || category.includes('链路')) return '链路'
-  const datasourceType = datasourceBadgeType(node)
-  if (datasourceType === 'metrics') return '指标'
-  if (datasourceType === 'logs') return '日志'
-  if (datasourceType === 'tracing') return '链路'
-  return '数据源'
-}
-
-function laneNodeSortWeight(node) {
-  if (node.kind === 'datasource') {
-    const datasourceType = datasourceBadgeType(node)
-    if (datasourceType === 'metrics') return 10
-    if (datasourceType === 'logs') return 20
-    if (datasourceType === 'tracing') return 30
-    return 40
-  }
-  if (node.kind === 'dashboard') return 50
-  if (node.kind === 'logs') return 70
-  if (node.kind === 'tracing') return 80
-  if (node.kind !== 'infrastructure') return 100
-  if (node.infra_type === 'k8s') return 1
-  if (node.infra_type === 'k8s_host') return 2
-  if (node.infra_type === 'docker') return 3
-  if (node.infra_type === 'task_resource_k8s') return 4
-  if (node.infra_type === 'task_resource_host') return 5
-  return 9
-}
-
-function nodeSize(node) {
-  const base = node.kind === 'system' ? 50 : node.kind === 'service' ? 42 : node.kind === 'environment' ? 44 : 32
-  return Math.min(base + Math.sqrt(Number(node.metric || 0)) * 3, 68)
-}
-
-function hexToRgba(hex, alpha = 1) {
-  const normalized = String(hex || '#64748b').replace('#', '')
-  const value = normalized.length === 3
-    ? normalized.split('').map(char => char + char).join('')
-    : normalized.padEnd(6, '0').slice(0, 6)
-  const number = Number.parseInt(value, 16)
-  const red = (number >> 16) & 255
-  const green = (number >> 8) & 255
-  const blue = number & 255
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`
-}
-
-function getLaneTint(lane) {
-  if (LANE_TINT_BY_KIND[lane.kind]) return LANE_TINT_BY_KIND[lane.kind]
-  const name = lane.label || lane.kind || ''
-  let hash = 0
-  for (let index = 0; index < name.length; index += 1) {
-    hash = (hash * 31 + name.charCodeAt(index)) >>> 0
-  }
-  return LANE_TINTS[hash % LANE_TINTS.length]
-}
-
-function buildSwimlaneLayout() {
-  const nodes = graphNodes.value
-  const lanes = activeLaneDefinitions.value
-  const headerY = 22
-  const bodyY = LANE_BODY_TOP
-  const laneNodes = []
-  let cursorX = LANE_LEFT_PADDING
-
-  const positionedLanes = lanes.map((lane, laneIndex) => {
-    const color = palette[lane.kind] || '#64748b'
-    const tint = getLaneTint(lane)
-    const kinds = new Set(laneKinds(lane))
-    const fullLaneItems = nodes
-      .filter(node => kinds.has(node.kind))
-      .sort((left, right) => {
-        const weightDiff = laneNodeSortWeight(left) - laneNodeSortWeight(right)
-        if (weightDiff !== 0) return weightDiff
-        return String(left.label || '').localeCompare(String(right.label || ''), 'zh-Hans-CN')
-      })
-    const metrics = laneDisplayMetrics(fullLaneItems.length)
-    const hiddenCount = metrics.hiddenCount
-    const visibleItems = hiddenCount
-      ? fullLaneItems.slice(0, metrics.visibleCount).concat([{
-        id: `lane-summary:${lane.kind}`,
-        label: `还有 ${hiddenCount} 个节点`,
-        kind: 'summary',
-        category: lane.label,
-        metric: hiddenCount,
-        isSummary: true,
-      }])
-      : fullLaneItems
-    const laneItems = visibleItems
-      .map((node, index) => {
-        const columnIndex = Math.floor(index / metrics.rows)
-        const rowIndex = index % metrics.rows
-        const cardLeft = columnIndex * (LANE_BASE_WIDTH + LANE_COLUMN_GAP) + LANE_BASE_WIDTH / 2
-        const centerX = cursorX + cardLeft
-        const cardY = LANE_NODE_TOP + rowIndex * LANE_NODE_STEP
-        const positioned = {
-          ...node,
-          x: centerX,
-          centerX,
-          centerY: bodyY + cardY + NODE_DOT_CENTER_OFFSET,
-          cardY,
-          cardLeft,
-          color: palette[node.kind] || color,
-        }
-        laneNodes.push(positioned)
-        return positioned
-      })
-    const positionedLane = {
-      ...lane,
-      x: cursorX,
-      y: bodyY,
-      titleY: headerY,
-      width: metrics.width,
-      height: graphChartHeight.value - bodyY - 28,
-      color,
-      tint,
-      index: laneIndex,
-      nodes: laneItems,
-      totalNodeCount: fullLaneItems.length,
-      hiddenNodeCount: hiddenCount,
-      columns: metrics.columns,
-    }
-    cursorX += metrics.width + LANE_GAP
-    return positionedLane
-  })
-
-  return { lanes: positionedLanes, nodes: laneNodes }
+  return checkDimmedNode(selectedNodeId.value, selectedFocus.value, nodeId)
 }
 
 function laneStyle(lane) {
-  return {
-    left: `${lane.x}px`,
-    top: '0px',
-    width: `${lane.width}px`,
-    height: `${graphChartHeight.value}px`,
-    '--lane-color': lane.color,
-  }
-}
-
-function laneTitleStyle(lane) {
-  return {
-    top: `${lane.titleY}px`,
-    borderColor: 'rgba(59, 130, 246, 0.28)',
-    boxShadow: 'none',
-  }
-}
-
-function laneBodyStyle(lane) {
-  const topColor = lane.index % 2 === 0 ? 'rgba(255, 255, 255, 0.90)' : 'rgba(248, 250, 252, 0.92)'
-  return {
-    top: `${lane.y}px`,
-    height: `${lane.height}px`,
-    background: `linear-gradient(180deg, ${topColor} 0%, ${lane.tint.fill} 100%)`,
-    borderColor: lane.tint.border,
-    boxShadow: 'none',
-  }
-}
-
-function nodeCardStyle(node) {
-  return {
-    top: `${node.cardY}px`,
-    left: `${node.cardLeft}px`,
-    '--node-color': node.color,
-  }
-}
-
-function buildLaneLayout() {
-  const nodes = graphNodes.value
-  const lanes = activeLaneDefinitions.value
-  const width = Math.max(graphChartWidth.value, chartRef.value?.clientWidth || 980)
-  const height = graphChartHeight.value
-  const leftPadding = 18
-  const headerY = 18
-  const headerHeight = 44
-  const bodyY = 86
-  const laneGap = 16
-  const laneWidth = 206
-  const nodeStep = 82
-  const laneMap = new Map()
-  let cursorX = leftPadding
-
-  lanes.forEach((lane, index) => {
-    const kinds = new Set(laneKinds(lane))
-    const laneNodes = nodes.filter(node => kinds.has(node.kind))
-    laneMap.set(lane.kind, { ...lane, index, x: cursorX, width: laneWidth, nodes: laneNodes })
-    cursorX += laneWidth + laneGap
-  })
-
-  const positionedNodes = nodes.map((node) => {
-    const lane = laneMap.get(nodeLaneKind(node)) || laneMap.values().next().value || { x: leftPadding, width: laneWidth, nodes: [] }
-    const index = Math.max(lane.nodes.findIndex(item => item.id === node.id), 0)
-    const x = lane.x + lane.width / 2
-    const y = bodyY + 86 + index * nodeStep
-    return { ...node, x, y }
-  })
-
-  const laneGraphics = lanes.map((lane) => {
-    const item = laneMap.get(lane.kind)
-    const color = palette[lane.kind] || '#64748b'
-    return {
-      type: 'group',
-      silent: true,
-      z: -10,
-      children: [
-        {
-          type: 'rect',
-          shape: { x: item.x, y: headerY, width: item.width, height: headerHeight, r: 22 },
-          style: {
-            fill: 'rgba(255,255,255,0.94)',
-            stroke: hexToRgba(color, 0.32),
-            lineWidth: 1.5,
-            shadowBlur: 16,
-            shadowColor: 'rgba(15,23,42,0.08)',
-          },
-        },
-        {
-          type: 'text',
-          style: {
-            x: item.x + item.width / 2,
-            y: headerY + 28,
-            text: lane.label,
-            fill: '#0f172a',
-            font: '800 17px sans-serif',
-            align: 'center',
-          },
-        },
-        {
-          type: 'rect',
-          shape: { x: item.x, y: bodyY, width: item.width, height: height - bodyY - 28, r: 20 },
-          style: {
-            fill: hexToRgba(color, 0.12),
-            stroke: hexToRgba(color, 0.22),
-            lineWidth: 1.2,
-            shadowBlur: 18,
-            shadowColor: hexToRgba(color, 0.12),
-          },
-        },
-        {
-          type: 'text',
-          style: {
-            x: item.x + item.width / 2,
-            y: bodyY + (height - bodyY - 28) / 2,
-            text: lane.label,
-            fill: hexToRgba(color, 0.08),
-            font: '900 28px sans-serif',
-            align: 'center',
-          },
-        },
-        {
-          type: 'rect',
-          shape: { x: item.x + 14, y: bodyY + 12, width: 72, height: 24, r: 12 },
-          style: {
-            fill: 'rgba(255,255,255,0.78)',
-            stroke: 'rgba(255,255,255,0.68)',
-          },
-        },
-        {
-          type: 'text',
-          style: {
-            x: item.x + 28,
-            y: bodyY + 29,
-            text: `${item.nodes.length} 个节点`,
-            fill: '#475569',
-            font: '700 12px sans-serif',
-          },
-        },
-      ],
-    }
-  })
-
-  return { nodes: positionedNodes, graphics: laneGraphics }
-}
-
-function buildOption() {
-  const { nodes, graphics } = buildLaneLayout()
-  const data = nodes.map(node => ({
-    id: node.id,
-    name: node.label,
-    value: node.metric || 0,
-    category: categoryIndex[node.kind] ?? 0,
-    x: node.x,
-    y: node.y,
-    fixed: true,
-    symbolSize: nodeSize(node),
-    itemStyle: {
-      color: palette[node.kind] || '#64748b',
-      borderColor: '#ffffff',
-      borderWidth: 3,
-      shadowBlur: 16,
-      shadowColor: hexToRgba(palette[node.kind] || '#64748b', 0.24),
-    },
-    label: {
-      show: true,
-      formatter: '{b}',
-      position: 'bottom',
-      distance: 8,
-      color: '#0f172a',
-      backgroundColor: 'rgba(255,255,255,0.94)',
-      borderColor: 'rgba(148,163,184,0.18)',
-      borderWidth: 1,
-      borderRadius: 10,
-      padding: [5, 10],
-      shadowBlur: 8,
-      shadowColor: 'rgba(15,23,42,0.08)',
-    },
-    emphasis: {
-      label: { show: true },
-      itemStyle: {
-        shadowBlur: 18,
-        shadowColor: 'rgba(15, 23, 42, 0.22)',
-      },
-    },
-    node,
-  }))
-  const links = (graph.value.edges || []).map(edge => ({
-    source: edge.source,
-    target: edge.target,
-    value: edge.weight || 1,
-    label: { show: false, formatter: edge.label },
-    lineStyle: {
-      width: Math.min(1 + Number(edge.weight || 1) * 0.4, 4),
-      opacity: edge.relation === 'observability_link' ? 0.78 : 0.38,
-      curveness: edge.relation === 'observability_link' ? 0.18 : 0.08,
-      color: edge.relation === 'observability_link' ? '#0ea5e9' : '#94a3b8',
-    },
-    edge,
-  }))
-
-  return {
-    backgroundColor: 'transparent',
-    graphic: graphics,
-    tooltip: {
-      trigger: 'item',
-      borderWidth: 0,
-      backgroundColor: 'rgba(255, 255, 255, 0.98)',
-      textStyle: { color: '#0f172a' },
-      extraCssText: 'box-shadow:0 18px 30px rgba(15,23,42,.12);border-radius:12px;padding:10px 12px;',
-      formatter: params => {
-        if (params.dataType === 'edge') return `${params.data.edge.label}<br/>${params.data.source} -> ${params.data.target}`
-        const node = params.data.node || {}
-        return `${node.label}<br/>${node.category || node.kind}<br/>${node.description || ''}`
-      },
-    },
-    series: [{
-      type: 'graph',
-      layout: 'none',
-      roam: false,
-      draggable: false,
-      categories,
-      data,
-      links,
-      edgeSymbol: ['none', 'arrow'],
-      edgeSymbolSize: 8,
-      emphasis: {
-        focus: 'adjacency',
-        lineStyle: { width: 4 },
-      },
-      label: {
-        color: '#0f172a',
-        fontWeight: 600,
-        fontSize: 12,
-      },
-      labelLayout: {
-        hideOverlap: false,
-      },
-    }],
-  }
-}
-
-function renderGraph() {
-  if (activeTab.value !== 'graph' || !chartRef.value) return
-  if (!chart) {
-    chart = echarts.init(chartRef.value)
-    chart.on('click', params => {
-      if (params.dataType === 'node') {
-        selectNode(params.data.node)
-      }
-    })
-  }
-  chart.setOption(buildOption(), true)
-  chart.resize()
-}
-
-async function loadGraph() {
-  if (activeTab.value !== 'graph') return
-  loading.value = true
-  try {
-    const params = {}
-    if (filters.environment) params.environment = filters.environment
-    if (filters.system) params.system = filters.system
-    if (filters.service) params.service = filters.service
-    graph.value = await getAIOpsKnowledgeGraph(params)
-    if (!filters.environment && graph.value.filters?.environments?.length) {
-      const defaultEnvironment = graph.value.filters.default_environment
-      filters.environment = graph.value.filters.environments.includes(defaultEnvironment)
-        ? defaultEnvironment
-        : graph.value.filters.environments[0]
-      await loadGraph()
-      return
-    }
-    if (selectedNodeId.value && !graphNodes.value.some(item => item.id === selectedNodeId.value)) {
-      selectedNodeId.value = ''
-    }
-    await nextTick()
-    renderGraph()
-  } finally {
-    loading.value = false
-  }
-}
-
-function resetFilters() {
-  filters.system = ''
-  filters.service = ''
-  selectedNodeId.value = ''
-  loadGraph()
+  return computeLaneStyle(lane, graphChartHeight.value)
 }
 
 function resetCanvas() {
-  selectedNodeId.value = ''
-  graphZoom.value = DEFAULT_GRAPH_ZOOM
-  graphPanelRef.value?.scrollTo({ left: 0, top: 0, behavior: 'smooth' })
+  clearSelection()
+  resetViewport()
 }
-
-function setGraphZoom(nextZoom, event) {
-  const panel = graphPanelRef.value
-  const currentZoom = graphZoom.value
-  const zoom = Math.min(MAX_GRAPH_ZOOM, Math.max(MIN_GRAPH_ZOOM, Number(nextZoom.toFixed(2))))
-  if (zoom === currentZoom) return
-
-  if (!event || !panel) {
-    graphZoom.value = zoom
-    return
-  }
-
-  const rect = panel.getBoundingClientRect()
-  const cursorX = event.clientX - rect.left
-  const cursorY = event.clientY - rect.top
-  const logicalX = (panel.scrollLeft + cursorX) / currentZoom
-  const logicalY = (panel.scrollTop + cursorY) / currentZoom
-  graphZoom.value = zoom
-  nextTick(() => {
-    panel.scrollLeft = logicalX * zoom - cursorX
-    panel.scrollTop = logicalY * zoom - cursorY
-  })
-}
-
-function handleGraphWheel(event) {
-  const delta = event.deltaY > 0 ? -0.08 : 0.08
-  setGraphZoom(graphZoom.value + delta, event)
-}
-
-function startGraphDrag(event) {
-  if (event.button !== 0) return
-  if (event.target?.closest?.('button, a, input, textarea, .graph-legend-card, .graph-source-note')) return
-  const panel = graphPanelRef.value
-  if (!panel) return
-  graphDrag.active = true
-  graphDrag.moved = false
-  graphDrag.x = event.clientX
-  graphDrag.y = event.clientY
-  graphDrag.scrollLeft = panel.scrollLeft
-  graphDrag.scrollTop = panel.scrollTop
-  event.preventDefault()
-}
-
-function handleGraphDrag(event) {
-  if (!graphDrag.active) return
-  const panel = graphPanelRef.value
-  if (!panel) return
-  const deltaX = event.clientX - graphDrag.x
-  const deltaY = event.clientY - graphDrag.y
-  if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
-    graphDrag.moved = true
-  }
-  panel.scrollLeft = graphDrag.scrollLeft - deltaX
-  panel.scrollTop = graphDrag.scrollTop - deltaY
-}
-
-function stopGraphDrag() {
-  graphDrag.active = false
-}
-
-function clampLegendPosition(x, y) {
-  const shell = graphPanelShellRef.value
-  const card = graphLegendRef.value
-  if (!shell || !card) return { x, y }
-  const padding = 8
-  const maxX = Math.max(padding, shell.clientWidth - card.offsetWidth - padding)
-  const maxY = Math.max(padding, shell.clientHeight - card.offsetHeight - padding)
-  return {
-    x: Math.min(Math.max(padding, x), maxX),
-    y: Math.min(Math.max(padding, y), maxY),
-  }
-}
-
-function startLegendDrag(event) {
-  if (event.button !== 0) return
-  const shell = graphPanelShellRef.value
-  const card = graphLegendRef.value
-  if (!shell || !card) return
-  const shellRect = shell.getBoundingClientRect()
-  const cardRect = card.getBoundingClientRect()
-  const currentX = cardRect.left - shellRect.left
-  const currentY = cardRect.top - shellRect.top
-  const startPosition = clampLegendPosition(currentX, currentY)
-  legendPosition.x = startPosition.x
-  legendPosition.y = startPosition.y
-  legendDrag.active = true
-  legendDrag.offsetX = event.clientX - cardRect.left
-  legendDrag.offsetY = event.clientY - cardRect.top
-  window.addEventListener('mousemove', handleLegendDrag)
-  window.addEventListener('mouseup', stopLegendDrag)
-}
-
-function handleLegendDrag(event) {
-  if (!legendDrag.active) return
-  const shell = graphPanelShellRef.value
-  if (!shell) return
-  const shellRect = shell.getBoundingClientRect()
-  const next = clampLegendPosition(
-    event.clientX - shellRect.left - legendDrag.offsetX,
-    event.clientY - shellRect.top - legendDrag.offsetY,
-  )
-  legendPosition.x = next.x
-  legendPosition.y = next.y
-}
-
-function stopLegendDrag() {
-  legendDrag.active = false
-  window.removeEventListener('mousemove', handleLegendDrag)
-  window.removeEventListener('mouseup', stopLegendDrag)
-}
-
-function handleGraphPanelClick(event) {
-  if (graphDrag.moved) {
-    graphDrag.moved = false
-    return
-  }
-  if (event.target?.closest?.('.board-node, .graph-legend-card, .graph-source-note')) return
-  selectedNodeId.value = ''
-}
-
-function handleEnvironmentChange() {
-  filters.system = ''
-  filters.service = ''
-  selectedNodeId.value = ''
-  loadGraph()
-}
-
-function selectNode(node) {
-  selectedNodeId.value = node?.id || ''
-}
-
-function openNode(node) {
-  if (!node?.route) return
-  router.push(node.route)
-}
-
-function resizeGraph() {
-  chart?.resize()
-}
-
-function disposeGraph() {
-  chart?.dispose()
-  chart = null
-}
-
-function handleTabChange(tabName) {
-  const nextQuery = { ...route.query }
-  if (tabName === 'config') {
-    nextQuery.tab = 'config'
-  } else {
-    delete nextQuery.tab
-  }
-  router.replace({ path: '/aiops/knowledge', query: nextQuery })
-  if (tabName === 'config') {
-    disposeGraph()
-  } else if (tabName === 'graph') {
-    nextTick(() => {
-      if (graph.value.nodes.length || filters.environment) {
-        renderGraph()
-      } else {
-        loadGraph()
-      }
-    })
-  }
-}
-
-function openTraceTopology() {
-  if (!traceTopologyDatasourceId.value) return
-  traceTopologyDialogReady.value = false
-  traceTopologyDialogVisible.value = true
-}
-
-watch(() => graph.value.nodes.length, () => nextTick(renderGraph))
-
-watch(
-  () => route.query.tab,
-  (value) => {
-    const nextTab = value === 'config' ? 'config' : 'graph'
-    if (activeTab.value !== nextTab) {
-      activeTab.value = nextTab
-      if (nextTab === 'config') {
-        disposeGraph()
-      } else {
-        nextTick(renderGraph)
-      }
-    }
-  },
-)
-
-onMounted(() => {
-  window.addEventListener('resize', resizeGraph)
-  if (activeTab.value === 'graph') loadGraph()
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', resizeGraph)
-  stopLegendDrag()
-  disposeGraph()
-})
 </script>
 
 <style scoped>
@@ -1746,11 +890,6 @@ onBeforeUnmount(() => {
   background: rgba(248, 250, 252, 0.72);
 }
 
-.graph-chart {
-  min-width: 100%;
-  height: 640px;
-}
-
 .graph-board-viewport {
   position: relative;
   min-width: 100%;
@@ -1828,16 +967,6 @@ onBeforeUnmount(() => {
 .board-edge.is-event_context {
   stroke: rgba(249, 115, 22, 0.68);
   stroke-dasharray: 11 8;
-}
-
-.board-edge.focused {
-  opacity: 0.96;
-  stroke-width: 2.8;
-}
-
-.board-edge.dimmed {
-  opacity: 0.08;
-  stroke-width: 1;
 }
 
 .board-lane {
@@ -2329,10 +1458,6 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .graph-chart {
-    height: 520px;
-  }
-
   .graph-panel {
     min-height: 520px;
   }
@@ -2350,8 +1475,5 @@ onBeforeUnmount(() => {
     transform: none;
   }
 
-  .graph-chart {
-    height: 480px;
-  }
 }
 </style>

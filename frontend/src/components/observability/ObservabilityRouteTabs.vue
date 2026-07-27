@@ -31,6 +31,32 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const tabGroups = {
+  overview: [
+    {
+      key: 'observability-overview',
+      title: '总览',
+      icon: 'DataLine',
+      path: '/observability/overview',
+      anyPermissions: [
+        'ops.metric.query',
+        'ops.metric.datasource.view',
+        'ops.log.query',
+        'ops.log.datasource.view',
+        'ops.alert.view',
+        'ops.alert.config.view',
+        'ops.trace.view',
+        'ops.trace.datasource.view',
+        'ops.observability.link.view',
+        'ops.grafana.view',
+      ],
+    },
+    { key: 'grafana', title: '仪表盘', icon: 'Histogram', path: '/observability/grafana', permission: 'ops.grafana.view' },
+    { key: 'metrics-query', title: '指标', icon: 'DataAnalysis', path: '/observability/metrics', anyPermissions: ['ops.metric.query', 'ops.metric.datasource.view'] },
+    { key: 'logs-query', title: '日志', icon: 'Search', path: '/logs/query', permission: 'ops.log.query' },
+    { key: 'tracing-query', title: '链路', icon: 'Connection', path: '/observability/tracing', anyPermissions: ['ops.trace.view', 'ops.trace.datasource.view', 'ops.observability.link.view'] },
+    { key: 'alerts', title: '告警', icon: 'Bell', path: '/alerts', anyPermissions: ['ops.alert.view', 'ops.alert.config.view'] },
+    { key: 'datasource-links', title: '关联配置', icon: 'Share', path: '/observability/datasource-links', permission: 'ops.observability.link.view' },
+  ],
   boards: [
     { key: 'grafana', title: '仪表盘', icon: 'Histogram', path: '/observability/grafana', permission: 'ops.grafana.view' },
   ],

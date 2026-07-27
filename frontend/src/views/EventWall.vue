@@ -1,26 +1,29 @@
 <template>
-  <div class="event-wall-page fade-in workbench-page-shell">
-    <section class="hero panel">
-      <div class="hero-copy">
-        <div class="hero-title-row">
-          <span class="hero-icon">
-            <el-icon><Aim /></el-icon>
-          </span>
-          <h2>事件中心</h2>
-          <span class="hero-tagline">汇聚发布、变更、任务与 Webhook 外部事件，按时间线沉淀排障线索，辅助故障定位与 AIOps 分析。</span>
-        </div>
-      </div>
-      <div class="hero-actions">
-        <el-button size="small" :loading="loading" @click="loadWall">
-          <el-icon><RefreshRight /></el-icon>
-          刷新
-        </el-button>
-      </div>
-    </section>
-
-    <EventWallTabs />
-
-    <div class="event-wall-header-grid">
+  <EntityListShell
+    class="event-wall-page"
+    title="事件中心"
+    description="汇聚发布、变更、任务与 Webhook 外部事件，按时间线沉淀排障线索，辅助故障定位与 AIOps 分析。"
+    eyebrow="Event Console"
+  >
+    <template #icon>
+      <span class="hero-icon">
+        <el-icon><Aim /></el-icon>
+      </span>
+    </template>
+    <template #meta>
+      <span v-for="chip in heroChips" :key="chip" class="hero-chip">{{ chip }}</span>
+    </template>
+    <template #actions>
+      <el-button size="small" :loading="loading" @click="loadWall">
+        <el-icon><RefreshRight /></el-icon>
+        刷新
+      </el-button>
+    </template>
+    <template #tabs>
+      <EventWallTabs />
+    </template>
+    <template #stats>
+      <div class="event-wall-header-grid">
       <div class="audit-grid event-overview-grid">
         <div class="audit-card audit-card--inline">
           <div class="stat-label">当前环境</div>
@@ -52,7 +55,8 @@
           <div class="tip-panel-item">分类列表 {{ activeCategorySection.events.length }} / {{ activeCategorySection.total }} 条，失败 {{ activeCategorySection.failed }}</div>
         </div>
       </section>
-    </div>
+      </div>
+    </template>
 
     <section class="query-panel panel">
       <div class="query-head">
@@ -366,7 +370,7 @@
         </section>
       </div>
     </el-drawer>
-  </div>
+  </EntityListShell>
 </template>
 
 <script setup>
@@ -374,6 +378,7 @@ import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Aim, RefreshRight, Search } from '@element-plus/icons-vue'
 import { getEventSources, getEventWallAnalysis, getEventWallFilterOptions } from '@/api/modules/eventwall'
+import EntityListShell from '@/components/layout/EntityListShell.vue'
 import EventWallTabs from '@/components/eventwall/EventWallTabs.vue'
 
 const route = useRoute()
@@ -530,6 +535,11 @@ const activeScopeSummary = computed(() => {
     scope.application,
   ].filter(Boolean).join(' / ') || '未选择环境'
 })
+const heroChips = computed(() => [
+  `环境 · ${scope.environment ? environmentDisplayName(scope.environment) : '未选择'}`,
+  `事件源 · ${selectedSourceLabel.value}`,
+  `时间窗 · ${formatTransactionWindow.value}`,
+])
 const transactionTimelineWindow = computed(() => {
   const [startAt, endAt] = normalizeAnalysisRange()
   return {
@@ -1160,6 +1170,19 @@ onUnmounted(cleanupTimelineSelection)
   align-items: center;
   justify-content: center;
   font-size: 20px;
+}
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 @media (max-width: 1160px) {

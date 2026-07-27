@@ -1,6 +1,6 @@
 <template>
   <div class="tab-content cmdb-items-layout task-resource-cmdb-layout">
-    <div class="cmdb-resource-tree-panel">
+    <div class="cmdb-resource-tree-panel workbench-card">
       <div class="tree-panel-head">
         <span
           class="tree-panel-title"
@@ -81,8 +81,19 @@
       />
     </div>
 
-    <div class="cmdb-items-main resource-list-card">
-      <div class="toolbar section-gap resource-toolbar">
+    <div class="cmdb-items-main resource-list-card workbench-card">
+      <div class="section-toolbar resource-section-toolbar">
+        <div class="toolbar-head">
+          <span class="toolbar-title">执行资源清单</span>
+          <span class="toolbar-desc">按环境、系统、资源类型和状态统一筛选执行目标，保持工作台与计划任务的资源口径一致。</span>
+        </div>
+        <div class="workbench-card-actions resource-header-meta">
+          <el-tag size="small" effect="plain" class="resource-header-tag">{{ scopeLabel }}</el-tag>
+          <el-tag size="small" effect="plain" class="resource-header-tag">共 {{ stats.total || 0 }} 个资源</el-tag>
+        </div>
+      </div>
+
+      <div class="workbench-toolbar workbench-toolbar--history resource-toolbar section-gap">
         <div class="toolbar-left resource-toolbar-left">
           <el-select v-model="filters.resource_type" placeholder="资源类型" clearable style="width:120px" size="small" @change="refreshResourceView">
             <el-option label="主机" value="host" />
@@ -375,6 +386,18 @@ const eventEnvironmentSelectOptions = computed(() => eventEnvironmentOptions.val
 const nodeDialogTitle = computed(() => `${editingNodeId.value ? '编辑' : '新增'}节点`)
 const resourceDialogTitle = computed(() => `${editingResourceId.value ? '编辑' : '新增'}执行资源`)
 const emptyText = computed(() => (treeData.value.length ? '暂无匹配资源' : '暂无资源，请先维护左侧环境 / 系统树'))
+const scopeLabel = computed(() => {
+  const environmentLabel = environments.value.find(item => item.id === filters.environment)?.name
+  const systemLabel = systemsForFilter.value.find(item => item.id === filters.system)?.name
+  const typeLabel = filters.resource_type === 'k8s' ? 'K8s' : filters.resource_type === 'host' ? '主机' : '全部资源'
+  const status = statusLabel(filters.status || '')
+  return [
+    environmentLabel || '全部环境',
+    systemLabel || '全部系统',
+    typeLabel,
+    filters.status ? status : '全部状态',
+  ].join(' / ')
+})
 const statCards = computed(() => [
   { key: 'total', label: '执行资源', value: stats.value.total || 0, color: '#8b5cf6' },
   { key: 'host', label: '主机', value: stats.value.host || 0, color: '#10b981', resourceType: 'host', active: filters.resource_type === 'host' },
@@ -781,10 +804,9 @@ onMounted(reloadAll)
 }
 
 .cmdb-resource-tree-panel {
-  width: 212px;
-  flex: 0 0 212px;
-  border-right: 1px solid rgba(148, 163, 184, 0.14);
-  padding-right: 12px;
+  width: 232px;
+  flex: 0 0 232px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -800,6 +822,7 @@ onMounted(reloadAll)
 
 .resource-list-card {
   gap: 0;
+  padding: 14px;
 }
 
 .section-gap {
@@ -821,21 +844,15 @@ onMounted(reloadAll)
   padding: 16px 0;
 }
 
-.toolbar,
 .resource-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 6px 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background: linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(255, 255, 255, 0.96) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  padding: 10px 12px;
 }
 
-.toolbar-left,
 .toolbar-right,
 .resource-toolbar-left,
 .resource-toolbar-right {
@@ -845,32 +862,26 @@ onMounted(reloadAll)
   flex-wrap: wrap;
 }
 
-.toolbar :deep(.el-input__wrapper),
-.toolbar :deep(.el-select__wrapper),
 .resource-toolbar :deep(.el-input__wrapper),
 .resource-toolbar :deep(.el-select__wrapper) {
-  min-height: 28px;
-  border-radius: 8px;
-  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.12) inset;
+  min-height: 32px;
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.14) inset;
   background: rgba(255, 255, 255, 0.94);
 }
 
-.toolbar :deep(.el-input__wrapper:hover),
-.toolbar :deep(.el-select__wrapper:hover),
 .resource-toolbar :deep(.el-input__wrapper:hover),
 .resource-toolbar :deep(.el-select__wrapper:hover) {
   box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16) inset;
 }
 
-.toolbar-right :deep(.el-button),
 .resource-toolbar-right :deep(.el-button) {
-  min-height: 26px;
-  padding: 0 9px;
-  border-radius: 8px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
   font-weight: 500;
 }
 
-.toolbar-right :deep(.el-button:not(.el-button--primary)),
 .resource-toolbar-right :deep(.el-button:not(.el-button--primary)) {
   border-color: rgba(148, 163, 184, 0.12);
   background: rgba(255, 255, 255, 0.9);
@@ -899,6 +910,21 @@ onMounted(reloadAll)
   display: flex;
 }
 
+.resource-section-toolbar {
+  margin-bottom: 10px;
+}
+
+.resource-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.resource-header-tag {
+  border-radius: 999px;
+}
+
 .resource-table {
   width: 100%;
 }
@@ -923,8 +949,8 @@ onMounted(reloadAll)
   align-items: center;
   gap: 8px;
   background: #ffffff;
-  border-radius: 10px;
-  padding: 7px 10px;
+  border-radius: 12px;
+  padding: 8px 12px;
   min-width: 88px;
   border: 1px solid rgba(148, 163, 184, 0.14);
   flex: 0 0 auto;
@@ -1023,8 +1049,8 @@ onMounted(reloadAll)
 
 @media (max-width: 1200px) {
   .cmdb-resource-tree-panel {
-    width: 196px;
-    flex-basis: 196px;
+    width: 208px;
+    flex-basis: 208px;
   }
 }
 
@@ -1040,10 +1066,7 @@ onMounted(reloadAll)
   .cmdb-resource-tree-panel {
     width: 100%;
     flex-basis: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.15);
-    padding-right: 0;
-    padding-bottom: 12px;
+    padding: 12px 14px;
   }
 
   .form-row {

@@ -895,6 +895,43 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import { useRouteTabState } from '@/composables/useRouteTabState'
 import {
+  actionAvailabilityLabel,
+  actionAvailabilityTagType,
+  actionModeTagType,
+  actionRiskLabel,
+  actionRiskTagType,
+  actionSkillCount,
+  createA2AForm,
+  createMcpForm,
+  createProviderForm,
+  createRunbookForm,
+  createSkillForm,
+  currencySymbol,
+  detectProviderPreset,
+  formatActionList,
+  formatActionMode,
+  formatEnabledTools,
+  formatMcpToolSchema,
+  formatMcpType,
+  formatProviderCurrency,
+  formatProviderModelLabel,
+  formatSkillRiskLabel,
+  formatSkillType,
+  getSkillTypeClass,
+  mcpDiagnosticLabel,
+  mcpDiagnosticType,
+  mcpRuntimeMode,
+  normalizeProviderList,
+  providerCurrencyOptions,
+  providerOptionLabel,
+  providerRuntimeHint,
+  providerRuntimeLabel,
+  providerRuntimeTagType,
+  skillRecommendedToolCount,
+  skillRecommendedTools,
+  skillRiskTagType,
+} from './aiops-config/helpers'
+import {
   archiveAIOpsRunbook,
   autoIngestAIOpsReviewKnowledge,
   cancelAIOpsA2ATask,
@@ -1032,10 +1069,6 @@ const providerApiKeyPlaceholder = computed(() => {
   if (preset?.api_key_placeholder) return providerForm.id ? `留空则保留原值；${preset.api_key_placeholder}` : preset.api_key_placeholder
   return providerForm.id ? '留空则保留原值' : 'API Key'
 })
-const providerCurrencyOptions = [
-  { label: '人民币', value: 'CNY' },
-  { label: '美元', value: 'USD' },
-]
 const providerPriceUnitLabel = computed(() => {
   const currency = String(providerForm.price_currency || '').toUpperCase()
   return currency === 'USD' ? '$/M Token' : `${currencySymbol(currency)}/百万 Token`
@@ -1120,11 +1153,6 @@ const reviewOverview = computed(() => ({
   task: reviewKnowledge.value.filter(item => item.source_type === 'task').length,
   runbook: reviewKnowledge.value.filter(item => item.source_type === 'runbook').length,
 }))
-const platformMcpOverview = computed(() => ({
-  total: platformMcpManifest.value?.tools?.length || 0,
-  available: (platformMcpManifest.value?.tools || []).filter(item => item.available !== false).length,
-  rateLimit: platformMcpManifest.value?.rate_limit?.per_minute || 0,
-}))
 const activeTabLabel = computed(() => ({
   strategy: '智能体策略',
   actions: 'Action',
@@ -1173,98 +1201,15 @@ const skillToolOptions = computed(() => {
   return Array.from(tools).sort()
 })
 
-function formatMcpType(serverType) {
-  if (serverType === 'platform_builtin') return '平台内置'
-  if (serverType === 'stdio') return 'STDIO'
-  return 'HTTP'
-}
-
 function updateMcpAuthConfig(patch) {
   const nextConfig = { ...mcpAuthConfig.value, ...patch }
   mcpForm.auth_config = nextConfig
   mcpForm.auth_config_text = JSON.stringify(nextConfig, null, 2)
 }
 
-function mcpRuntimeMode(row = {}) {
-  if (row.server_type === 'platform_builtin') return { label: '平台内置', type: 'success' }
-  return row.auth_config?.allow_write ? { label: '可写', type: 'warning' } : { label: '只读', type: 'info' }
-}
-
-function mcpDiagnosticType(status) {
-  if (status === 'connected') return 'success'
-  if (status === 'failed') return 'danger'
-  return 'info'
-}
-
-function mcpDiagnosticLabel(status) {
-  if (status === 'connected') return '已连接'
-  if (status === 'failed') return '失败'
-  return '未知'
-}
-
-function formatMcpToolSchema(row = {}) {
-  const properties = row.inputSchema?.properties || {}
-  const names = Object.keys(properties)
-  if (!names.length) return '无参数'
-  return names.slice(0, 6).join('、') + (names.length > 6 ? '…' : '')
-}
-
-function formatSkillSource(row = {}) {
-  if (row.is_builtin) return '平台内置'
-  if (row.source_type === 'local') return '本地文件'
-  return '自定义'
-}
-
-function formatSkillType(row = {}) {
-  return formatSkillSource(row)
-}
-
-function getSkillTypeClass(row = {}) {
-  if (row.is_builtin) return 'platform_builtin'
-  return row.source_type === 'local' ? 'local' : 'custom'
-}
-
-function formatSkillRiskLabel(risk) {
-  if (risk === 'read_only') return '只读'
-  if (risk === 'draft') return '草稿'
-  if (risk === 'write') return '写入'
-  if (risk === 'execute') return '执行'
-  return risk || '只读'
-}
-
-function skillRiskTagType(risk) {
-  if (risk === 'read_only') return 'info'
-  if (risk === 'draft') return 'warning'
-  if (risk === 'write') return 'warning'
-  if (risk === 'execute') return 'danger'
-  return 'info'
-}
-
-function skillRecommendedTools(skill = {}) {
-  return Array.from(new Set([...(skill.builtin_tools || []), ...(skill.recommended_tools || [])])).filter(Boolean)
-}
-
-function skillRecommendedToolCount(skill = {}) {
-  return skillRecommendedTools(skill).length
-}
-
-function actionSkillCount(action = {}) {
-  return new Set(action.skills || []).size
-}
-
 function formatActionName(code) {
   const action = actionRegistry.value.find(item => item.code === code)
   return action?.display_name || code
-}
-
-function formatEnabledTools(tools) {
-  if (!Array.isArray(tools) || !tools.length) return '--'
-  return tools.join('、')
-}
-
-function formatActionList(items) {
-  if (!Array.isArray(items) || !items.length) return '--'
-  return items.join('、')
 }
 
 function openStatDetail({ title, subtitle, items, emptyText }) {
@@ -1350,111 +1295,6 @@ function openActionStatDetail(action = {}, type) {
   })
 }
 
-function formatActionMode(mode) {
-  if (mode === 'direct') return 'Direct'
-  if (mode === 'react') return 'ReAct'
-  if (mode === 'plan_react') return 'Plan+ReAct'
-  return mode || '--'
-}
-
-function actionModeTagType(mode) {
-  if (mode === 'direct') return 'info'
-  if (mode === 'plan_react') return 'warning'
-  return 'success'
-}
-
-function actionRiskLabel(risk) {
-  if (risk === 'read_only') return '只读'
-  if (risk === 'draft') return '草稿'
-  if (risk === 'write') return '写入'
-  if (risk === 'execute') return '执行'
-  return risk || '--'
-}
-
-function actionRiskTagType(risk) {
-  if (risk === 'read_only') return 'info'
-  if (risk === 'draft') return 'warning'
-  if (risk === 'execute') return 'danger'
-  return 'warning'
-}
-
-function actionAvailabilityLabel(available) {
-  return available === false ? '受限' : '可用'
-}
-
-function actionAvailabilityTagType(available) {
-  return available === false ? 'warning' : 'success'
-}
-
-function formatProviderModelLabel(item = {}) {
-  const owner = item.owned_by ? ` · ${item.owned_by}` : ''
-  return `${item.id}${owner}`
-}
-
-function currencySymbol(currency) {
-  return String(currency || '').toUpperCase() === 'CNY' ? '¥' : '$'
-}
-
-function formatProviderCurrency(currency) {
-  return String(currency || '').toUpperCase() === 'CNY' ? '人民币' : '美元'
-}
-
-function providerOptionLabel(provider = {}) {
-  if (provider.runtime_ready) return provider.name
-  return `${provider.name}（${provider.is_enabled ? '待配置' : '停用'}）`
-}
-
-function providerRuntimeTagType(row = {}) {
-  if (row.runtime_ready) return 'success'
-  return row.is_enabled ? 'warning' : 'info'
-}
-
-function providerRuntimeLabel(row = {}) {
-  if (row.runtime_ready) return '可用'
-  return row.is_enabled ? '待配置' : '停用'
-}
-
-function providerRuntimeHint(row = {}) {
-  if (row.runtime_ready) return '可作为智能助手运行模型'
-  return row.setup_hint || (row.is_enabled ? '请补全模型配置后使用' : '当前已停用，启用后可作为运行模型')
-}
-
-function detectProviderPreset(provider = {}) {
-  if (provider.provider_preset) return provider.provider_preset
-  const normalizedBaseUrl = String(provider.base_url || '').replace(/\/+$/, '').toLowerCase()
-  const defaultModel = String(provider.default_model || '').toLowerCase()
-  const backupModel = String(provider.backup_model || '').toLowerCase()
-  const matchedPreset = providerPresets.value.find((preset) => {
-    if (preset.key === 'custom_openai_compatible') return false
-    const presetBaseUrl = String(preset.base_url || '').replace(/\/+$/, '').toLowerCase()
-    const presetDefaultModel = String(preset.default_model || '').toLowerCase()
-    const presetBackupModel = String(preset.backup_model || '').toLowerCase()
-    return Boolean(
-      (presetBaseUrl && normalizedBaseUrl === presetBaseUrl)
-      || (presetDefaultModel && defaultModel === presetDefaultModel)
-      || (presetBackupModel && backupModel === presetBackupModel),
-    )
-  })
-  if (matchedPreset) return matchedPreset.key
-  const baseUrl = (provider.base_url || '').toLowerCase()
-  if (baseUrl.includes('deepseek')) return 'deepseek'
-  if (baseUrl.includes('bigmodel') || /^glm-/i.test(provider.default_model || '')) return 'zhipu_glm'
-  if (baseUrl.includes('minimax') || /^minimax/i.test(provider.default_model || '')) return 'minimax'
-  if (baseUrl.includes('xiaomimimo') || baseUrl.includes('mimo.mi.com')) return 'xiaomi_mimo'
-  if (baseUrl.includes('volces.com') || baseUrl.includes('volcengine') || baseUrl.includes('doubao')) return 'volcengine_doubao'
-  if (baseUrl.includes('dashscope') || baseUrl.includes('aliyuncs.com') || /^qwen/i.test(provider.default_model || '')) return 'aliyun_qwen'
-  if (baseUrl.includes('moonshot') || /^kimi/i.test(provider.default_model || '')) return 'moonshot_kimi'
-  if (String(provider.provider_type || '').toLowerCase() === 'openai_compatible') return 'custom_openai_compatible'
-  return ''
-}
-
-function normalizeProviderList(data) {
-  const items = Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : [])
-  return items.map(item => ({
-    ...item,
-    provider_preset: detectProviderPreset(item),
-  }))
-}
 function applyProviderPreset(key) {
   const preset = providerPresets.value.find(item => item.key === key)
   if (!preset) {
@@ -1478,83 +1318,25 @@ function applyProviderPreset(key) {
 }
 
 function resetProviderForm() {
-  Object.assign(providerForm, {
-    id: null,
-    name: '',
-    provider_type: 'openai_compatible',
-    base_url: '',
-    api_key: '',
-    default_model: '',
-    backup_model: '',
-    temperature: 0.2,
-    max_tokens: 10000,
-    timeout_seconds: 30,
-    price_currency: 'CNY',
-    input_token_price_per_1m: 0,
-    output_token_price_per_1m: 0,
-    provider_preset: '',
-    is_enabled: true,
-  })
+  Object.assign(providerForm, createProviderForm())
   selectedProviderPreset.value = ''
 }
 
 function resetMcpForm() {
-  Object.assign(mcpForm, {
-    id: null,
-    name: '',
-    server_type: 'http',
-    endpoint_or_command: '',
-    description: '',
-    auth_config: {},
-    auth_config_text: '{}',
-    tool_whitelist: [],
-    is_enabled: true,
-  })
+  Object.assign(mcpForm, createMcpForm())
   mcpToolDiagnostics.value = []
 }
 
 function resetSkillForm() {
-  Object.assign(skillForm, {
-    id: null,
-    name: '',
-    slug: '',
-    source_type: 'inline',
-    description: '',
-    category: '',
-    applicable_actions: [],
-    examples: [],
-    builtin_tools: [],
-    recommended_tools: [],
-    max_iterations: 0,
-    risk_level: 'read_only',
-    output_contract: {},
-    output_contract_text: '{}',
-    content: '',
-    allowed_role_codes: [],
-    is_builtin: false,
-    is_enabled: true,
-  })
+  Object.assign(skillForm, createSkillForm())
 }
 
 function resetA2AForm() {
-  Object.assign(a2aForm, {
-    source_agent: 'web-console',
-    title: '',
-    action_code: 'slo.analysis',
-    input_payload_text: '{\n  "environment": "电商测试环境",\n  "service": "order-service"\n}',
-  })
+  Object.assign(a2aForm, createA2AForm())
 }
 
 function resetRunbookForm() {
-  Object.assign(runbookForm, {
-    title: '',
-    environment: '',
-    service: '',
-    source_session: '',
-    content: '',
-    tags: [],
-    source_refs_text: '[]',
-  })
+  Object.assign(runbookForm, createRunbookForm())
 }
 
 function applyConfig(payload = {}) {
@@ -1600,7 +1382,7 @@ async function loadAll() {
     ])
     applyConfig(config)
     providerPresets.value = presetData?.presets || []
-    providers.value = normalizeProviderList(providerData)
+    providers.value = normalizeProviderList(providerData, providerPresets.value)
     mcpServers.value = mcpData || []
     skills.value = skillData || []
     skillMarketplace.value = marketData || { summary: {}, items: [] }
@@ -1688,7 +1470,7 @@ function openProviderDialog(row) {
   providerModelRecommendation.value = null
   if (row) {
     Object.assign(providerForm, row, { api_key: '' })
-    selectedProviderPreset.value = detectProviderPreset(row)
+      selectedProviderPreset.value = detectProviderPreset(row, providerPresets.value)
     providerForm.provider_preset = selectedProviderPreset.value
   }
   providerDialogVisible.value = true
@@ -1850,19 +1632,17 @@ async function saveSkill() {
       ElMessage.error('输出约束必须是 JSON 对象')
       return
     }
-    const payload = {
-      ...skillForm,
-      output_contract: outputContract,
-      applicable_actions: skillForm.applicable_actions || [],
-      examples: skillForm.examples || [],
-      builtin_tools: skillForm.builtin_tools || [],
-      recommended_tools: skillForm.recommended_tools || [],
-      allowed_role_codes: skillForm.allowed_role_codes || [],
-      max_iterations: Number(skillForm.max_iterations || 0),
-    }
-    delete payload.output_contract_text
-    delete payload.id
-    delete payload.is_builtin
+      const { output_contract_text, id, is_builtin, ...restSkillForm } = skillForm
+      const payload = {
+        ...restSkillForm,
+        output_contract: outputContract,
+        applicable_actions: skillForm.applicable_actions || [],
+        examples: skillForm.examples || [],
+        builtin_tools: skillForm.builtin_tools || [],
+        recommended_tools: skillForm.recommended_tools || [],
+        allowed_role_codes: skillForm.allowed_role_codes || [],
+        max_iterations: Number(skillForm.max_iterations || 0),
+      }
     if (skillForm.id) await updateAIOpsSkill(skillForm.id, payload)
     else await createAIOpsSkill(payload)
     skillDialogVisible.value = false

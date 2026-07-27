@@ -1,28 +1,25 @@
 <template>
-  <div class="logs-query-page workbench-page-shell">
-    <section class="hero panel hero-panel">
-      <div class="release-hero-copy">
-        <div class="release-hero-title-row release-hero-title-inline">
-          <span class="log-header-icon"><el-icon><Search /></el-icon></span>
-          <h2>日志中心</h2>
-          <p class="page-desc inline-subtitle">支持 ELK、Loki、阿里云 SLS 日志查询。</p>
-        </div>
-      </div>
-      <div class="hero-actions">
-        <el-button size="small" @click="refreshLogDataSources" :loading="loadingSources || !!currentTab?.catalogLoading">
-          <el-icon><RefreshRight /></el-icon>
-          刷新数据源
-        </el-button>
-      </div>
-    </section>
+  <EntityListShell
+    class="logs-query-page"
+    title="日志中心"
+    description="支持 ELK、Loki、阿里云 SLS 日志查询。"
+    eyebrow="Logs Query"
+  >
+    <template #icon>
+      <span class="hero-icon"><el-icon><Search /></el-icon></span>
+    </template>
+    <template #meta>
+      <span v-for="chip in heroChips" :key="chip" class="hero-chip">{{ chip }}</span>
+    </template>
+    <template #actions>
+      <el-button size="small" @click="refreshLogDataSources" :loading="loadingSources || !!currentTab?.catalogLoading">
+        <el-icon><RefreshRight /></el-icon>
+        刷新数据源
+      </el-button>
+      <el-button size="small" plain @click="goToDatasources">数据源管理</el-button>
+    </template>
 
-    <ObservabilityRouteTabs group="query" />
-
-    <el-empty v-if="!dataSources.length && !loadingSources" description="还没有日志数据源，请先新增后再查询。">
-      <el-button type="primary" @click="goToDatasources">去新增数据源</el-button>
-    </el-empty>
-
-    <template v-else>
+    <template #stats>
       <div v-if="currentTab" class="audit-grid logs-overview-grid">
         <div class="audit-card audit-card--inline">
           <div class="stat-label">当前数据源</div>
@@ -41,7 +38,9 @@
           <div class="stat-value">{{ currentTab.queryLoading ? '运行中' : currentTab.errorMessage ? '异常' : currentResults.logs.length ? '完成' : '待查询' }}</div>
         </div>
       </div>
+    </template>
 
+    <template #hint>
       <section v-if="currentTab" class="workbench-inline-tip--panel logs-context-tip">
         <div class="tip-panel-head">
           <strong>日志查询上下文</strong>
@@ -54,7 +53,23 @@
           <div class="tip-panel-item">耗时 {{ currentResults.took_ms != null ? `${currentResults.took_ms} ms` : '--' }}，来源 {{ currentResults.source || '--' }}</div>
         </div>
       </section>
+    </template>
 
+    <template #tabs>
+      <section class="panel logs-nav-panel">
+        <div class="logs-nav-head">
+          <span class="logs-nav-title">可观测导航</span>
+          <span class="logs-nav-desc">在指标、日志、链路之间切换查询入口，保持排障过程的上下文连续性。</span>
+        </div>
+        <ObservabilityRouteTabs group="query" />
+      </section>
+    </template>
+
+    <el-empty v-if="!dataSources.length && !loadingSources" description="还没有日志数据源，请先新增后再查询。">
+      <el-button type="primary" @click="goToDatasources">去新增数据源</el-button>
+    </el-empty>
+
+    <template v-else>
       <section v-if="showQuerySessionTabs" class="tabs-panel tabs-panel--session">
         <div class="tabs-session-bar">
           <el-tabs v-model="activeTabName" type="card" class="session-tabs" @tab-remove="removeQueryTab">
@@ -373,7 +388,7 @@
         <el-link :href="currentHelpDoc.link" target="_blank" type="primary">查看官方查询语法文档</el-link>
       </div>
     </el-dialog>
-  </div>
+  </EntityListShell>
 </template>
 
 <script setup>
@@ -385,6 +400,7 @@ import { getLogDataSources, getLogProviderCatalog, queryLogs, resolveLogToGrafan
 import { useAuthStore } from '@/stores/auth'
 import { openRouteInNewTab } from '@/utils/router'
 import ObservabilityRouteTabs from '@/components/observability/ObservabilityRouteTabs.vue'
+import EntityListShell from '@/components/layout/EntityListShell.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -516,6 +532,22 @@ const querySummaryPills = computed(() => {
   items.push({ label: '时间', value: formatTimeRangeSummary(currentTab.value?.timeRange) })
   items.push({ label: '数量', value: String(currentTab.value?.limit || 0) })
   return items
+})
+
+const heroChips = computed(() => {
+  const chips = []
+  chips.push(`数据源 · ${dataSources.value.length}`)
+  chips.push(activeProvider.value ? `Provider · ${providerLabel(activeProvider.value)}` : 'Provider · 未选择')
+  if (currentTab.value) {
+    chips.push(`时间 · ${formatTimeRangeSummary(currentTab.value.timeRange)}`)
+  } else {
+    chips.push('时间 · --')
+  }
+  if (currentTab.value?.queryLoading) chips.push('状态 · 查询中')
+  else if (currentTab.value?.errorMessage) chips.push('状态 · 异常')
+  else if (currentResults.value.logs.length) chips.push('状态 · 完成')
+  else chips.push('状态 · 待查询')
+  return chips
 })
 watch(activeTabName, async () => {
   await nextTick()
@@ -1841,10 +1873,57 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.logs-query-page {
+:deep(.logs-query-page) {
+  gap: 6px;
+}
+
+.hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(51, 112, 255, 0.1);
+  color: #245bdb;
+  box-shadow: inset 0 0 0 1px rgba(36, 91, 219, 0.08);
+}
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(36, 91, 219, 0.08);
+  color: #245bdb;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.logs-nav-panel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+}
+
+.logs-nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logs-nav-title {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.logs-nav-desc {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .logs-overview-grid {

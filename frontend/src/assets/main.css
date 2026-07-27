@@ -19,11 +19,12 @@
   --sidebar-active: rgba(37, 99, 235, 0.10);
   --sidebar-text: rgba(17, 17, 17, 0.72);
   --sidebar-text-active: var(--primary);
-  --sidebar-width: 188px;
-  --sidebar-collapsed-width: 68px;
+  --sidebar-width: 232px;
+  --sidebar-collapsed-width: 72px;
 
   /* 顶栏 */
-  --header-height: 60px;
+  --header-height: 64px;
+  --breadcrumb-height: 44px;
   --header-bg: rgba(255, 255, 255, 0.82);
   --header-shadow: none;
 
@@ -33,7 +34,7 @@
   /* 卡片 */
   --card-bg: #ffffff;
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --card-radius: 12px;
+  --card-radius: 10px;
 
   /* 文字 */
   --text-primary: rgba(17, 17, 17, 0.92);
@@ -113,12 +114,12 @@ body {
 }
 
 .sidebar-logo {
-  min-height: 72px;
+  min-height: 64px;
   display: flex;
   align-items: center;
-  padding: 0 14px;
+  padding: 0 18px;
   border-bottom: 1px solid var(--border-color);
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
   background: transparent;
   backdrop-filter: none;
@@ -188,7 +189,7 @@ body {
 /* ========== Element-Plus 侧边栏菜单覆盖 (Industrial Utilitarian) ========== */
 .sidebar-nav {
   flex: 1;
-  padding: 10px 8px 14px;
+  padding: 12px 10px 16px;
   overflow-y: auto;
   border-right: none !important;
   /* 移除默认右边框 */
@@ -316,7 +317,7 @@ body {
 /* 主内容区 */
 .main-area {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: calc(var(--sidebar-width) + 1px);
   transition: var(--transition);
   display: flex;
   flex-direction: column;
@@ -328,7 +329,7 @@ body {
 }
 
 .sidebar.collapsed~.main-area {
-  margin-left: var(--sidebar-collapsed-width);
+  margin-left: calc(var(--sidebar-collapsed-width) + 1px);
 }
 
 /* 顶栏 */
@@ -352,23 +353,30 @@ body {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .header-left .collapse-btn {
-  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
   cursor: pointer;
   color: var(--text-secondary);
   transition: var(--transition);
-  background: none;
-  border: none;
-  padding: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .header-left .collapse-btn:hover {
   color: var(--primary);
+  border-color: var(--border-color-strong);
+  background: rgba(255, 255, 255, 1);
 }
 
 .header-left .breadcrumb {
@@ -382,13 +390,13 @@ body {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* 内容区 */
 .content {
   flex: 1;
-  padding: 12px 24px 104px;
+  padding: 24px 24px 104px;
   width: 100%;
   overflow-x: hidden;
   /* 给内容区也加上换行收口 */
@@ -436,8 +444,8 @@ body {
 
   .main-area,
   .sidebar.collapsed~.main-area {
-    margin-left: var(--sidebar-collapsed-width);
-    width: calc(100% - var(--sidebar-collapsed-width));
+    margin-left: calc(var(--sidebar-collapsed-width) + 1px);
+    width: calc(100% - var(--sidebar-collapsed-width) - 1px);
   }
 
   .header {
@@ -471,7 +479,7 @@ body {
   }
 
   .content {
-    padding: 10px 12px 88px;
+    padding: 16px 12px 88px;
   }
 }
 
@@ -1967,8 +1975,8 @@ body {
   margin: 0 0 8px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.74);
-  border: 1px solid var(--border-color);
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.12);
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.5;
@@ -2022,7 +2030,7 @@ body {
   min-width: 0;
   padding: 8px 10px;
   border-radius: 12px;
-  background: rgba(11, 15, 23, 0.6);
+  background: rgba(15, 23, 42, 0.03);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
   font-size: 12px;

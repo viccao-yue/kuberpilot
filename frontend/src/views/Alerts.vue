@@ -1,85 +1,87 @@
 <template>
-  <div class="alerts-page workbench-page-shell">
-    <section class="hero panel">
-      <div class="hero-copy">
-        <span class="hero-eyebrow">Alert Console</span>
-        <div class="hero-title-row">
-          <span class="hero-icon">
-            <el-icon><Bell /></el-icon>
-          </span>
-          <div class="hero-title-block">
-            <h2>&#x544A;&#x8B66;&#x4E2D;&#x5FC3;</h2>
-            <p class="page-inline-desc">&#x7EDF;&#x4E00;&#x63A5;&#x6536;&#x591A;&#x6E90;&#x544A;&#x8B66;&#xFF0C;&#x652F;&#x6301;&#x805A;&#x5408;&#x3001;&#x6291;&#x5236;&#x3001;&#x5C4F;&#x853D;&#x3001;&#x8BA4;&#x9886;&#x3001;&#x5347;&#x7EA7;&#x4E0E;&#x901A;&#x77E5;&#x5206;&#x53D1;</p>
+  <EntityListShell
+    class="alerts-page"
+    title="告警中心"
+    description="统一接收多源告警，支持聚合、抑制、屏蔽、认领、升级与通知分发。"
+    eyebrow="Alert Console"
+  >
+    <template #icon>
+      <span class="hero-icon">
+        <el-icon><Bell /></el-icon>
+      </span>
+    </template>
+    <template #meta>
+      <span class="hero-chip">当前视图 · {{ currentTabLabel }}</span>
+      <span class="hero-chip">模式 · {{ currentModeLabel }}</span>
+      <span class="hero-chip">{{ currentScopeLabel }}</span>
+    </template>
+    <template #actions>
+      <el-button size="small" :icon="Refresh" :loading="loading || configLoading" @click="refreshAll">刷新</el-button>
+    </template>
+
+    <template #stats>
+      <section class="stats-grid alert-top-stats">
+        <button
+          v-for="card in statCards"
+          :key="card.key"
+          type="button"
+          class="release-stat-card alert-summary-card"
+          :class="[card.tone, { 'is-active': activeStatKey === card.key }]"
+          @click="applyStatFilter(card)"
+        >
+          <div class="stat-card-head">
+            <span class="stat-card-label">{{ card.label }}</span>
+            <span class="stat-card-badge">{{ card.badge }}</span>
           </div>
-        </div>
-      </div>
-      <div class="hero-actions">
-        <div class="hero-meta">
-          <span class="hero-chip">当前视图 · {{ currentTabLabel }}</span>
-          <span class="hero-chip">模式 · {{ currentModeLabel }}</span>
-          <span class="hero-chip">{{ currentScopeLabel }}</span>
-        </div>
-        <el-button size="small" :icon="Refresh" :loading="loading || configLoading" @click="refreshAll">&#x5237;&#x65B0;</el-button>
-      </div>
-    </section>
+          <div class="stat-card-value">{{ card.value }}</div>
+          <div class="stat-card-foot">
+            <span>{{ card.meta }}</span>
+            <span>{{ card.foot }}</span>
+          </div>
+        </button>
+      </section>
+    </template>
 
-    <section class="stats-grid alert-top-stats">
-      <button
-        v-for="card in statCards"
-        :key="card.key"
-        type="button"
-        class="release-stat-card alert-summary-card"
-        :class="[card.tone, { 'is-active': activeStatKey === card.key }]"
-        @click="applyStatFilter(card)"
-      >
-        <div class="stat-card-head">
-          <span class="stat-card-label">{{ card.label }}</span>
-          <span class="stat-card-badge">{{ card.badge }}</span>
+    <template #hint>
+      <section class="panel alert-context-strip">
+        <div class="alert-context-copy">
+          <span class="alert-context-title">当前操作上下文</span>
+          <span class="alert-context-desc">先确认告警视图、当前模式与筛选范围，再进入列表、策略或通知配置区。</span>
         </div>
-        <div class="stat-card-value">{{ card.value }}</div>
-        <div class="stat-card-foot">
-          <span>{{ card.meta }}</span>
-          <span>{{ card.foot }}</span>
+        <div class="alert-context-items">
+          <span class="alert-context-item">{{ currentTabLabel }}</span>
+          <span class="alert-context-item">{{ currentModeLabel }}</span>
+          <span class="alert-context-item">{{ currentScopeLabel }}</span>
+          <span v-if="activeTab === 'events' && filters.search.trim()" class="alert-context-item">检索 · {{ filters.search.trim() }}</span>
         </div>
-      </button>
-    </section>
+      </section>
+    </template>
 
-    <section class="panel alert-context-strip">
-      <div class="alert-context-copy">
-        <span class="alert-context-title">&#x5F53;&#x524D;&#x64CD;&#x4F5C;&#x4E0A;&#x4E0B;&#x6587;</span>
-        <span class="alert-context-desc">&#x5148;&#x786E;&#x8BA4;&#x544A;&#x8B66;&#x89C6;&#x56FE;&#x3001;&#x5F53;&#x524D;&#x6A21;&#x5F0F;&#x4E0E;&#x7B5B;&#x9009;&#x8303;&#x56F4;&#xFF0C;&#x518D;&#x8FDB;&#x5165;&#x5217;&#x8868;&#x3001;&#x7B56;&#x7565;&#x6216;&#x901A;&#x77E5;&#x914D;&#x7F6E;&#x533A;&#x3002;</span>
-      </div>
-      <div class="alert-context-items">
-        <span class="alert-context-item">{{ currentTabLabel }}</span>
-        <span class="alert-context-item">{{ currentModeLabel }}</span>
-        <span class="alert-context-item">{{ currentScopeLabel }}</span>
-        <span v-if="activeTab === 'events' && filters.search.trim()" class="alert-context-item">&#x68C0;&#x7D22; · {{ filters.search.trim() }}</span>
-      </div>
-    </section>
-
-    <section class="panel alert-nav-panel">
-      <div class="alert-nav-head">
-        <span class="alert-nav-title">&#x529F;&#x80FD;&#x89C6;&#x56FE;</span>
-        <span class="alert-nav-desc">&#x5728;&#x540C;&#x4E00;&#x5DE5;&#x4F5C;&#x53F0;&#x5185;&#x5207;&#x6362;&#x4E8B;&#x4EF6;&#x5217;&#x8868;&#x3001;&#x7B56;&#x7565;&#x7F16;&#x6392;&#x3001;&#x901A;&#x77E5;&#x914D;&#x7F6E;&#x4E0E;&#x63A5;&#x5165;&#x6E90;&#x3002;</span>
-      </div>
-      <div class="neo-tabs theme-blue alert-center-tabs">
-      <button v-if="canViewAlerts" class="neo-tab-btn" :class="{ active: activeTab === 'events' }" @click="switchTab('events')">
-        <el-icon style="margin-right: 4px;"><Bell /></el-icon>&#x544A;&#x8B66;&#x4E8B;&#x4EF6;
-      </button>
-      <button v-if="canViewConfig" class="neo-tab-btn" :class="{ active: activeTab === 'policies' }" @click="switchTab('policies')">
-        <el-icon style="margin-right: 4px;"><Operation /></el-icon>&#x7B56;&#x7565;&#x7F16;&#x6392;
-      </button>
-      <button v-if="canViewConfig" class="neo-tab-btn" :class="{ active: activeTab === 'notify' }" @click="switchTab('notify')">
-        <el-icon style="margin-right: 4px;"><Setting /></el-icon>&#x901A;&#x77E5;&#x914D;&#x7F6E;
-      </button>
-      <button v-if="canViewAlerts" class="neo-tab-btn" :class="{ active: activeTab === 'logs' }" @click="switchTab('logs')">
-        <el-icon style="margin-right: 4px;"><Document /></el-icon>&#x901A;&#x77E5;&#x8BB0;&#x5F55;
-      </button>
-      <button v-if="canViewConfig" class="neo-tab-btn" :class="{ active: activeTab === 'integrations' }" @click="switchTab('integrations')">
-        <el-icon style="margin-right: 4px;"><Connection /></el-icon>&#x544A;&#x8B66;&#x63A5;&#x5165;&#x6E90;
-      </button>
-      </div>
-    </section>
+    <template #tabs>
+      <section class="panel alert-nav-panel">
+        <div class="alert-nav-head">
+          <span class="alert-nav-title">功能视图</span>
+          <span class="alert-nav-desc">在同一工作台内切换事件列表、策略编排、通知配置与接入源。</span>
+        </div>
+        <div class="neo-tabs theme-blue alert-center-tabs">
+          <button v-if="canViewAlerts" class="neo-tab-btn" :class="{ active: activeTab === 'events' }" @click="switchTab('events')">
+            <el-icon style="margin-right: 4px;"><Bell /></el-icon>告警事件
+          </button>
+          <button v-if="canViewConfig" class="neo-tab-btn" :class="{ active: activeTab === 'policies' }" @click="switchTab('policies')">
+            <el-icon style="margin-right: 4px;"><Operation /></el-icon>策略编排
+          </button>
+          <button v-if="canViewConfig" class="neo-tab-btn" :class="{ active: activeTab === 'notify' }" @click="switchTab('notify')">
+            <el-icon style="margin-right: 4px;"><Setting /></el-icon>通知配置
+          </button>
+          <button v-if="canViewAlerts" class="neo-tab-btn" :class="{ active: activeTab === 'logs' }" @click="switchTab('logs')">
+            <el-icon style="margin-right: 4px;"><Document /></el-icon>通知记录
+          </button>
+          <button v-if="canViewConfig" class="neo-tab-btn" :class="{ active: activeTab === 'integrations' }" @click="switchTab('integrations')">
+            <el-icon style="margin-right: 4px;"><Connection /></el-icon>告警接入源
+          </button>
+        </div>
+      </section>
+    </template>
 
     <template v-if="activeTab === 'events' && canViewAlerts">
       <section class="panel">
@@ -224,17 +226,22 @@
     </template>
 
     <template v-if="activeTab === 'notify' && canViewConfig">
-      <section class="panel">
+      <section class="panel alert-module-shell">
         <div class="neo-sub-tabs theme-blue alert-sub-tabs">
           <button class="neo-sub-tab-btn" :class="{ active: notifyTab === 'rules' }" @click="changeNotifyTab('rules')">&#x901A;&#x77E5;&#x89C4;&#x5219;</button>
           <button class="neo-sub-tab-btn" :class="{ active: notifyTab === 'channels' }" @click="changeNotifyTab('channels')">&#x901A;&#x77E5;&#x6E20;&#x9053;</button>
           <button class="neo-sub-tab-btn" :class="{ active: notifyTab === 'recipients' }" @click="changeNotifyTab('recipients')">&#x63A5;&#x6536;&#x5BF9;&#x8C61;</button>
         </div>
 
-        <div v-show="notifyTab === 'rules'">
-          <div class="section-head alert-section-head">
-            <h3>&#x901A;&#x77E5;&#x89C4;&#x5219;</h3>
-            <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openNotificationRule()">&#x65B0;&#x589E;&#x89C4;&#x5219;</el-button>
+        <div v-show="notifyTab === 'rules'" class="workbench-card alert-module-panel">
+          <div class="section-toolbar alert-module-toolbar">
+            <div class="toolbar-head">
+              <span class="toolbar-title">通知规则</span>
+              <span class="toolbar-desc">统一匹配级别、通知渠道与接收组，控制触发、恢复与升级时机。</span>
+            </div>
+            <div class="workbench-card-actions">
+              <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openNotificationRule()">新增规则</el-button>
+            </div>
           </div>
           <el-table :data="notificationRules" stripe size="small" v-loading="configLoading" class="alert-workbench-table">
             <el-table-column prop="name" label="&#x89C4;&#x5219;&#x540D;&#x79F0;" min-width="180" />
@@ -267,10 +274,15 @@
           </el-table>
         </div>
 
-        <div v-show="notifyTab === 'channels'">
-          <div class="section-head alert-section-head">
-            <h3>&#x901A;&#x77E5;&#x6E20;&#x9053;</h3>
-            <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openChannel()">&#x65B0;&#x589E;&#x6E20;&#x9053;</el-button>
+        <div v-show="notifyTab === 'channels'" class="workbench-card alert-module-panel">
+          <div class="section-toolbar alert-module-toolbar">
+            <div class="toolbar-head">
+              <span class="toolbar-title">通知渠道</span>
+              <span class="toolbar-desc">集中维护短信、邮件、钉钉、飞书与企微等通道配置，并支持通道测试。</span>
+            </div>
+            <div class="workbench-card-actions">
+              <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openChannel()">新增渠道</el-button>
+            </div>
           </div>
           <el-table :data="channels" stripe size="small" v-loading="configLoading" class="alert-workbench-table">
             <el-table-column prop="name" label="&#x6E20;&#x9053;&#x540D;&#x79F0;" min-width="180" />
@@ -304,10 +316,15 @@
 
         <div v-show="notifyTab === 'recipients'">
           <div class="split-grid">
-            <div class="split-panel">
-              <div class="section-head alert-section-head">
-                <h3>&#x63A5;&#x6536;&#x4EBA;</h3>
-                <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openRecipient()">&#x65B0;&#x589E;&#x63A5;&#x6536;&#x4EBA;</el-button>
+            <div class="split-panel workbench-card alert-module-panel">
+              <div class="section-toolbar alert-module-toolbar">
+                <div class="toolbar-head">
+                  <span class="toolbar-title">接收人</span>
+                  <span class="toolbar-desc">维护手机号、邮箱和 IM 身份，作为细粒度通知对象。</span>
+                </div>
+                <div class="workbench-card-actions">
+                  <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openRecipient()">新增接收人</el-button>
+                </div>
               </div>
               <el-table :data="recipients" stripe size="small" v-loading="configLoading" class="alert-workbench-table">
                 <el-table-column prop="name" label="&#x59D3;&#x540D;" min-width="120" />
@@ -326,10 +343,15 @@
               </el-table>
             </div>
 
-            <div class="split-panel">
-              <div class="section-head alert-section-head">
-                <h3>&#x63A5;&#x6536;&#x7EC4;</h3>
-                <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openRecipientGroup()">&#x65B0;&#x589E;&#x63A5;&#x6536;&#x7EC4;</el-button>
+            <div class="split-panel workbench-card alert-module-panel">
+              <div class="section-toolbar alert-module-toolbar">
+                <div class="toolbar-head">
+                  <span class="toolbar-title">接收组</span>
+                  <span class="toolbar-desc">将联系人与平台用户编组成分发对象，便于按班组或值守团队通知。</span>
+                </div>
+                <div class="workbench-card-actions">
+                  <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openRecipientGroup()">新增接收组</el-button>
+                </div>
               </div>
               <el-table :data="recipientGroups" stripe size="small" v-loading="configLoading" class="alert-workbench-table">
                 <el-table-column prop="name" label="&#x7EC4;&#x540D;" min-width="130" />
@@ -354,7 +376,7 @@
     </template>
 
     <template v-if="activeTab === 'policies' && canViewConfig">
-      <section class="panel alert-policy-panel">
+      <section class="panel alert-policy-panel alert-module-shell">
         <div class="neo-sub-tabs theme-blue alert-sub-tabs">
           <button class="neo-sub-tab-btn" :class="{ active: policyTab === 'aggregation' }" @click="changePolicyTab('aggregation')">&#x805A;&#x5408;</button>
           <button class="neo-sub-tab-btn" :class="{ active: policyTab === 'inhibition' }" @click="changePolicyTab('inhibition')">&#x6291;&#x5236;</button>
@@ -378,12 +400,15 @@
     </template>
 
     <template v-if="activeTab === 'integrations' && canViewConfig">
-      <section class="panel">
-        <div class="section-head alert-section-head">
-          <h3>Webhook &#x63A5;&#x5165;&#x6E90;</h3>
+      <section class="workbench-card alert-module-panel">
+        <div class="section-toolbar alert-module-toolbar">
+          <div class="toolbar-head">
+            <span class="toolbar-title">Webhook 接入源</span>
+            <span class="toolbar-desc">统一维护监控系统的入站 webhook、默认标签与启用状态。</span>
+          </div>
           <div class="section-actions">
-            <el-button size="small" @click="integrationHelpVisible = true">&#x63A5;&#x5165;&#x5E2E;&#x52A9;</el-button>
-            <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openIntegration()">&#x65B0;&#x589E;&#x63A5;&#x5165;&#x6E90;</el-button>
+            <el-button size="small" @click="integrationHelpVisible = true">接入帮助</el-button>
+            <el-button v-if="canManageConfig" size="small" type="primary" :icon="Plus" @click="openIntegration()">新增接入源</el-button>
           </div>
         </div>
         <el-table :data="integrations" stripe size="small" v-loading="configLoading" class="alert-workbench-table">
@@ -459,10 +484,15 @@
     </el-dialog>
 
     <template v-if="activeTab === 'logs' && canViewAlerts">
-      <section class="panel">
-        <div class="section-head alert-section-head">
-          <h3>&#x901A;&#x77E5;&#x8BB0;&#x5F55;</h3>
-          <el-button size="small" :icon="Refresh" @click="fetchNotificationLogs">&#x5237;&#x65B0;</el-button>
+      <section class="workbench-card alert-module-panel">
+        <div class="section-toolbar alert-module-toolbar">
+          <div class="toolbar-head">
+            <span class="toolbar-title">通知记录</span>
+            <span class="toolbar-desc">追踪规则、渠道与接收对象的分发结果，快速定位失败原因。</span>
+          </div>
+          <div class="workbench-card-actions">
+            <el-button size="small" :icon="Refresh" @click="fetchNotificationLogs">刷新</el-button>
+          </div>
         </div>
         <el-table :data="notificationLogs" stripe size="small" v-loading="configLoading" class="alert-workbench-table">
           <el-table-column prop="created_at" label="&#x65F6;&#x95F4;" width="170">
@@ -759,7 +789,7 @@
         <el-button type="primary" @click="submitMuteDialog">&#x786E;&#x8BA4;&#x5C4F;&#x853D;</el-button>
       </template>
     </el-dialog>
-  </div>
+  </EntityListShell>
 </template>
 
 <script setup>
@@ -767,6 +797,7 @@ import { computed, defineComponent, h, onMounted, reactive, ref, watch } from 'v
 import { useRoute } from 'vue-router'
 import { Bell, Connection, Delete, Document, Operation, Plus, Refresh, Search, Setting } from '@element-plus/icons-vue'
 import { ElButton, ElInput, ElMessage, ElMessageBox, ElOption, ElPopconfirm, ElSelect, ElTable, ElTableColumn, ElTag } from 'element-plus'
+import EntityListShell from '@/components/layout/EntityListShell.vue'
 import {
   claimAlert,
   closeAlert,
@@ -891,39 +922,20 @@ const PolicyTable = defineComponent({
   },
   emits: ['create', 'edit', 'remove'],
   setup(props, { emit }) {
-    return () => h('div', { class: 'alert-policy-table' }, [
-      h('div', {
-        class: 'section-head alert-section-head',
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          marginBottom: '8px',
-          minHeight: '30px',
-          width: '100%',
-          flexWrap: 'nowrap',
-        },
-      }, [
-        h('h3', {
-          style: {
-            margin: '0',
-            fontSize: '15px',
-            fontWeight: '700',
-            lineHeight: '1.3',
-            flex: '0 1 auto',
-          },
-        }, props.title),
-        props.canManage ? h(ElButton, {
-          size: 'small',
-          type: 'primary',
-          icon: Plus,
-          onClick: () => emit('create'),
-          style: {
-            marginLeft: 'auto',
-            flex: '0 0 auto',
-          },
-        }, () => '\u65B0\u589E\u7B56\u7565') : null,
+    return () => h('div', { class: 'workbench-card alert-module-panel alert-policy-table' }, [
+      h('div', { class: 'section-toolbar alert-module-toolbar' }, [
+        h('div', { class: 'toolbar-head' }, [
+          h('span', { class: 'toolbar-title' }, props.title),
+          h('span', { class: 'toolbar-desc' }, '\u7EDF\u4E00\u7EF4\u62A4\u89E6\u53D1\u5339\u914D\u3001\u65F6\u95F4\u7A97\u53E3\u4E0E\u72B6\u6001\u751F\u6548\u89C4\u5219\u3002'),
+        ]),
+        h('div', { class: 'workbench-card-actions' }, [
+          props.canManage ? h(ElButton, {
+            size: 'small',
+            type: 'primary',
+            icon: Plus,
+            onClick: () => emit('create'),
+          }, () => '\u65B0\u589E\u7B56\u7565') : null,
+        ]),
       ]),
       h(ElTable, { data: props.data, stripe: true, size: 'small', loading: props.loading, class: 'alert-workbench-table' }, () => [
         h(ElTableColumn, { prop: 'name', label: '\u540D\u79F0', minWidth: 180 }),
@@ -2253,6 +2265,20 @@ onMounted(async () => {
 .alert-section-toolbar {
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(15,23,42,.05);
+}
+
+.alert-module-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-module-panel {
+  padding: 12px;
+}
+
+.alert-module-toolbar {
+  margin-bottom: 10px;
 }
 
 .toolbar,

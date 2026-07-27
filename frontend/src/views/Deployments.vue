@@ -1,59 +1,52 @@
 <template>
-  <div class="fade-in release-page workbench-page-shell">
-    <section class="hero panel">
-      <div class="release-hero-copy">
-        <span class="release-hero-eyebrow">Release Console</span>
-        <div class="release-hero-title-row release-hero-title-inline">
-          <span class="release-header-icon"><el-icon><Promotion /></el-icon></span>
-          <div class="release-hero-title-block">
-            <h2>{{ pageTitle }}</h2>
-            <p class="subtitle inline-subtitle">
-              {{ pageSubtitle }}
-            </p>
+  <EntityListShell class="release-page" :title="pageTitle" :description="pageSubtitle" eyebrow="Release Console">
+    <template #icon>
+      <span class="release-header-icon"><el-icon><Promotion /></el-icon></span>
+    </template>
+    <template #meta>
+      <span class="release-hero-chip">当前模式 · {{ currentModeLabel }}</span>
+      <span class="release-hero-chip">摘要视图 · {{ currentSummaryLabel }}</span>
+      <span class="release-hero-chip">{{ currentScopeLabel }}</span>
+    </template>
+
+    <template #stats>
+      <section class="stats-grid release-top-stats">
+        <button
+          v-for="card in summaryCards"
+          :key="card.key"
+          type="button"
+          class="release-stat-card release-summary-strip"
+          :class="[card.tone, { 'is-active': card.active }]"
+          @click="card.action"
+        >
+          <div class="stat-card-head">
+            <span class="stat-card-label">{{ card.label }}</span>
+            <span class="stat-card-badge">{{ card.badge }}</span>
           </div>
-        </div>
-      </div>
-      <div class="release-hero-meta">
-        <span class="release-hero-chip">当前模式 · {{ currentModeLabel }}</span>
-        <span class="release-hero-chip">摘要视图 · {{ currentSummaryLabel }}</span>
-        <span class="release-hero-chip">{{ currentScopeLabel }}</span>
-      </div>
-    </section>
+          <div class="stat-card-value">{{ card.value }}</div>
+          <div class="stat-card-foot">
+            <span>{{ card.meta }}</span>
+            <span>{{ card.foot }}</span>
+          </div>
+        </button>
+      </section>
+    </template>
 
-    <section class="stats-grid release-top-stats">
-      <button
-        v-for="card in summaryCards"
-        :key="card.key"
-        type="button"
-        class="release-stat-card release-summary-strip"
-        :class="[card.tone, { 'is-active': card.active }]"
-        @click="card.action"
-      >
-        <div class="stat-card-head">
-          <span class="stat-card-label">{{ card.label }}</span>
-          <span class="stat-card-badge">{{ card.badge }}</span>
+    <template #hint>
+      <section class="panel release-context-strip">
+        <div class="release-context-strip-copy">
+          <span class="release-context-strip-title">当前操作上下文</span>
+          <span class="release-context-strip-desc">先确认当前模式、摘要筛选和环境范围，再进入发布工单或审批流工作台。</span>
         </div>
-        <div class="stat-card-value">{{ card.value }}</div>
-        <div class="stat-card-foot">
-          <span>{{ card.meta }}</span>
-          <span>{{ card.foot }}</span>
+        <div class="release-context-strip-items">
+          <span class="release-context-item">{{ currentModeLabel }}</span>
+          <span class="release-context-item">{{ currentSummaryLabel }}</span>
+          <span class="release-context-item">{{ currentScopeLabel }}</span>
+          <span v-if="!isFlowMode && search.trim()" class="release-context-item">检索 · {{ search.trim() }}</span>
+          <span v-if="isFlowMode && flowSearch.trim()" class="release-context-item">检索 · {{ flowSearch.trim() }}</span>
         </div>
-      </button>
-    </section>
-
-    <section class="panel release-context-strip">
-      <div class="release-context-strip-copy">
-        <span class="release-context-strip-title">当前操作上下文</span>
-        <span class="release-context-strip-desc">先确认当前模式、摘要筛选和环境范围，再进入发布工单或审批流工作台。</span>
-      </div>
-      <div class="release-context-strip-items">
-        <span class="release-context-item">{{ currentModeLabel }}</span>
-        <span class="release-context-item">{{ currentSummaryLabel }}</span>
-        <span class="release-context-item">{{ currentScopeLabel }}</span>
-        <span v-if="!isFlowMode && search.trim()" class="release-context-item">检索 · {{ search.trim() }}</span>
-        <span v-if="isFlowMode && flowSearch.trim()" class="release-context-item">检索 · {{ flowSearch.trim() }}</span>
-      </div>
-    </section>
+      </section>
+    </template>
 
     <div v-if="!isFlowMode" class="workbench-card release-content-card">
       <div class="section-toolbar">
@@ -503,7 +496,7 @@
         <pre class="log-output">{{ detailItem.deploy_log || '暂无日志' }}</pre>
       </template>
     </el-dialog>
-  </div>
+  </EntityListShell>
 </template>
 
 <script setup>
@@ -511,6 +504,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Promotion, RefreshRight } from '@element-plus/icons-vue'
+import EntityListShell from '@/components/layout/EntityListShell.vue'
 import { getDockerHosts, getK8sClusters } from '@/api/modules/container'
 import { advanceDeploymentBatch, approveDeployment, createDeployment, createDeploymentApprovalFlow, deleteDeploymentApprovalFlow, getDeploymentApprovalFlows, getDeployments, getDeploymentStatus, getUsers, rejectDeployment, removeDeployment, rerunDeployment, rollbackDeployment, startDeployment, updateDeploymentApprovalFlow } from '@/api/modules/ops'
 import { getGroups, getRoles } from '@/api/modules/rbac'

@@ -1,111 +1,145 @@
 <template>
   <div v-loading="pageLoading" class="dashboard-page workbench-page-shell fade-in">
-    <section class="panel cloud-dashboard-top">
-      <div class="cloud-dashboard-main">
-        <div class="cloud-resource-grid">
-          <article v-for="card in resourceCards" :key="card.key" class="cloud-metric-card" :class="`tone-${card.tone}`">
-            <div class="cloud-metric-head">
-              <span class="cloud-metric-dot"></span>
-              <span class="cloud-metric-label">{{ card.label }}</span>
-              <span class="cloud-metric-badge">{{ card.badge }}</span>
-            </div>
-            <div class="cloud-metric-value">{{ card.value }}</div>
-            <div class="cloud-metric-meta">
-              <span>{{ card.caption }}</span>
-              <span>{{ card.foot }}</span>
-            </div>
-          </article>
+    <section class="panel dashboard-hero">
+      <div class="hero-copy">
+        <span class="hero-eyebrow">Operations Console</span>
+        <div class="hero-title-row">
+          <span class="hero-icon">KP</span>
+          <div class="hero-title-block">
+            <h2>平台概览</h2>
+            <p class="hero-desc">以统一工作台方式汇总资产、发布、告警与 AIOps 运行状态，让高频运维判断先于细节列表出现。</p>
+          </div>
         </div>
-
-        <div class="cloud-dashboard-lower">
-          <section class="cloud-panel">
-            <div class="cloud-panel-head">
-              <strong>最近发布</strong>
-              <el-button text @click="goRoute('WorkOrderReleases')">查看全部</el-button>
-            </div>
-            <div v-if="recentDeployments.length" class="cloud-activity-list">
-              <button
-                v-for="item in recentDeployments.slice(0, 6)"
-                :key="item.id"
-                type="button"
-                class="cloud-activity-item"
-                @click="goRoute('WorkOrderReleases')"
-              >
-                <div class="cloud-activity-main">
-                  <div class="cloud-activity-title">
-                    <strong>{{ item.app_name || '未命名应用' }}</strong>
-                    <el-tag size="small" :type="deploymentStatusType(item.status)">{{ item.status_display || item.status || '-' }}</el-tag>
-                  </div>
-                  <div class="cloud-activity-meta">
-                    <span>{{ item.environment_display || '-' }}</span>
-                    <span>{{ item.deploy_mode_display || '-' }}</span>
-                    <span>{{ item.version || '-' }}</span>
-                    <span>{{ item.cluster_name || item.host_name || item.docker_host_name || '未设置目标' }}</span>
-                  </div>
-                </div>
-                <span class="cloud-activity-time">{{ formatDateTime(item.deployed_at || item.finished_at || item.executed_at) }}</span>
-              </button>
-            </div>
-            <div v-else class="overview-empty">暂无最近发布数据</div>
-          </section>
-
-          <section class="cloud-panel">
-            <div class="cloud-panel-head">
-              <strong>告警中心</strong>
-              <el-button text @click="goRoute('Alerts')">查看全部</el-button>
-            </div>
-            <div v-if="recentAlerts.length" class="cloud-activity-list">
-              <button
-                v-for="item in recentAlerts.slice(0, 6)"
-                :key="item.id"
-                type="button"
-                class="cloud-activity-item"
-                @click="goRoute('Alerts')"
-              >
-                <div class="cloud-activity-main">
-                  <div class="cloud-activity-title">
-                    <strong>{{ item.title || item.summary || '未命名告警' }}</strong>
-                    <el-tag size="small" :type="alertLevelType(item.level)">{{ item.level_display || item.level || '-' }}</el-tag>
-                  </div>
-                  <div class="cloud-activity-meta">
-                    <span>{{ item.host_name || item.integration_name || '平台事件' }}</span>
-                    <span>{{ item.source_type_display || '告警源' }}</span>
-                    <span>{{ item.status_display || item.status || '-' }}</span>
-                  </div>
-                </div>
-                <span class="cloud-activity-time">{{ formatDateTime(item.last_received_at || item.created_at) }}</span>
-              </button>
-            </div>
-            <div v-else class="overview-empty">暂无待处理告警</div>
-          </section>
+        <div class="hero-meta">
+          <span class="hero-chip">主机在线 {{ formatNumber(hostSummary.online) }}</span>
+          <span class="hero-chip">待认领告警 {{ formatNumber(alertSummary.unacknowledged) }}</span>
+          <span class="hero-chip">发布执行中 {{ formatNumber(deploymentSummary.running) }}</span>
+          <span class="hero-chip">模型调用 {{ formatNumber(modelCostSummary.total_calls) }}</span>
         </div>
       </div>
 
-      <div class="cloud-dashboard-side">
-        <section class="cloud-panel cloud-usage-panel">
+      <div class="hero-side">
+        <span class="hero-side-label">AIOps Snapshot</span>
+        <strong>{{ canViewAiopsAudit ? formatModelCostSummary(modelCostSummary) : '未开启审计视角' }}</strong>
+        <span>
+          {{ canViewAiopsAudit ? `最近窗口共 ${formatNumber(modelCostSummary.total_calls)} 次模型调用，平均耗时 ${formatLatency(modelCostSummary.avg_latency_ms)}。` : '开启智能体审计权限后，可在首页同步观察 MCP、Skill 与模型成本。' }}
+        </span>
+      </div>
+    </section>
+
+    <section class="stats-grid dashboard-top-stats">
+      <article v-for="card in resourceCards.slice(0, 4)" :key="card.key" class="release-stat-card" :class="`tone-${card.tone}`">
+        <div class="stat-card-head">
+          <span class="stat-card-label">{{ card.label }}</span>
+          <span class="stat-card-badge">{{ card.badge }}</span>
+        </div>
+        <div class="stat-card-value">{{ card.value }}</div>
+        <div class="stat-card-foot">
+          <span>{{ card.caption }}</span>
+          <span>{{ card.foot }}</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel hint-strip">
+      <div class="hint-strip-copy">
+        <span class="hint-strip-title">当前优先事项</span>
+        <span class="hint-strip-desc">首页先给出最需要处理的事故、发布窗口和异常资产，再把分析型内容下沉到审计面板。</span>
+      </div>
+      <div class="hint-strip-actions">
+        <button
+          v-for="item in opsFocusCards"
+          :key="item.key"
+          type="button"
+          class="quick-action"
+          @click="goRoute(item.routeName)"
+        >
+          <span class="quick-action__icon">{{ item.value }}</span>
+          <span class="quick-action__text">
+            <strong>{{ item.label }}</strong>
+            <em>{{ item.desc }}</em>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel dashboard-workspace">
+      <div class="dashboard-workspace__main">
+        <section class="cloud-panel dashboard-section-panel">
           <div class="cloud-panel-head">
-            <strong>资源使用情况</strong>
-            <span class="cloud-panel-sub">主机资源均值</span>
+            <strong>发布与告警面板</strong>
+            <span class="cloud-panel-sub">保持同屏对照，先看变更再看故障</span>
           </div>
-          <div class="cloud-usage-list">
-            <div v-for="item in hostUsageRows" :key="item.key" class="cloud-usage-row">
-              <div class="cloud-usage-head">
-                <span>{{ item.label }}</span>
-                <strong>{{ item.value }}</strong>
+          <div class="dashboard-activity-grid">
+            <div class="dashboard-activity-panel">
+              <div class="dashboard-panel-headline">
+                <span>最近发布</span>
+                <el-button text @click="goRoute('WorkOrderReleases')">查看全部</el-button>
               </div>
-              <div class="cloud-usage-track" :aria-label="item.label">
-                <span class="cloud-usage-bar" :style="{ width: `${item.percent}%` }"></span>
+              <div v-if="recentDeployments.length" class="cloud-activity-list">
+                <button
+                  v-for="item in recentDeployments.slice(0, 5)"
+                  :key="item.id"
+                  type="button"
+                  class="cloud-activity-item"
+                  @click="goRoute('WorkOrderReleases')"
+                >
+                  <div class="cloud-activity-main">
+                    <div class="cloud-activity-title">
+                      <strong>{{ item.app_name || '未命名应用' }}</strong>
+                      <el-tag size="small" :type="deploymentStatusType(item.status)">{{ item.status_display || item.status || '-' }}</el-tag>
+                    </div>
+                    <div class="cloud-activity-meta">
+                      <span>{{ item.environment_display || '-' }}</span>
+                      <span>{{ item.deploy_mode_display || '-' }}</span>
+                      <span>{{ item.version || '-' }}</span>
+                      <span>{{ item.cluster_name || item.host_name || item.docker_host_name || '未设置目标' }}</span>
+                    </div>
+                  </div>
+                  <span class="cloud-activity-time">{{ formatDateTime(item.deployed_at || item.finished_at || item.executed_at) }}</span>
+                </button>
               </div>
+              <div v-else class="overview-empty">暂无最近发布数据</div>
+            </div>
+
+            <div class="dashboard-activity-panel">
+              <div class="dashboard-panel-headline">
+                <span>告警中心</span>
+                <el-button text @click="goRoute('Alerts')">查看全部</el-button>
+              </div>
+              <div v-if="recentAlerts.length" class="cloud-activity-list">
+                <button
+                  v-for="item in recentAlerts.slice(0, 5)"
+                  :key="item.id"
+                  type="button"
+                  class="cloud-activity-item"
+                  @click="goRoute('Alerts')"
+                >
+                  <div class="cloud-activity-main">
+                    <div class="cloud-activity-title">
+                      <strong>{{ item.title || item.summary || '未命名告警' }}</strong>
+                      <el-tag size="small" :type="alertLevelType(item.level)">{{ item.level_display || item.level || '-' }}</el-tag>
+                    </div>
+                    <div class="cloud-activity-meta">
+                      <span>{{ item.host_name || item.integration_name || '平台事件' }}</span>
+                      <span>{{ item.source_type_display || '告警源' }}</span>
+                      <span>{{ item.status_display || item.status || '-' }}</span>
+                    </div>
+                  </div>
+                  <span class="cloud-activity-time">{{ formatDateTime(item.last_received_at || item.created_at) }}</span>
+                </button>
+              </div>
+              <div v-else class="overview-empty">暂无待处理告警</div>
             </div>
           </div>
         </section>
 
-        <section class="cloud-panel cloud-message-panel">
+        <section class="cloud-panel dashboard-section-panel">
           <div class="cloud-panel-head">
-            <strong>消息中心</strong>
-            <span class="cloud-panel-sub">聚合最近活动</span>
+            <strong>最近活动</strong>
+            <span class="cloud-panel-sub">按时间线聚合发布与故障动态</span>
           </div>
-          <div v-if="messageFeed.length" class="cloud-message-list">
+          <div v-if="messageFeed.length" class="dashboard-feed-list">
             <button
               v-for="item in messageFeed.slice(0, 8)"
               :key="item.key"
@@ -128,6 +162,61 @@
           <div v-else class="overview-empty">暂无消息</div>
         </section>
       </div>
+
+      <aside class="dashboard-workspace__side">
+        <section class="cloud-panel dashboard-side-panel">
+          <div class="cloud-panel-head">
+            <strong>资源使用情况</strong>
+            <span class="cloud-panel-sub">主机资源均值</span>
+          </div>
+          <div class="cloud-usage-list">
+            <div v-for="item in hostUsageRows" :key="item.key" class="cloud-usage-row">
+              <div class="cloud-usage-head">
+                <span>{{ item.label }}</span>
+                <strong>{{ item.value }}</strong>
+              </div>
+              <div class="cloud-usage-track" :aria-label="item.label">
+                <span class="cloud-usage-bar" :style="{ width: `${item.percent}%` }"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="cloud-panel dashboard-side-panel">
+          <div class="cloud-panel-head">
+            <strong>智能体运行态</strong>
+            <span class="cloud-panel-sub">首页摘要</span>
+          </div>
+          <div class="dashboard-side-kpis">
+            <div class="dashboard-side-kpi">
+              <span>模型费用</span>
+              <strong>{{ formatModelCostSummary(modelCostSummary) }}</strong>
+            </div>
+            <div class="dashboard-side-kpi">
+              <span>MCP 调用</span>
+              <strong>{{ formatNumber(overviewInvocationCharts.find(item => item.key === 'mcp')?.total || 0) }}</strong>
+            </div>
+            <div class="dashboard-side-kpi">
+              <span>Skill 命中</span>
+              <strong>{{ formatNumber(overviewInvocationCharts.find(item => item.key === 'skills')?.total || 0) }}</strong>
+            </div>
+          </div>
+          <div class="dashboard-side-rank">
+            <div v-for="item in modelProviderRows.slice(0, 4)" :key="`${item.provider}-${item.cost_currency || 'USD'}`" class="dashboard-side-rank-row">
+              <div class="dashboard-side-rank-head">
+                <span>{{ item.provider }}</span>
+                <strong>{{ formatNumber(item.calls) }} 次</strong>
+              </div>
+              <div class="dashboard-side-rank-meta">
+                <span>{{ formatTokenCount(item.tokens) }} Token</span>
+                <span>{{ formatCost(item.estimated_cost_usd, item.cost_currency) }}</span>
+              </div>
+              <div class="overview-rank-bar"><span :style="{ width: `${item.percent}%` }"></span></div>
+            </div>
+            <div v-if="!modelProviderRows.length" class="overview-empty">暂无模型调用数据</div>
+          </div>
+        </section>
+      </aside>
     </section>
 
     <section v-if="canViewAiopsAudit" class="workbench-card dashboard-audit-card">
@@ -412,6 +501,7 @@ const opsFocusCards = computed(() => [
     value: formatNumber(alertSummary.value.critical),
     desc: '需要先处理高优先级事故',
     tone: toNumber(alertSummary.value.critical) ? 'danger' : 'neutral',
+    routeName: 'Alerts',
   },
   {
     key: 'focus-running',
@@ -419,6 +509,7 @@ const opsFocusCards = computed(() => [
     value: formatNumber(deploymentSummary.value.running),
     desc: '持续关注当前发布窗口',
     tone: toNumber(deploymentSummary.value.running) ? 'primary' : 'neutral',
+    routeName: 'WorkOrderReleases',
   },
   {
     key: 'focus-hosts',
@@ -426,6 +517,7 @@ const opsFocusCards = computed(() => [
     value: formatNumber(hostSummary.value.warning),
     desc: '建议进入资源底座排查',
     tone: toNumber(hostSummary.value.warning) ? 'warning' : 'neutral',
+    routeName: 'TaskResources',
   },
 ])
 const modelProviderRows = computed(() => {
@@ -946,6 +1038,19 @@ onMounted(loadHome)
 }
 
 @media (max-width: 1220px) {
+  .dashboard-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-workspace__side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-side-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .cloud-dashboard-top {
     grid-template-columns: 1fr;
   }
@@ -957,6 +1062,13 @@ onMounted(loadHome)
 }
 
 @media (max-width: 900px) {
+  .dashboard-top-stats,
+  .dashboard-activity-grid,
+  .dashboard-workspace__side,
+  .dashboard-side-kpis {
+    grid-template-columns: 1fr;
+  }
+
   .cloud-resource-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1130,6 +1242,118 @@ onMounted(loadHome)
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-secondary);
+}
+
+.dashboard-top-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.dashboard-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 12px;
+  padding: 12px;
+}
+
+.dashboard-workspace__main,
+.dashboard-workspace__side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.dashboard-section-panel,
+.dashboard-side-panel {
+  padding: 14px;
+}
+
+.dashboard-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dashboard-activity-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dashboard-panel-headline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dashboard-panel-headline span {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.dashboard-feed-list,
+.dashboard-side-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard-side-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dashboard-side-kpi {
+  padding: 10px 10px 9px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.018);
+}
+
+.dashboard-side-kpi span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dashboard-side-kpi strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.dashboard-side-rank-row {
+  padding: 10px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.018);
+}
+
+.dashboard-side-rank-head,
+.dashboard-side-rank-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dashboard-side-rank-head {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.dashboard-side-rank-meta {
+  margin-top: 6px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .stats-grid {

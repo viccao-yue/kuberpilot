@@ -53,13 +53,18 @@
       </el-menu>
     </aside>
 
+    <div class="sidebar-divider" :class="{ collapsed: appStore.sidebarCollapsed }"></div>
+
     <div class="main-area">
       <header class="header">
         <div class="header-left">
           <button class="collapse-btn" @click="appStore.toggleSidebar">
             <el-icon><Fold v-if="!appStore.sidebarCollapsed" /><Expand v-else /></el-icon>
           </button>
-          <span class="breadcrumb">{{ currentTitle }}</span>
+          <div class="header-title-block">
+            <span class="header-section">{{ currentSectionTitle }}</span>
+            <span class="header-page">{{ currentPageTitle }}</span>
+          </div>
         </div>
         <div class="header-right">
           <el-tooltip v-if="canOpenAIOpsAssistant" content="打开智能助手" placement="bottom">
@@ -158,6 +163,15 @@
           </el-dropdown>
         </div>
       </header>
+
+      <div class="breadcrumb-bar">
+        <div class="breadcrumb-trail">
+          <template v-for="(item, index) in breadcrumbItems" :key="`${item}-${index}`">
+            <span class="breadcrumb-separator" v-if="index">/</span>
+            <span class="breadcrumb-item" :class="{ active: index === breadcrumbItems.length - 1 }">{{ item }}</span>
+          </template>
+        </div>
+      </div>
 
       <main class="content">
         <router-view v-slot="{ Component }">
@@ -350,23 +364,38 @@ const activeMenuPath = computed(() => {
   return normalizedMenuPath.value
 })
 
-const currentTitle = computed(() => {
+const currentMenuContext = computed(() => {
   const currentPath = normalizedMenuPath.value
   for (const item of visibleMenuItems.value) {
-    if ((item.menuKey || item.path) === currentPath) return item.title
+    if ((item.menuKey || item.path) === currentPath) {
+      return {
+        sectionTitle: item.title,
+        pageTitle: item.title,
+        breadcrumbItems: [item.title],
+      }
+    }
     if (item.children) {
       const child = item.children.find((entry) => (entry.menuKey || entry.path) === currentPath)
-      if (child) return item.title === child.title ? child.title : `${item.title} / ${child.title}`
+      if (child) {
+        return {
+          sectionTitle: item.title,
+          pageTitle: child.title,
+          breadcrumbItems: item.title === child.title ? [child.title] : [item.title, child.title],
+        }
+      }
     }
   }
-  return route.meta.title || ''
+  const fallbackTitle = route.meta.title || '控制台'
+  return {
+    sectionTitle: 'KuberPilot Console',
+    pageTitle: fallbackTitle,
+    breadcrumbItems: ['控制台', fallbackTitle],
+  }
 })
 
-const currentRoleLabel = computed(() => {
-  const roles = authStore.currentUser?.roles || []
-  if (!roles.length) return '无角色'
-  return roles.map(role => role.name).join(' / ')
-})
+const currentSectionTitle = computed(() => currentMenuContext.value.sectionTitle)
+const currentPageTitle = computed(() => currentMenuContext.value.pageTitle)
+const breadcrumbItems = computed(() => currentMenuContext.value.breadcrumbItems)
 
 const primaryRoleLabel = computed(() => {
   const roles = authStore.currentUser?.roles || []
@@ -717,6 +746,77 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
+.sidebar-divider {
+  width: 1px;
+  background: var(--border-color);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: var(--sidebar-width);
+  z-index: 101;
+  transition: var(--transition);
+}
+
+.sidebar-divider.collapsed {
+  left: var(--sidebar-collapsed-width);
+}
+
+.header-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.header-section {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.header-page {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb-bar {
+  height: var(--breadcrumb-height);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.breadcrumb-trail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.breadcrumb-item {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.breadcrumb-item.active {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+}
+
 .notice-panel__header {
   display: flex;
   align-items: flex-start;
@@ -937,6 +1037,20 @@ onBeforeUnmount(() => {
 .user-role {
   font-size: 11px;
   color: var(--text-secondary);
+}
+
+@media (max-width: 760px) {
+  .sidebar-divider {
+    left: var(--sidebar-collapsed-width);
+  }
+
+  .header-page {
+    font-size: 15px;
+  }
+
+  .breadcrumb-bar {
+    padding: 0 12px;
+  }
 }
 
 </style>

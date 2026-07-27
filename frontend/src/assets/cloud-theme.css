@@ -10,13 +10,14 @@ html[data-theme="cloud"] {
   --sidebar-active: rgba(22, 119, 255, 0.1);
   --sidebar-text: rgba(17, 24, 39, 0.72);
   --sidebar-text-active: var(--primary);
-  --header-height: 54px;
+  --header-height: 64px;
+  --breadcrumb-height: 44px;
   --header-bg: rgba(255, 255, 255, 0.92);
   --header-shadow: none;
   --content-bg: #f5f6f8;
   --card-bg: #ffffff;
   --card-shadow: none;
-  --card-radius: 8px;
+  --card-radius: 10px;
   --text-primary: rgba(17, 24, 39, 0.92);
   --text-secondary: rgba(17, 24, 39, 0.68);
   --text-muted: rgba(17, 24, 39, 0.52);
@@ -57,7 +58,7 @@ html[data-theme="cloud"] .sidebar-logo {
 }
 
 html[data-theme="cloud"] .sidebar-nav {
-  padding: 8px 8px 10px;
+  padding: 12px 10px 14px;
 }
 
 html[data-theme="cloud"] .sidebar-nav .el-sub-menu__title,
@@ -87,6 +88,7 @@ html[data-theme="cloud"] .sidebar-nav .el-menu-item.is-active::before {
 
 html[data-theme="cloud"] .sidebar-logo {
   min-height: 64px;
+  padding: 0 18px;
 }
 
 html[data-theme="cloud"] .header {

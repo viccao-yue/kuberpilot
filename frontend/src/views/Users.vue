@@ -1,14 +1,13 @@
 <template>
-  <div class="fade-in users-page workbench-page-shell">
-    <section class="hero panel">
-      <div class="release-hero-copy">
-        <div class="release-hero-title-row">
-          <span class="release-header-icon"><el-icon><User /></el-icon></span>
-          <h2>用户管理</h2>
-          <p class="page-inline-desc">统一维护用户、用户组、角色与权限字典，支持内置权限同步与账号治理。</p>
-        </div>
-      </div>
-    </section>
+  <EntityListShell
+    class="users-page"
+    title="用户管理"
+    description="统一维护用户、用户组、角色与权限字典，支持内置权限同步与账号治理。"
+    eyebrow="Access Control"
+  >
+    <template #icon>
+      <span class="release-header-icon"><el-icon><User /></el-icon></span>
+    </template>
 
     <div class="neo-tabs theme-blue users-tabs">
       <button
@@ -334,13 +333,14 @@
         <el-button type="primary" :loading="saving.password" @click="handleResetPassword">确认</el-button>
       </template>
     </el-dialog>
-  </div>
+  </EntityListShell>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Avatar, Grid, Plus, RefreshRight, User, UserFilled } from '@element-plus/icons-vue'
+import EntityListShell from '@/components/layout/EntityListShell.vue'
 import {
   createGroup,
   createRole,

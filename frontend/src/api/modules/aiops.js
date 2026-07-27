@@ -1,15 +1,36 @@
 import request from '../request'
+import { isPreviewMode } from '@/utils/preview'
+import {
+  createPreviewKnowledgeEnvironment,
+  deletePreviewKnowledgeEnvironment,
+  getPreviewKnowledgeEnvironmentCatalog,
+  getPreviewKnowledgeEnvironments,
+  getPreviewKnowledgeGraph,
+  updatePreviewKnowledgeEnvironment,
+} from './aiopsPreview'
 
 const AIOPS_CHAT_TIMEOUT = 120000
 const AIOPS_MODEL_TEST_TIMEOUT = 45000
 
 export const getAIOpsBootstrap = () => request.get('/aiops/bootstrap/')
-export const getAIOpsKnowledgeGraph = (params) => request.get('/aiops/knowledge-graph/', { params })
-export const getAIOpsKnowledgeEnvironments = (params) => request.get('/aiops/knowledge-environments/', { params })
-export const getAIOpsKnowledgeEnvironmentCatalog = () => request.get('/aiops/knowledge-environments/catalog/')
-export const createAIOpsKnowledgeEnvironment = (data) => request.post('/aiops/knowledge-environments/', data)
-export const updateAIOpsKnowledgeEnvironment = (id, data) => request.patch(`/aiops/knowledge-environments/${id}/`, data)
-export const deleteAIOpsKnowledgeEnvironment = (id) => request.delete(`/aiops/knowledge-environments/${id}/`)
+export const getAIOpsKnowledgeGraph = (params) => (
+  isPreviewMode() ? getPreviewKnowledgeGraph(params) : request.get('/aiops/knowledge-graph/', { params })
+)
+export const getAIOpsKnowledgeEnvironments = (params) => (
+  isPreviewMode() ? getPreviewKnowledgeEnvironments(params) : request.get('/aiops/knowledge-environments/', { params })
+)
+export const getAIOpsKnowledgeEnvironmentCatalog = () => (
+  isPreviewMode() ? getPreviewKnowledgeEnvironmentCatalog() : request.get('/aiops/knowledge-environments/catalog/')
+)
+export const createAIOpsKnowledgeEnvironment = (data) => (
+  isPreviewMode() ? createPreviewKnowledgeEnvironment(data) : request.post('/aiops/knowledge-environments/', data)
+)
+export const updateAIOpsKnowledgeEnvironment = (id, data) => (
+  isPreviewMode() ? updatePreviewKnowledgeEnvironment(id, data) : request.patch(`/aiops/knowledge-environments/${id}/`, data)
+)
+export const deleteAIOpsKnowledgeEnvironment = (id) => (
+  isPreviewMode() ? deletePreviewKnowledgeEnvironment(id) : request.delete(`/aiops/knowledge-environments/${id}/`)
+)
 
 export const getAIOpsSessions = (params) => request.get('/aiops/sessions/', { params })
 export const createAIOpsSession = (data) => request.post('/aiops/sessions/', data)
