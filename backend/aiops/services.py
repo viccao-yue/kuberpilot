@@ -6431,6 +6431,49 @@ def _is_direct_alert_list_question(question):
     ])
 
 
+def _extract_web_platform(question):
+    """从自然语言中提取管理员注册的平台标识，不接受任意 URL。"""
+    lowered = str(question or '').strip().lower()
+    aliases = [
+        (
+            'legacy_ops_platform',
+            [
+                'legacy_ops_platform',
+                'legacy-ops-platform',
+                'legacy ops platform',
+                'legacy noc',
+                '旧版运维平台',
+                '旧运维平台',
+            ],
+        ),
+        (
+            'mock_platform',
+            [
+                'mock_platform',
+                'mock-platform',
+                'mock platform',
+                '模拟平台',
+            ],
+        ),
+    ]
+    for platform, keywords in aliases:
+        if any(keyword in lowered for keyword in keywords):
+            return platform
+    return None
+
+
+def _is_web_platform_alarm_question(question):
+    """识别明确要求查询 Web Automation 外部平台告警的问题。
+
+    该判断只负责把带有目标平台名称的查询送到外部 MCP。普通的“查看当前告警”
+    仍然沿用 KuberPilot 原有告警中心，避免改变已有功能。
+    """
+    lowered = str(question or '').strip().lower()
+    platform_mentioned = bool(_extract_web_platform(lowered))
+    alarm_mentioned = any(keyword in lowered for keyword in ['告警', '报警', 'alert', 'alerts'])
+    return platform_mentioned and alarm_mentioned
+
+
 def _is_alert_environment_analysis_question(question):
     text = str(question or '').strip()
     lowered = text.lower()
@@ -14841,6 +14884,157 @@ def _build_runtime_tool_registry(active_mcp_servers, user):
     return tool_specs, registry, managed_clients, diagnostics
 
 
+def _severity_display(severity):
+    return {
+        'critical': ('🔴', '严重'),
+        'warning': ('🟠', '警告'),
+        'info': ('🔵', '提示'),
+    }.get(str(severity or '').lower(), ('⚪', str(severity or '未知')))
+
+
+def _format_web_platform_alarm_result(payload):
+    """把标准告警对象渲染成无需大模型也能稳定展示的中文回答。"""
+    alarms = payload.get('alarms') if isinstance(payload, dict) else []
+    alarms = alarms if isinstance(alarms, list) else []
+    counts = payload.get('severity_counts') if isinstance(payload, dict) else {}
+    counts = counts if isinstance(counts, dict) else {}
+    platform = str((payload or {}).get('platform') or 'mock_platform')
+    lines = [
+        f'## {platform} 当前活动告警',
+        '',
+        (
+            f'共发现 **{len(alarms)} 条**告警：'
+            f'严重 {int(counts.get("critical") or 0)} 条，'
+            f'警告 {int(counts.get("warning") or 0)} 条，'
+            f'提示 {int(counts.get("info") or 0)} 条。'
+        ),
+        '',
+    ]
+    if not alarms:
+        lines.append('当前没有符合条件的活动告警。')
+    for index, alarm in enumerate(alarms, start=1):
+        if not isinstance(alarm, dict):
+            continue
+        icon, severity_name = _severity_display(alarm.get('severity'))
+        resource_name = alarm.get('resource_name') or alarm.get('resource_id') or '未知资源'
+        title = alarm.get('title') or '未命名告警'
+        description = alarm.get('description') or '平台未提供补充说明。'
+        occurred_at = alarm.get('occurred_at') or '未知时间'
+        lines.extend([
+            f'### {index}. {icon} {severity_name}｜{resource_name}｜{title}',
+            '',
+            f'- 现象：{description}',
+            f'- 资源类型：{alarm.get("resource_type") or "未知"}',
+            f'- 发生时间：{occurred_at}',
+            f'- 告警编号：{alarm.get("alarm_id") or "未知"}',
+            '',
+        ])
+    lines.extend([
+        '---',
+        '数据获取说明：本次查询通过只读 MCP 工具调用 Web Automation Gateway，'
+        '由 Playwright 使用受控凭据登录目标平台后读取；账号和密码不会进入聊天内容。',
+    ])
+    return '\n'.join(lines).strip()
+
+
+def _run_web_platform_alarm_fastpath(
+    session,
+    user_message,
+    user,
+    active_mcp_servers,
+    knowledge_environment,
+    analysis_scope,
+    emit,
+):
+    """执行“自然语言 -> 外部 MCP -> 浏览器登录 -> 标准告警 -> 中文回答”闭环。"""
+    tools, registry, managed_clients, diagnostics = _build_runtime_tool_registry(active_mcp_servers, user)
+    del tools
+    try:
+        matched = next(
+            (
+                (alias_name, entry)
+                for alias_name, entry in registry.items()
+                if entry.get('kind') == 'external'
+                and entry.get('raw_tool_name') == 'web_platform.list_alarms'
+            ),
+            None,
+        )
+        if not matched:
+            failed = [item for item in diagnostics if item.get('status') == 'failed']
+            detail = '；'.join(
+                f"{item.get('name')}: {item.get('message')}" for item in failed[:3]
+            )
+            return _build_dispatch_error_result(
+                detail or '未发现 web_platform.list_alarms 工具，请确认 Gateway 已启动且 MCP 配置已启用。',
+                code='web_platform_alarm_tool_unavailable',
+                message='无法连接 Web Automation 告警工具。',
+            )
+
+        alias_name, registry_entry = matched
+        platform = _extract_web_platform(user_message.content) or 'mock_platform'
+        emit(
+            step={
+                'title': '连接外部告警平台',
+                'detail': '已发现 web_platform.list_alarms，正在通过 Gateway 建立只读会话。',
+                'status': PROCESSING_STATUS_COMPLETED,
+            },
+            text=f'正在登录 {platform} 并读取告警',
+        )
+        tool_result = _run_tool_call(
+            session,
+            user_message,
+            user,
+            alias_name,
+            {'platform': platform, 'limit': 20},
+            registry_entry=registry_entry,
+        )
+        raw_result = tool_result.get('tool_output') or {}
+        if raw_result.get('isError') or raw_result.get('error'):
+            detail = raw_result.get('error') or raw_result.get('content') or '外部平台返回错误。'
+            return _build_dispatch_error_result(
+                _sanitize_mcp_error_text(detail),
+                code='web_platform_alarm_query_failed',
+                message=f'{platform} 告警查询失败。',
+            )
+        payload = raw_result.get('structuredContent') or {}
+        if not payload.get('ok'):
+            return _build_dispatch_error_result(
+                payload.get('message') or '外部平台未返回有效告警数据。',
+                code='web_platform_alarm_query_failed',
+                message=f'{platform} 告警查询失败。',
+            )
+        emit(
+            step={
+                'title': '读取并标准化告警',
+                'detail': f"已获取 {payload.get('count', 0)} 条告警，并转换为 KuberPilot 可展示的标准字段。",
+                'status': PROCESSING_STATUS_COMPLETED,
+            },
+            text='告警读取完成，正在生成中文说明',
+        )
+        return {
+            'content': _format_web_platform_alarm_result(payload),
+            'citations': tool_result.get('citations') or [],
+            'tool_calls': [alias_name],
+            'message_type': AIOpsChatMessage.TYPE_ANALYSIS,
+            'pending_action_draft': None,
+            'metadata': {
+                'execution_mode': 'web_platform_alarm_fastpath',
+                'current_environment': knowledge_environment.get('name'),
+                'analysis_scope': analysis_scope,
+                'external_platform': payload.get('platform') or 'mock_platform',
+                'alarm_count': payload.get('count', 0),
+                'collection_method': payload.get('collection_method'),
+                'read_only': bool(payload.get('read_only')),
+            },
+        }
+    finally:
+        for client in managed_clients:
+            try:
+                client.close()
+            except Exception:
+                pass
+
+
 def _platform_tool_registry_entry(tool_name):
     return {'kind': 'platform_mcp', 'tool_name': tool_name}
 
@@ -15393,6 +15587,18 @@ def _dispatch_with_tool_runtime(session, user_message, user, question, progress_
         page_context=page_context,
         current_code=selected_action.get('code') if selected_action else '',
     ) or selected_action
+    # 外部平台名是明确路由信号，必须放在原有“告警列表”快速路径之前。
+    # 该路径只调用只读 MCP，不依赖模型提供商，因此本地演示环境无需配置外部 LLM。
+    if _is_web_platform_alarm_question(question):
+        return _run_web_platform_alarm_fastpath(
+            session,
+            user_message,
+            user,
+            active_mcp_servers,
+            knowledge_environment,
+            analysis_scope,
+            emit,
+        )
     if _is_direct_alert_analysis_question(question):
         direct_action = selected_action if selected_action and selected_action.get('code') == 'alert.root_cause' else _action_registry_item_by_code('alert.root_cause', user=user)
         emit(

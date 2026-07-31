@@ -1,0 +1,1 @@
+"""Local operations-platform fixture."""

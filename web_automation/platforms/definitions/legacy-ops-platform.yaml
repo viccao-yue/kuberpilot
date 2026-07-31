@@ -1,0 +1,10 @@
+platform: legacy_ops_platform
+display_name: Legacy NOC Console
+base_url: http://127.0.0.1:8012/auth/signin
+enabled: true
+timeout_seconds: 5
+expected_login_path: /auth/signin
+adapter: legacy_ops_platform
+credential_id: legacy-ops-readonly
+allowed_resolved_cidrs:
+  - 127.0.0.0/8

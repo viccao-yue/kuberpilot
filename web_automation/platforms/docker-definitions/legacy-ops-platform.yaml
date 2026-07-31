@@ -1,0 +1,12 @@
+platform: legacy_ops_platform
+display_name: Legacy NOC Console
+base_url: http://legacy-ops-platform:8081/auth/signin
+enabled: true
+timeout_seconds: 5
+expected_login_path: /auth/signin
+adapter: legacy_ops_platform
+credential_id: legacy-ops-readonly
+allowed_resolved_cidrs:
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
