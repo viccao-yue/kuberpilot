@@ -6452,6 +6452,8 @@ def _extract_web_platform(question):
                 'mock_platform',
                 'mock-platform',
                 'mock platform',
+                'mockops',
+                'mock ops',
                 '模拟平台',
             ],
         ),
@@ -14904,9 +14906,9 @@ def _format_web_platform_alarm_result(payload):
         '',
         (
             f'共发现 **{len(alarms)} 条**告警：'
-            f'严重 {int(counts.get("critical") or 0)} 条，'
-            f'警告 {int(counts.get("warning") or 0)} 条，'
-            f'提示 {int(counts.get("info") or 0)} 条。'
+            f'严重 {_safe_int(counts.get("critical"), 0)} 条，'
+            f'警告 {_safe_int(counts.get("warning"), 0)} 条，'
+            f'提示 {_safe_int(counts.get("info"), 0)} 条。'
         ),
         '',
     ]
@@ -14947,6 +14949,13 @@ def _run_web_platform_alarm_fastpath(
     emit,
 ):
     """执行“自然语言 -> 外部 MCP -> 浏览器登录 -> 标准告警 -> 中文回答”闭环。"""
+    if not user_has_permissions(user, ['aiops.mcp.invoke']):
+        return _build_dispatch_error_result(
+            '缺少权限：aiops.mcp.invoke。请联系管理员在“系统管理 / 角色权限”中'
+            '为本账号分配“AIOps / 调用外部 MCP”角色。',
+            code='web_platform_alarm_mcp_permission_denied',
+            message='无权调用 Web Automation 外部告警工具。',
+        )
     tools, registry, managed_clients, diagnostics = _build_runtime_tool_registry(active_mcp_servers, user)
     del tools
     try:

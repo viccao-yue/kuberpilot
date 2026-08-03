@@ -11,6 +11,11 @@ from aiops.models import (
 
 SERVER_NAME = "Web Automation Gateway"
 ENVIRONMENT_NAME = "Web Automation 演示环境"
+DEFAULT_WELCOME_MESSAGE = "你好，我可以帮你结合平台上下文查询资源、根因分析、生成待执行任务等。"
+WEB_AUTOMATION_WELCOME_MESSAGE = (
+    "你好，我可以查询 KuberPilot 数据，也可以通过 Web Automation "
+    "安全登录外部平台并读取告警。"
+)
 SUGGESTED_QUESTIONS = [
     "查看mock_platform当前告警",
     "查看legacy_ops_platform当前告警",
@@ -51,16 +56,24 @@ class Command(BaseCommand):
         suggested_questions = [
             str(item).strip()
             for item in (config.suggested_questions or [])
-            if str(item).strip() and str(item).strip() not in SUGGESTED_QUESTIONS
+            if str(item).strip()
         ]
-        suggested_questions = SUGGESTED_QUESTIONS + suggested_questions
+        LIMIT = 8
+        for question in SUGGESTED_QUESTIONS:
+            if len(suggested_questions) >= LIMIT:
+                break
+            if question not in suggested_questions:
+                suggested_questions.append(question)
         config.enabled_mcp_server_ids = selected_server_ids
-        config.suggested_questions = suggested_questions[:8]
+        config.suggested_questions = suggested_questions
         config.is_enabled = True
-        config.welcome_message = (
-            "你好，我可以查询 KuberPilot 数据，也可以通过 Web Automation "
-            "安全登录外部平台并读取告警。"
-        )
+        current_welcome = (config.welcome_message or "").strip()
+        if not current_welcome or current_welcome == DEFAULT_WELCOME_MESSAGE:
+            config.welcome_message = WEB_AUTOMATION_WELCOME_MESSAGE
+        elif "Web Automation" not in current_welcome:
+            config.welcome_message = (
+                f"{current_welcome.rstrip()} {WEB_AUTOMATION_WELCOME_MESSAGE}"
+            )[:255]
         config.save(
             update_fields=[
                 "enabled_mcp_server_ids",
@@ -71,9 +84,9 @@ class Command(BaseCommand):
             ]
         )
 
-        AIOpsKnowledgeEnvironment.objects.exclude(name=ENVIRONMENT_NAME).update(
-            is_default=False
-        )
+        AIOpsKnowledgeEnvironment.objects.exclude(name=ENVIRONMENT_NAME).filter(
+            is_default=True
+        ).update(is_default=False)
         environment, _ = AIOpsKnowledgeEnvironment.objects.update_or_create(
             name=ENVIRONMENT_NAME,
             defaults={
