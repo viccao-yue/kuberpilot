@@ -66,6 +66,14 @@ def _current_user(request: Request) -> str | None:
 
 def _login_page(error: str = "") -> HTMLResponse:
     error_html = f'<p class="error">{html.escape(error)}</p>' if error else ""
+    demo_credentials_html = ""
+    if os.environ.get("WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS") == "1":
+        username, password = _credentials()
+        demo_credentials_html = (
+            '<p class="demo-credentials">仅限本地演示：'
+            f'<span data-demo-username>{html.escape(username)}</span> / '
+            f'<span data-demo-password>{html.escape(password)}</span></p>'
+        )
     return HTMLResponse(
         f"""<!doctype html>
 <html lang="zh-CN">
@@ -85,6 +93,7 @@ def _login_page(error: str = "") -> HTMLResponse:
     button {{ width:100%; margin-top:20px; padding:12px; border:0; border-radius:8px;
       background:#2563eb; color:white; font-weight:700; cursor:pointer; }}
     .error {{ color:#dc2626; background:#fef2f2; padding:9px; border-radius:8px; }}
+    .demo-credentials {{ margin:14px 0 0; color:#64748b; text-align:center; font-size:13px; }}
   </style>
 </head>
 <body><main class="card">
@@ -96,7 +105,7 @@ def _login_page(error: str = "") -> HTMLResponse:
     <input id="username" name="username" autocomplete="username" required>
     <label for="password">密码</label>
     <input id="password" name="password" type="password" autocomplete="current-password" required>
-    <button type="submit">登录</button>
+    <button type="submit">登录</button>{demo_credentials_html}
   </form>
 </main></body></html>"""
     )

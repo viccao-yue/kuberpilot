@@ -61,6 +61,14 @@ def _current_user(request: Request) -> str | None:
 
 def _login_page(error: str = "") -> HTMLResponse:
     error_html = f'<div class="error">{html.escape(error)}</div>' if error else ""
+    demo_credentials_html = ""
+    if os.environ.get("WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS") == "1":
+        username, password = _credentials()
+        demo_credentials_html = (
+            '<p class="demo-credentials">仅限本地演示：'
+            f'<span data-demo-username>{html.escape(username)}</span> / '
+            f'<span data-demo-password>{html.escape(password)}</span></p>'
+        )
     return HTMLResponse(
         f"""<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><title>旧版运维台登录</title>
@@ -70,13 +78,14 @@ body{{margin:0;background:#16202a;color:#d9e2ec;font:14px Arial,"Microsoft YaHei
 .title{{padding:14px 18px;background:#0f1720;font-size:20px}}form{{padding:24px}}
 .row{{display:grid;grid-template-columns:110px 1fr;margin:14px 0;align-items:center}}
 input{{padding:9px;background:#111d27;border:1px solid #657786;color:white}}
-button{{margin-left:110px;padding:9px 28px;background:#d97706;color:white;border:0}}
-.error{{margin:0 24px;color:#fecaca}}
+ button{{margin-left:110px;padding:9px 28px;background:#d97706;color:white;border:0}}
+ .error{{margin:0 24px;color:#fecaca}}
+ .demo-credentials{{margin:18px 0 0 110px;color:#a9bac8;font-size:12px}}
 </style></head><body><main class="shell"><div class="title">Legacy NOC Console 3.2</div>
 {error_html}<form method="post" action="/auth/signin">
 <div class="row"><label for="operator">操作员工号</label><input id="operator" name="operator"></div>
 <div class="row"><label for="access_key">访问口令</label><input id="access_key" name="access_key" type="password"></div>
-<button type="submit">进入控制台</button></form></main></body></html>"""
+ <button type="submit">进入控制台</button>{demo_credentials_html}</form></main></body></html>"""
     )
 
 

@@ -54,14 +54,14 @@ KuberPilot 前端、MCP 工具名和标准告警模型保持不变。
 
 | 编号 | 验收标准 | 证据 | 结论 |
 |---|---|---|---|
-| 1 | 第二平台要求登录且告警只存在于 HTML 表格 | 平台集成测试、截图 1 | 通过 |
+| 1 | 两个平台都要求登录，并具有登录页、登录后主页和告警页面 | 平台集成测试、截图 2～4 和截图 6～8 | 通过 |
 | 2 | Adapter 将 P1/P2/P3、旧时间格式和缺失字段转成 `StandardAlarm` | 单元测试与 MCP 返回 | 通过 |
 | 3 | 同一个 `web_platform.list_alarms` 可查询两个平台 | `verify_local.py` 返回两个平台各 3 条 | 通过 |
 | 4 | KuberPilot 能从问题中选择正确平台 | Django 4 项测试 | 通过 |
-| 5 | 同一前端页面可展示两个平台结果 | 截图 2、截图 3 | 通过 |
-| 6 | MCP 审计能区分 `platform` 参数且不记录密码 | 截图 4 | 通过 |
+| 5 | KuberPilot 发起查询后，能分别进入两个平台前端核对源告警 | 截图 1～8 | 通过 |
+| 6 | MCP 审计能区分 `platform` 参数且不记录密码 | 截图 9 | 通过 |
 | 7 | 原 `mock_platform` 能力没有被破坏 | 32 项 WebAutomation 测试与浏览器回归 | 通过 |
-| 8 | 前端生产构建可完成 | Vite 构建，2191 个模块转换成功 | 通过 |
+| 8 | 前端生产构建可完成 | Vite 构建，2203 个模块转换成功 | 通过 |
 
 ## 3. 方案与关键决策
 
@@ -117,7 +117,7 @@ Web Automation Gateway
 | `backend/aiops/services.py` | 新增平台别名提取，按用户问题传入目标平台 | 取消 fast path 对 `mock_platform` 的写死 |
 | `setup_web_automation_demo.py` | 增加第二建议问题和环境别名 | 启动后可直接看到两个测试入口 |
 | `web_automation/scripts/verify_local.py` | 同时启动、调用并核验两个平台；支持截图参数 | 形成可重复的一键集成验收 |
-| `capture_multi_platform_e2e.py` | 自动执行登录、两次提问、审计查看和截图 | 让浏览器证据可以重新生成 |
+| `capture_multi_platform_e2e.py` | 按“KuberPilot 查询 → 对应平台告警页”的顺序执行两轮验证，并截取审计页 | 让 P0 浏览器证据可以重新生成 |
 | `web_automation/tests/`、`backend/aiops/test_web_automation.py` | 新增旧平台会话、标准化和路由测试 | 覆盖成功、登录保护、会话失效和缺失字段 |
 
 ## 5. 运行方法
@@ -143,7 +143,9 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 - Gateway：`http://127.0.0.1:8010`
 - MockOps：`http://127.0.0.1:8011`
+- MockOps 登录页：`http://127.0.0.1:8011/login`
 - Legacy NOC：`http://127.0.0.1:8012`
+- Legacy NOC 登录页：`http://127.0.0.1:8012/auth/signin`
 - 私有 CA 测试服务：`https://127.0.0.1:8443`
 
 ### 5.3 启动 KuberPilot
@@ -169,11 +171,11 @@ Set-ExecutionPolicy -Scope Process Bypass
 Set-Location ".\web_automation"
 .\scripts\run-tests.ps1
 .\.venv\Scripts\python.exe .\scripts\verify_local.py
-.\.venv\Scripts\python.exe .\scripts\verify_local.py --capture-browser
+.\.venv\Scripts\python.exe .\scripts\capture_multi_platform_e2e.py
 ```
 
-`--capture-browser` 会真实打开无头 Edge 完成页面流程，并覆盖本报告使用的四张
-验收截图。
+最后一条命令会真实打开无头 Edge，依次完成两次 KuberPilot 查询、两个平台登录、
+主页和告警页访问，并覆盖本报告使用的九张验收截图。
 
 ## 6. 验证过程与结果
 
@@ -181,8 +183,8 @@ Set-Location ".\web_automation"
 
 ```text
 WebAutomation：32 passed
-KuberPilot aiops.test_web_automation：4 tests, OK
-前端构建：2191 modules transformed，built successfully
+KuberPilot aiops.tests.test_web_automation：9 tests, OK
+前端构建：2203 modules transformed，built successfully
 ```
 
 WebAutomation 测试包括：
@@ -215,36 +217,74 @@ MCP 返回之间的真实协作。
 
 ## 7. 浏览器验证与截图
 
-### 7.1 第二平台确实只有 HTML 告警表
+本节按实际操作顺序排列，重点补充“在 KuberPilot 输入查询后，进入对应目标平台
+前端并看到源告警”的 P0 最终证据。截图来自本地运行中的两个演示平台，不是示意图，
+也不代表已经完成真实生产平台联调。登录页上的账号提示仅在本地演示开关启用时
+显示，页面明确标注“仅限本地演示”。
 
-浏览器登录 Legacy NOC 后展示旧式活动事件表。页面使用 P1/P2/P3、旧时间格式，
-并存在空字段；它不是复制原平台 JSON API。
+### 7.1 查询 MockOps
 
-![Legacy NOC HTML 告警表](screenshots/web-automation-multi-platform/01-legacy-html-alarm-table.png)
+在 KuberPilot 输入 `查看mock_platform当前告警`，智能助手返回 3 条活动告警，
+包括 `test-vm-01`、`node-02` 和 `storage-01`。
 
-### 7.2 智能体查询第二平台
+![KuberPilot 查询 MockOps](screenshots/web-automation-multi-platform/01-mock-kuberpilot-query.png)
 
-输入 `查看legacy_ops_platform当前告警` 后，智能体显示 3 条标准告警。原页面的
-P1/P2/P3 已转换成严重/警告/提示，空说明被替换成易懂默认文案。
+### 7.2 打开 MockOps 登录页
 
-![智能体返回旧平台告警](screenshots/web-automation-multi-platform/02-legacy-platform-agent-answer.png)
+MockOps 登录页要求输入只读服务账号和密码。本地演示模式会在登录按钮下显示测试
+账号，方便验收人员复现；正式环境默认不应启用此提示。
 
-### 7.3 同一会话查询两个不同平台
+![MockOps 登录页面](screenshots/web-automation-multi-platform/02-mock-platform-login.png)
 
-不更换前端页面、不更换 MCP 工具，继续输入 `查看mock_platform当前告警`。
-截图上半部分保留旧平台回答结尾，下半部分显示 MockOps 告警，证明两个 Adapter
-共用同一条智能体链路。
+### 7.3 登录 MockOps 主页
 
-![同一会话查询两个平台](screenshots/web-automation-multi-platform/03-two-platforms-one-chat.png)
+登录成功后进入 MockOps 只读控制台主页。页面显示当前登录账号、活动告警数量和
+“查看告警列表”入口。
 
-### 7.4 MCP 调用审计
+![MockOps 登录后主页](screenshots/web-automation-multi-platform/03-mock-platform-home.png)
 
-展开审计详情可看到请求参数分别包含 `mock_platform` 和
-`legacy_ops_platform`，但没有用户名、密码或 Cookie。截图中也保留了开发过程中
-失败/进行中的历史记录；这说明审计页没有只展示成功结果，最终通过状态以
-自动测试、MCP 返回和两张前端结果截图共同确认。
+### 7.4 进入 MockOps 告警页核对源告警
 
-![多平台 MCP 调用审计](screenshots/web-automation-multi-platform/04-multi-platform-mcp-audit.png)
+查询完成后，浏览器使用只读服务账号登录 MockOps，进入“活动告警”页面。页面中的
+资源、标题和说明与 KuberPilot 返回内容一致；截图不包含密码输入画面。
+
+![MockOps 活动告警页面](screenshots/web-automation-multi-platform/04-mock-platform-alarm-page.png)
+
+### 7.5 查询 Legacy NOC
+
+回到 KuberPilot 输入 `查看legacy_ops_platform当前告警`，智能助手返回 3 条标准化
+结果。旧平台的 P1/P2/P3 已转换成严重、警告和提示。
+
+![KuberPilot 查询 Legacy NOC](screenshots/web-automation-multi-platform/05-legacy-kuberpilot-query.png)
+
+### 7.6 打开 Legacy NOC 登录页
+
+Legacy NOC 使用与 MockOps 不同的旧式登录页面和字段名称：操作员工号、访问口令。
+本地演示账号同样只在演示开关启用时显示。
+
+![Legacy NOC 登录页面](screenshots/web-automation-multi-platform/06-legacy-platform-login.png)
+
+### 7.7 登录 Legacy NOC 主页
+
+登录成功后进入 Legacy NOC 只读事件查询主页，并提供“进入活动事件列表”入口。
+
+![Legacy NOC 登录后主页](screenshots/web-automation-multi-platform/07-legacy-platform-home.png)
+
+### 7.8 进入 Legacy NOC 告警页核对源事件
+
+查询完成后，浏览器登录 Legacy NOC 并进入“活动事件列表”。页面中可看到
+`EVT-9001` 对应的数据库连接告警等源数据，证明第二 Adapter 实际读取的是登录后
+HTML 表格，而不是复制 MockOps 的 JSON 接口。
+
+![Legacy NOC 活动事件页面](screenshots/web-automation-multi-platform/08-legacy-platform-alarm-page.png)
+
+### 7.9 MCP 调用审计
+
+最后进入 KuberPilot 智能体审计页。最新两条成功记录的请求参数分别包含
+`mock_platform` 和 `legacy_ops_platform`，工具均为 `web_platform.list_alarms`，
+且审计内容没有用户名、密码或 Cookie。
+
+![两次平台查询的 MCP 审计](screenshots/web-automation-multi-platform/09-multi-platform-mcp-audit.png)
 
 ## 8. 安全、配置与兼容性
 
@@ -254,6 +294,8 @@ P1/P2/P3 已转换成严重/警告/提示，空说明被替换成易懂默认文
 - MCP 工具仍为只读；
 - 浏览器状态保存在仓库内被忽略的 `.runtime/browser-state`；
 - 本地测试密码仅服务于代码内模拟平台，不是生产秘密；
+- 登录页演示凭据提示受 `WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS=1` 控制，默认关闭，
+  不能用于真实平台或生产环境；
 - PowerShell 脚本保持 UTF-8 with BOM，并已通过语法解析；
 - 中文源码、配置和文档使用 UTF-8。
 

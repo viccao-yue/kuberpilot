@@ -18,6 +18,12 @@ async def test_legacy_platform_has_no_alarm_api_and_renders_html_table(monkeypat
         anonymous = await client.get("/active-events")
         assert anonymous.status_code == 200
         assert "Legacy NOC Console 3.2" in anonymous.text
+        assert "仅限本地演示" not in anonymous.text
+        monkeypatch.setenv("WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS", "1")
+        demo_login_page = await client.get("/auth/signin")
+        assert "仅限本地演示" in demo_login_page.text
+        assert "legacy_reader" in demo_login_page.text
+        assert "test-password" in demo_login_page.text
 
         login = await client.post(
             "/auth/signin",

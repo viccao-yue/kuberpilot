@@ -14,6 +14,14 @@ async def test_login_protects_alarm_api(monkeypatch):
         base_url="http://mock",
         follow_redirects=True,
     ) as client:
+        login_page = await client.get("/login")
+        assert "仅限本地演示" not in login_page.text
+        monkeypatch.setenv("WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS", "1")
+        demo_login_page = await client.get("/login")
+        assert "仅限本地演示" in demo_login_page.text
+        assert "aiops_robot" in demo_login_page.text
+        assert "test-password" in demo_login_page.text
+
         anonymous = await client.get("/api/internal/alarms")
         assert anonymous.status_code == 401
 

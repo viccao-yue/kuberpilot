@@ -22,8 +22,29 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
     python -m venv .venv
 }
 
-& $venvPython -c "import fastapi, uvicorn, httpx, yaml, playwright" 2>$null
-if ($LASTEXITCODE -ne 0) {
-    & $venvPython -m pip install -r requirements.txt
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    # Windows PowerShell 5.1 can promote native stderr to a terminating
+    # NativeCommandError when ErrorActionPreference is Stop. Import failures
+    # are expected here because they trigger first-run dependency installation.
+    $ErrorActionPreference = "Continue"
+    & $venvPython -c "import fastapi, uvicorn, httpx, yaml, playwright" 2>$null
+    $dependencyCheckExitCode = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
+if ($dependencyCheckExitCode -ne 0) {
+    try {
+        $ErrorActionPreference = "Continue"
+        & $venvPython -m pip install -r requirements.txt --timeout 120 --retries 10
+        $dependencyInstallExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($dependencyInstallExitCode -ne 0) {
+        throw "Web Automation dependency installation failed with exit code $dependencyInstallExitCode."
+    }
 }
 & $venvPython -m uvicorn gateway.app:app --host 127.0.0.1 --port 8010 --reload

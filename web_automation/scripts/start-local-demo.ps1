@@ -18,6 +18,7 @@ $env:PLAYWRIGHT_BROWSER_CHANNEL = "msedge"
 $env:TEMP = Join-Path $webRoot ".runtime\tmp"
 $env:TMP = $env:TEMP
 $env:WEB_AUTOMATION_ALLOW_MOCK_DEFAULT_CREDENTIALS = "1"
+$env:WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS = "1"
 $env:MOCK_PLATFORM_USERNAME = "aiops_robot"
 $env:MOCK_PLATFORM_PASSWORD = "MockOnly@123456"
 $env:LEGACY_OPS_USERNAME = "legacy_reader"
@@ -31,9 +32,30 @@ New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
 if (-not (Test-Path -LiteralPath $venvPython)) {
     python -m venv .venv
 }
-& $venvPython -c "import fastapi, uvicorn, httpx, yaml, cryptography, playwright" 2>$null
-if ($LASTEXITCODE -ne 0) {
-    & $venvPython -m pip install -r requirements.txt
+$previousErrorActionPreference = $ErrorActionPreference
+try {
+    # Windows PowerShell 5.1 can promote native stderr to a terminating
+    # NativeCommandError when ErrorActionPreference is Stop. Import failures
+    # are expected here because they trigger first-run dependency installation.
+    $ErrorActionPreference = "Continue"
+    & $venvPython -c "import fastapi, uvicorn, httpx, yaml, cryptography, playwright" 2>$null
+    $dependencyCheckExitCode = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousErrorActionPreference
+}
+if ($dependencyCheckExitCode -ne 0) {
+    try {
+        $ErrorActionPreference = "Continue"
+        & $venvPython -m pip install -r requirements.txt --timeout 120 --retries 10
+        $dependencyInstallExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+    if ($dependencyInstallExitCode -ne 0) {
+        throw "Web Automation dependency installation failed with exit code $dependencyInstallExitCode."
+    }
 }
 & $venvPython scripts\generate_test_ca.py
 
