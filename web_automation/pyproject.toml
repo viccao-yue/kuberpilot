@@ -1,0 +1,18 @@
+[project]
+name = "kuberpilot-web-automation"
+version = "0.1.0"
+description = "KuberPilot Web Automation Gateway - task 1 connectivity preflight"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+cache_dir = ".cache/pytest"
+addopts = "-q"
+filterwarnings = [
+  "ignore:.*event_loop_policy.*:DeprecationWarning:pytest_asyncio.*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

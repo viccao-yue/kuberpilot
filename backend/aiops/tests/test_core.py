@@ -21,7 +21,7 @@ from ops.models import Alert, Deployment, DockerHost, GrafanaSetting, Host, Host
 from rbac.models import Role
 from rbac.services import ensure_builtin_rbac
 
-from .models import (
+from ..models import (
     AIOpsChatMessage,
     AIOpsChatSession,
     AIOpsExternalTask,
@@ -36,11 +36,11 @@ from .models import (
     AIOpsSkill,
     AIOpsToolInvocation,
 )
-from .action_handlers import (
+from ..action_handlers import (
     normalize_page_context,
     select_action_by_handler,
 )
-from .services import (
+from ..services import (
     AIOpsModelCallError,
     DEFAULT_SUGGESTED_QUESTIONS,
     DEFAULT_WELCOME_MESSAGE,
@@ -642,7 +642,7 @@ class AIOpsApiTests(TestCase):
         mocked_completion.assert_not_called()
 
     def test_legacy_generate_task_tool_call_infers_action_trace(self):
-        from .serializers import AIOpsAuditTraceReader
+        from ..serializers import AIOpsAuditTraceReader
 
         session = AIOpsChatSession.objects.create(user=self.user, title='legacy-task-action')
         message = AIOpsChatMessage.objects.create(
@@ -7402,7 +7402,7 @@ class AIOpsApiTests(TestCase):
             risk_level=AIOpsPendingAction.RISK_HIGH,
             action_payload=legacy_payload,
         )
-        from .serializers import AIOpsPendingActionSerializer
+        from ..serializers import AIOpsPendingActionSerializer
 
         serialized_action = AIOpsPendingActionSerializer(action).data
         self.assertNotEqual(serialized_action['title'], 'Ansible Playbook 执行')
@@ -7456,7 +7456,7 @@ class AIOpsApiTests(TestCase):
             'name': '智能巡检任务',
             'request_summary': '电商测试环境 帮我建个电商测试环境的服务器巡检任务',
         })
-        from .serializers import AIOpsPendingActionSerializer
+        from ..serializers import AIOpsPendingActionSerializer
 
         serialized_action = AIOpsPendingActionSerializer(action).data
         self.assertNotIn('电商测试环境', serialized_action['title'])

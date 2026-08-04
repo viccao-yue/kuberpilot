@@ -1,0 +1,13 @@
+platform: mock_private_ca
+display_name: Mock platform with a private CA
+base_url: https://mock-private-ca:8443/login
+enabled: true
+timeout_seconds: 5
+expected_login_path: /login
+ca_cert_path: .runtime/certs/mock-private-ca.crt
+adapter: mock_platform
+credential_id: mock-platform-readonly
+allowed_resolved_cidrs:
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16

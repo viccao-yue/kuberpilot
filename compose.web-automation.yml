@@ -1,0 +1,99 @@
+services:
+  certificate-generator:
+    build:
+      context: ./web_automation
+      dockerfile: Dockerfile
+    command: ["python", "scripts/generate_test_ca.py"]
+    volumes:
+      - ./web_automation:/app
+    restart: "no"
+
+  mock-platform:
+    build:
+      context: ./web_automation
+      dockerfile: Dockerfile
+    command:
+      - python
+      - -m
+      - uvicorn
+      - mock_platform.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+    ports:
+      - "127.0.0.1:8011:8080"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  mock-private-ca:
+    build:
+      context: ./web_automation
+      dockerfile: Dockerfile
+    depends_on:
+      certificate-generator:
+        condition: service_completed_successfully
+    command:
+      - python
+      - -m
+      - uvicorn
+      - mock_platform.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8443"
+      - --ssl-certfile
+      - .runtime/certs/mock-private-ca-server.crt
+      - --ssl-keyfile
+      - .runtime/certs/mock-private-ca-server.key
+    volumes:
+      - ./web_automation:/app
+    ports:
+      - "127.0.0.1:8443:8443"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  legacy-ops-platform:
+    build:
+      context: ./web_automation
+      dockerfile: Dockerfile
+    command:
+      - python
+      - -m
+      - uvicorn
+      - legacy_ops_platform.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8081"
+    ports:
+      - "127.0.0.1:8012:8081"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  web-automation-gateway:
+    build:
+      context: ./web_automation
+      dockerfile: Dockerfile
+    depends_on:
+      mock-platform:
+        condition: service_started
+      mock-private-ca:
+        condition: service_started
+      legacy-ops-platform:
+        condition: service_started
+    volumes:
+      - ./web_automation:/app
+    environment:
+      WEB_AUTOMATION_HOST: 0.0.0.0
+      WEB_AUTOMATION_PORT: "8010"
+      WEB_AUTOMATION_PLATFORM_DIR: platforms/docker-definitions
+      WEB_AUTOMATION_ALLOW_MOCK_DEFAULT_CREDENTIALS: "1"
+    ports:
+      - "127.0.0.1:8010:8010"
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

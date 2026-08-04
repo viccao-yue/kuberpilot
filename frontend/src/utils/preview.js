@@ -11,15 +11,18 @@ export function ensurePreviewMode() {
   if (!import.meta.env.DEV || !isLocalDevHost()) return false
 
   const params = new URLSearchParams(window.location.search)
+  if (params.get('preview') === '1') {
+    localStorage.setItem(PREVIEW_MODE_KEY, '1')
+    return true
+  }
   if (params.get('preview') === '0') {
     localStorage.removeItem(PREVIEW_MODE_KEY)
     return false
   }
 
-  if (!localStorage.getItem(PREVIEW_MODE_KEY)) {
-    localStorage.setItem(PREVIEW_MODE_KEY, '1')
-  }
-  return true
+  // Local development connects to the real backend by default. Preview mode
+  // remains available through ?preview=1 and can be cleared with ?preview=0.
+  return localStorage.getItem(PREVIEW_MODE_KEY) === '1'
 }
 
 export function isPreviewMode() {

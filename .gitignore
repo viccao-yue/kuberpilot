@@ -51,7 +51,27 @@ docs/screenshots/*-smoke.png
 .runlogs/
 .dbg/
 .workbuddy/
+backend/.pip-cache/
+backend/.pycache/
+backend/.tmp/
 backend/run/
 backend/runtime/
+frontend/.npm-cache/
+frontend/.tmp/
 frontend/run/
 tmp_deploy/
+
+# Web Automation local runtime
+web_automation/.venv/
+web_automation/.cache/
+web_automation/.runtime/
+web_automation/.env
+web_automation/logs/*
+web_automation/evidence/*
+web_automation/certs/*.pem
+web_automation/certs/*.crt
+web_automation/secrets/
+web_automation/browser-state/
+!web_automation/logs/.gitkeep
+!web_automation/evidence/.gitkeep
+!web_automation/certs/README.md

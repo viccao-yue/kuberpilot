@@ -1,0 +1,13 @@
+platform: mock_platform
+display_name: Mock operations platform
+base_url: http://127.0.0.1:8011/login
+enabled: true
+timeout_seconds: 5
+expected_login_path: /login
+adapter: mock_platform
+credential_id: mock-platform-readonly
+allowed_resolved_cidrs:
+  - 127.0.0.0/8
+  - 10.0.0.0/8
+  - 172.16.0.0/12
+  - 192.168.0.0/16
