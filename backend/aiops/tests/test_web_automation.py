@@ -4,6 +4,7 @@ from unittest import mock
 
 from django.core.management import call_command
 from django.test import TestCase
+from ops.models import AlertIntegration
 
 from aiops.models import (
     AIOpsAgentConfig,
@@ -186,6 +187,7 @@ class WebAutomationSetupCommandTests(TestCase):
         environment = AIOpsKnowledgeEnvironment.objects.get(
             name="Web Automation 演示环境"
         )
+        integration = AlertIntegration.objects.get(name="Web Automation Gateway")
 
         self.assertEqual(AIOpsMCPServer.objects.count(), 1)
         self.assertEqual(server.endpoint_or_command, "http://127.0.0.1:8010/mcp")
@@ -200,6 +202,22 @@ class WebAutomationSetupCommandTests(TestCase):
         self.assertTrue(environment.is_default)
         self.assertIn("mock_platform", environment.aliases)
         self.assertIn("legacy_ops_platform", environment.aliases)
+        self.assertEqual(integration.provider, "generic")
+        self.assertTrue(integration.is_enabled)
+        self.assertEqual(integration.default_labels["integration"], "web_automation")
+
+    @mock.patch.dict(
+        "os.environ",
+        {"WEB_AUTOMATION_CALLBACK_TOKEN": "local-test-callback-token"},
+    )
+    def test_command_configures_callback_token_without_printing_it(self):
+        output = StringIO()
+
+        call_command("setup_web_automation_demo", stdout=output)
+
+        integration = AlertIntegration.objects.get(name="Web Automation Gateway")
+        self.assertEqual(integration.token, "local-test-callback-token")
+        self.assertNotIn("local-test-callback-token", output.getvalue())
 
     def test_command_preserves_full_question_list_and_custom_welcome(self):
         original_questions = [f"用户问题 {index}" for index in range(1, 9)]

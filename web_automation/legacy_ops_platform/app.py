@@ -1,6 +1,7 @@
 """A legacy-style operations platform whose alarms exist only in an HTML table."""
 
 import html
+import copy
 import os
 import secrets
 from datetime import datetime, timezone
@@ -14,7 +15,7 @@ app = FastAPI(title="Legacy Operations Console")
 SESSION_COOKIE = "legacy_ops_sid"
 SESSIONS: dict[str, str] = {}
 
-EVENTS = [
+BASE_EVENTS = [
     {
         "event_no": "EVT-9001",
         "priority": "P1",
@@ -46,6 +47,17 @@ EVENTS = [
         "state": "OPEN",
     },
 ]
+DEMO_EVENT = {
+    "event_no": "EVT-9004",
+    "priority": "P1",
+    "asset": "checkout-api",
+    "asset_kind": "SERVICE",
+    "summary": "结算服务5xx错误率升高",
+    "detail": "错误率达到15%，需要检查最近变更。",
+    "raised_time": "2026/08/05 10:35:00",
+    "state": "OPEN",
+}
+EVENTS = copy.deepcopy(BASE_EVENTS)
 
 
 def _credentials() -> tuple[str, str]:
@@ -57,6 +69,10 @@ def _credentials() -> tuple[str, str]:
 
 def _current_user(request: Request) -> str | None:
     return SESSIONS.get(request.cookies.get(SESSION_COOKIE, ""))
+
+
+def _demo_controls_enabled() -> bool:
+    return os.environ.get("WEB_AUTOMATION_ENABLE_DEMO_CONTROLS") == "1"
 
 
 def _login_page(error: str = "") -> HTMLResponse:
@@ -134,6 +150,7 @@ async def console(request: Request):
 async def active_events(request: Request):
     if not _current_user(request):
         return RedirectResponse("/auth/signin", status_code=302)
+    controls_enabled = _demo_controls_enabled()
     rows = "".join(
         f"""<tr data-event-no="{html.escape(item['event_no'])}">
 <td class="priority">{html.escape(item['priority'])}</td>
@@ -142,7 +159,8 @@ async def active_events(request: Request):
 <td class="summary">{html.escape(item['summary'])}</td>
 <td class="detail">{html.escape(item['detail'])}</td>
 <td class="raised-time">{html.escape(item['raised_time'])}</td>
-<td class="state">{html.escape(item['state'])}</td></tr>"""
+<td class="state">{html.escape(item['state'])}</td>
+{('<td><form method="post" action="/test/events/' + html.escape(item['event_no']) + '/resolve"><button type="submit">标记恢复</button></form></td>' if controls_enabled else '')}</tr>"""
         for item in EVENTS
     )
     return HTMLResponse(
@@ -151,11 +169,44 @@ async def active_events(request: Request):
 body{{font:13px Arial,"Microsoft YaHei";padding:18px;background:#e7e9eb}}
 table{{width:100%;border-collapse:collapse;background:white}}
 th,td{{border:1px solid #9aa3aa;padding:8px;text-align:left}}th{{background:#324553;color:white}}
+button{{padding:6px 10px}}.controls{{display:flex;gap:10px;margin:12px 0}}
 </style></head><body><h1>活动事件列表</h1>
+{('<div class="controls"><form method="post" action="/test/events/add"><button type="submit">新增演示事件</button></form><form method="post" action="/test/events/reset"><button type="submit">重置演示数据</button></form></div>' if controls_enabled else '')}
 <table id="event-grid"><thead><tr><th>优先级</th><th>对象</th><th>对象类别</th>
-<th>摘要</th><th>补充信息</th><th>发生时间</th><th>状态</th></tr></thead>
+<th>摘要</th><th>补充信息</th><th>发生时间</th><th>状态</th>{('<th>演示操作</th>' if controls_enabled else '')}</tr></thead>
 <tbody>{rows}</tbody></table></body></html>"""
     )
+
+
+@app.post("/test/events/add")
+async def add_demo_event(request: Request):
+    if not _demo_controls_enabled():
+        return HTMLResponse("Not found", status_code=404)
+    if not _current_user(request):
+        return RedirectResponse("/auth/signin", status_code=302)
+    if not any(item["event_no"] == DEMO_EVENT["event_no"] for item in EVENTS):
+        EVENTS.append(copy.deepcopy(DEMO_EVENT))
+    return RedirectResponse("/active-events", status_code=303)
+
+
+@app.post("/test/events/{event_no}/resolve")
+async def resolve_demo_event(event_no: str, request: Request):
+    if not _demo_controls_enabled():
+        return HTMLResponse("Not found", status_code=404)
+    if not _current_user(request):
+        return RedirectResponse("/auth/signin", status_code=302)
+    EVENTS[:] = [item for item in EVENTS if item["event_no"] != event_no]
+    return RedirectResponse("/active-events", status_code=303)
+
+
+@app.post("/test/events/reset")
+async def reset_demo_events(request: Request):
+    if not _demo_controls_enabled():
+        return HTMLResponse("Not found", status_code=404)
+    if not _current_user(request):
+        return RedirectResponse("/auth/signin", status_code=302)
+    EVENTS[:] = copy.deepcopy(BASE_EVENTS)
+    return RedirectResponse("/active-events", status_code=303)
 
 
 @app.post("/test/expire-session")

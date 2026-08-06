@@ -3161,6 +3161,61 @@ class AlertWebhookIngestTests(TestCase):
         self.assertEqual(response.status_code, 202)
         self.assertTrue(Alert.objects.filter(title='Generic alert', source_type='generic').exists())
 
+    def test_generic_webhook_updates_same_alert_to_resolved(self):
+        integration = AlertIntegration.objects.create(
+            name='Web Automation',
+            provider='generic',
+        )
+        url = f'/api/alerts/webhooks/generic/{integration.token}/'
+        active = {
+            'title': 'CPU high',
+            'fingerprint': 'web-automation-fp-1',
+            'status': 'firing',
+            'resource': 'mock_platform::vm-001',
+        }
+        resolved = {**active, 'status': 'resolved', 'ends_at': '2026-08-05T11:00:00+08:00'}
+
+        first_response = self.client.post(url, active, format='json')
+        second_response = self.client.post(url, resolved, format='json')
+
+        self.assertEqual(first_response.status_code, 202)
+        self.assertEqual(second_response.status_code, 202)
+        self.assertEqual(Alert.objects.filter(title='CPU high').count(), 1)
+        alert = Alert.objects.get(title='CPU high')
+        self.assertEqual(alert.status, Alert.STATUS_RESOLVED)
+        self.assertIsNotNone(alert.ends_at)
+
+    def test_web_automation_webhook_requires_valid_token(self):
+        integration = AlertIntegration.objects.create(
+            name='Web Automation',
+            provider='generic',
+        )
+        url = '/api/alerts/webhooks/web-automation/'
+        payload = {
+            'title': 'Web Automation alert',
+            'fingerprint': 'web-automation-fp-2',
+            'status': 'firing',
+        }
+
+        missing = self.client.post(url, payload, format='json')
+        invalid = self.client.post(
+            url,
+            payload,
+            format='json',
+            HTTP_X_KUBERPILOT_TOKEN='invalid-token',
+        )
+        allowed = self.client.post(
+            url,
+            payload,
+            format='json',
+            HTTP_X_KUBERPILOT_TOKEN=integration.token,
+        )
+
+        self.assertEqual(missing.status_code, 403)
+        self.assertEqual(invalid.status_code, 403)
+        self.assertEqual(allowed.status_code, 202)
+        self.assertTrue(Alert.objects.filter(title='Web Automation alert').exists())
+
 
 class AlertActionApiTests(TestCase):
     def setUp(self):

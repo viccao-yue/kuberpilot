@@ -1,6 +1,7 @@
 """A small but real login-protected operations platform used by the AIOps demo."""
 
 import asyncio
+import copy
 import html
 import os
 import secrets
@@ -15,7 +16,7 @@ app = FastAPI(title="Mock Operations Platform")
 SESSION_COOKIE = "mock_ops_session"
 SESSIONS: dict[str, str] = {}
 
-ALARMS = [
+BASE_ALARMS = [
     {
         "id": "alarm-001",
         "level": "critical",
@@ -50,6 +51,18 @@ ALARMS = [
         "status": "firing",
     },
 ]
+DEMO_ALARM = {
+    "id": "alarm-004",
+    "level": "critical",
+    "resource_id": "api-004",
+    "resource_type": "service",
+    "resource_name": "checkout-api",
+    "title": "结算接口错误率升高",
+    "message": "最近5分钟错误率达到18%。",
+    "occurred_at": "2026-08-05T10:30:00+08:00",
+    "status": "firing",
+}
+ALARMS = copy.deepcopy(BASE_ALARMS)
 
 
 def _credentials() -> tuple[str, str]:
@@ -62,6 +75,10 @@ def _credentials() -> tuple[str, str]:
 def _current_user(request: Request) -> str | None:
     token = request.cookies.get(SESSION_COOKIE, "")
     return SESSIONS.get(token)
+
+
+def _demo_controls_enabled() -> bool:
+    return os.environ.get("WEB_AUTOMATION_ENABLE_DEMO_CONTROLS") == "1"
 
 
 def _login_page(error: str = "") -> HTMLResponse:
@@ -171,21 +188,29 @@ a{{color:#2563eb}} .badge{{background:#dcfce7;color:#166534;padding:4px 9px;bord
 async def alarms_page(request: Request):
     if not _current_user(request):
         return RedirectResponse("/login", status_code=302)
+    controls_enabled = _demo_controls_enabled()
     rows = "".join(
         "<tr>"
-        f"<td>{html.escape(item['level'])}</td>"
-        f"<td>{html.escape(item['resource_name'])}</td>"
-        f"<td>{html.escape(item['title'])}</td>"
-        f"<td>{html.escape(item['message'])}</td>"
-        "</tr>"
+        + f"<td>{html.escape(item['level'])}</td>"
+        + f"<td>{html.escape(item['resource_name'])}</td>"
+        + f"<td>{html.escape(item['title'])}</td>"
+        + f"<td>{html.escape(item['message'])}</td>"
+        + (
+            '<td><form method="post" action="/test/alarms/'
+            f'{html.escape(item["id"])}/resolve"><button type="submit">标记恢复</button></form></td>'
+            if controls_enabled
+            else ""
+        )
+        + "</tr>"
         for item in ALARMS
     )
     return HTMLResponse(
         f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>活动告警</title>
 <style>body{{font-family:"Microsoft YaHei";padding:30px;background:#f6f8fb}}
 table{{width:100%;border-collapse:collapse;background:white}}th,td{{padding:12px;border-bottom:1px solid #e5e7eb;text-align:left}}
-th{{background:#f8fafc}}</style></head><body><h1>活动告警</h1>
-<table><thead><tr><th>级别</th><th>资源</th><th>标题</th><th>说明</th></tr></thead>
+th{{background:#f8fafc}}button{{padding:7px 12px}}.controls{{display:flex;gap:10px;margin:16px 0}}</style></head><body><h1>活动告警</h1>
+{('<div class="controls"><form method="post" action="/test/alarms/add"><button type="submit">新增演示告警</button></form><form method="post" action="/test/alarms/reset"><button type="submit">重置演示数据</button></form></div>' if controls_enabled else '')}
+<table><thead><tr><th>级别</th><th>资源</th><th>标题</th><th>说明</th>{('<th>演示操作</th>' if controls_enabled else '')}</tr></thead>
 <tbody>{rows}</tbody></table></body></html>"""
     )
 
@@ -200,6 +225,37 @@ async def alarms_api(request: Request):
         item for item in ALARMS if severity == "all" or item["level"].lower() == severity
     ][:limit]
     return {"platform": "mock_platform", "count": len(items), "alarms": items}
+
+
+@app.post("/test/alarms/add")
+async def add_demo_alarm(request: Request):
+    if not _demo_controls_enabled():
+        return JSONResponse({"detail": "not found"}, status_code=404)
+    if not _current_user(request):
+        return RedirectResponse("/login", status_code=302)
+    if not any(item["id"] == DEMO_ALARM["id"] for item in ALARMS):
+        ALARMS.append(copy.deepcopy(DEMO_ALARM))
+    return RedirectResponse("/alarms", status_code=303)
+
+
+@app.post("/test/alarms/{alarm_id}/resolve")
+async def resolve_demo_alarm(alarm_id: str, request: Request):
+    if not _demo_controls_enabled():
+        return JSONResponse({"detail": "not found"}, status_code=404)
+    if not _current_user(request):
+        return RedirectResponse("/login", status_code=302)
+    ALARMS[:] = [item for item in ALARMS if item["id"] != alarm_id]
+    return RedirectResponse("/alarms", status_code=303)
+
+
+@app.post("/test/alarms/reset")
+async def reset_demo_alarms(request: Request):
+    if not _demo_controls_enabled():
+        return JSONResponse({"detail": "not found"}, status_code=404)
+    if not _current_user(request):
+        return RedirectResponse("/login", status_code=302)
+    ALARMS[:] = copy.deepcopy(BASE_ALARMS)
+    return RedirectResponse("/alarms", status_code=303)
 
 
 @app.get("/redirect-to-login")

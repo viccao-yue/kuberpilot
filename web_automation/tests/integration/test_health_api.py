@@ -13,6 +13,7 @@ async def test_gateway_health():
     response = await request("GET", "/healthz")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+    assert response.headers["content-type"] == "application/json; charset=utf-8"
 
 
 async def test_mcp_initialize_and_list_tools():

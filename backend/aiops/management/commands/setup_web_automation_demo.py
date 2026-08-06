@@ -1,4 +1,6 @@
-"""Configure the local Web Automation MCP demonstration."""
+"""Configure the local Web Automation MCP and alarm-callback demonstration."""
+
+import os
 
 from django.core.management.base import BaseCommand
 
@@ -7,10 +9,12 @@ from aiops.models import (
     AIOpsKnowledgeEnvironment,
     AIOpsMCPServer,
 )
+from ops.models import AlertIntegration
 
 
 SERVER_NAME = "Web Automation Gateway"
 ENVIRONMENT_NAME = "Web Automation 演示环境"
+ALERT_INTEGRATION_NAME = "Web Automation Gateway"
 DEFAULT_WELCOME_MESSAGE = "你好，我可以帮你结合平台上下文查询资源、根因分析、生成待执行任务等。"
 WEB_AUTOMATION_WELCOME_MESSAGE = (
     "你好，我可以查询 KuberPilot 数据，也可以通过 Web Automation "
@@ -26,6 +30,23 @@ class Command(BaseCommand):
     help = "Idempotently register the local read-only Web Automation Gateway demo."
 
     def handle(self, *args, **options):
+        callback_token = os.environ.get("WEB_AUTOMATION_CALLBACK_TOKEN", "").strip()
+        integration_defaults = {
+            "provider": "generic",
+            "is_enabled": True,
+            "default_labels": {
+                "integration": "web_automation",
+                "environment": "local-demo",
+            },
+            "description": "接收 Web Automation 周期采集产生的新增与恢复告警",
+        }
+        if callback_token:
+            integration_defaults["token"] = callback_token
+        integration, _ = AlertIntegration.objects.update_or_create(
+            name=ALERT_INTEGRATION_NAME,
+            defaults=integration_defaults,
+        )
+
         server, _ = AIOpsMCPServer.objects.update_or_create(
             name=SERVER_NAME,
             defaults={
@@ -111,6 +132,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 "Web Automation demo configured: "
-                f"MCP #{server.id}, Agent #{config.id}, Environment #{environment.id}."
+                f"MCP #{server.id}, Agent #{config.id}, Environment #{environment.id}, "
+                f"AlertIntegration #{integration.id}."
             )
         )

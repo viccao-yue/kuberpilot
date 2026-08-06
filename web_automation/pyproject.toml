@@ -1,7 +1,7 @@
 [project]
 name = "kuberpilot-web-automation"
-version = "0.1.0"
-description = "KuberPilot Web Automation Gateway - task 1 connectivity preflight"
+version = "0.3.0"
+description = "KuberPilot Web Automation Gateway"
 requires-python = ">=3.10"
 
 [tool.pytest.ini_options]

@@ -39,6 +39,7 @@ router.register(r'k8s/clusters', k8s_views.K8sClusterViewSet)
 router.register(r'docker/hosts', docker_views.DockerHostViewSet)
 urlpatterns = [
     path('dashboard/stats/', views.dashboard_stats, name='dashboard-stats'),
+    path('alerts/webhooks/web-automation/', views.web_automation_alert_webhook, name='web-automation-alert-webhook'),
     path('alerts/webhooks/<str:provider>/', views.alert_webhook, name='alert-webhook'),
     path('alerts/webhooks/<str:provider>/<str:token>/', views.alert_webhook, name='alert-webhook-token'),
     path('alerts/card-actions/<uuid:token>/', views.alert_card_action, name='alert-card-action'),
