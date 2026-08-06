@@ -60,7 +60,7 @@ async def mcp_endpoint(
             {
                 "protocolVersion": PROTOCOL_VERSION,
                 "capabilities": {"tools": {"listChanged": False}},
-                "serverInfo": {"name": "kuberpilot-web-automation", "version": "0.1.0"},
+                "serverInfo": {"name": "kuberpilot-web-automation", "version": "0.3.0"},
             },
         )
     if request.method == "tools/list":

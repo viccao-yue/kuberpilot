@@ -20,6 +20,7 @@ class PlatformDefinition(BaseModel):
         default=None,
         pattern=r"^[a-z][a-z0-9_-]{1,63}$",
     )
+    alarm_collection_interval_seconds: int | None = Field(default=None, ge=5, le=86400)
     source_file: Path | None = Field(default=None, exclude=True)
 
     @field_validator("proxy_url")

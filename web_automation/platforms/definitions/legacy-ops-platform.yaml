@@ -6,5 +6,6 @@ timeout_seconds: 5
 expected_login_path: /auth/signin
 adapter: legacy_ops_platform
 credential_id: legacy-ops-readonly
+alarm_collection_interval_seconds: 60
 allowed_resolved_cidrs:
   - 127.0.0.0/8

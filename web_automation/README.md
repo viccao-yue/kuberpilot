@@ -1,7 +1,36 @@
 # KuberPilot Web Automation Gateway
 
-本目录实现目标平台网络预检，按 URL 策略、DNS、TCP、TLS、HTTP 五层定位故障，
-并通过 REST 与 MCP 工具 `web_platform.health` 对外提供只读检查。
+本目录实现目标平台网络预检、只读告警采集、周期采集任务中心和告警增量回调。
+Gateway 通过 REST 与 MCP 工具提供按需查询，通过 APScheduler 按平台配置定时
+采集告警，并将新增与恢复事件推送到 KuberPilot 告警中心。
+
+实现边界、任务 API、验证结果和未完成的生产化能力见
+[`docs/WebAutomation定时采集.md`](../docs/WebAutomation定时采集.md)和
+[`docs/WebAutomation告警增量闭环.md`](../docs/WebAutomation告警增量闭环.md)。
+
+## 启用 KuberPilot 告警回调
+
+先启动或配置好 KuberPilot 后端，再在仓库根目录执行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\tools\dev\configure-web-automation-callback.ps1
+```
+
+脚本会生成仅保存在本地 `web_automation/.env` 的随机回调令牌，并为 KuberPilot
+创建或更新对应的告警集成。令牌不会写入 Git，也不会输出到终端。随后启动
+KuberPilot 和本地演示平台：
+
+```powershell
+.\tools\dev\start-dev.ps1
+Set-Location ".\web_automation"
+.\scripts\start-local-demo.ps1
+```
+
+在 `http://127.0.0.1:8011/alarms` 或 `http://127.0.0.1:8012/events`
+登录后，可使用页面上的演示按钮新增或恢复告警。等待下一次周期采集后，在
+KuberPilot `http://127.0.0.1:3000/alerts` 中可看到同一告警从“活动”变为“已恢复”。
+演示控制只在 `WEB_AUTOMATION_ENABLE_DEMO_CONTROLS=1` 时启用。
 
 ## 本地一键演示
 
@@ -34,6 +63,28 @@ Invoke-RestMethod `
 Invoke-RestMethod `
   -Method Post `
   -Uri "http://127.0.0.1:8010/api/v1/platforms/mock_private_ca/connectivity-check"
+
+# 手动提交一次告警采集任务
+$task = Invoke-RestMethod `
+  -Method Post `
+  -ContentType "application/json" `
+  -Body '{"platform":"mock_platform","severity":"all","limit":20}' `
+  -Uri "http://127.0.0.1:8010/api/v1/collection-tasks"
+
+# 查看任务详情和最近任务
+Invoke-RestMethod "http://127.0.0.1:8010/api/v1/collection-tasks/$($task.task.task_id)"
+Invoke-RestMethod "http://127.0.0.1:8010/api/v1/collection-tasks?limit=20"
+```
+
+两个演示平台的 YAML 均配置为每 60 秒采集一次告警。任务会经历
+`queued -> running -> succeeded/failed`，结果持久化到项目内部的
+`.runtime/collection-tasks.sqlite3`。同一平台已有活动任务时，新任务返回 HTTP 409，
+防止浏览器任务重叠。
+
+如需关闭定时调度但保留手动任务 API，可在本地 `.env` 设置：
+
+```text
+WEB_AUTOMATION_SCHEDULER_ENABLED=0
 ```
 
 ## 自动验证

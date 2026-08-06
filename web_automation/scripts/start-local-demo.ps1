@@ -19,6 +19,7 @@ $env:TEMP = Join-Path $webRoot ".runtime\tmp"
 $env:TMP = $env:TEMP
 $env:WEB_AUTOMATION_ALLOW_MOCK_DEFAULT_CREDENTIALS = "1"
 $env:WEB_AUTOMATION_SHOW_DEMO_CREDENTIALS = "1"
+$env:WEB_AUTOMATION_ENABLE_DEMO_CONTROLS = "1"
 $env:MOCK_PLATFORM_USERNAME = "aiops_robot"
 $env:MOCK_PLATFORM_PASSWORD = "MockOnly@123456"
 $env:LEGACY_OPS_USERNAME = "legacy_reader"
@@ -38,7 +39,7 @@ try {
     # NativeCommandError when ErrorActionPreference is Stop. Import failures
     # are expected here because they trigger first-run dependency installation.
     $ErrorActionPreference = "Continue"
-    & $venvPython -c "import fastapi, uvicorn, httpx, yaml, cryptography, playwright" 2>$null
+    & $venvPython -c "import apscheduler, fastapi, uvicorn, httpx, yaml, cryptography, playwright" 2>$null
     $dependencyCheckExitCode = $LASTEXITCODE
 }
 finally {

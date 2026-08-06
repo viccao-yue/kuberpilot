@@ -6,6 +6,7 @@ timeout_seconds: 5
 expected_login_path: /login
 adapter: mock_platform
 credential_id: mock-platform-readonly
+alarm_collection_interval_seconds: 60
 allowed_resolved_cidrs:
   - 10.0.0.0/8
   - 172.16.0.0/12

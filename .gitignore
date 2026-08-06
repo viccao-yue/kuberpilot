@@ -64,6 +64,7 @@ tmp_deploy/
 # Web Automation local runtime
 web_automation/.venv/
 web_automation/.cache/
+web_automation/.pip-cache/
 web_automation/.runtime/
 web_automation/.env
 web_automation/logs/*

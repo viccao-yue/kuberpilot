@@ -2107,6 +2107,39 @@ class AlertActionViewSet(RBACPermissionMixin, viewsets.ReadOnlyModelViewSet):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def web_automation_alert_webhook(request):
+    supplied_token = (
+        request.headers.get('X-KuberPilot-Token')
+        or request.headers.get('X-Alert-Token')
+    )
+    if not supplied_token:
+        return Response(
+            {'detail': 'Web Automation 告警回调必须携带有效令牌。'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    integration = resolve_integration(Alert.SOURCE_GENERIC, supplied_token)
+    if not integration:
+        return Response(
+            {'detail': 'Web Automation 告警回调令牌无效或已禁用。'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    result = ingest_webhook(
+        Alert.SOURCE_GENERIC,
+        request.data,
+        integration=integration,
+        request=request,
+    )
+    return Response({
+        'success': True,
+        'provider': 'web_automation',
+        'created': result['created'],
+        'updated': result['updated'],
+        'alert_ids': [alert.id for alert in result['alerts']],
+    }, status=status.HTTP_202_ACCEPTED)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def alert_webhook(request, provider, token=''):
     provider = normalize_provider(provider)
     supplied_token = (

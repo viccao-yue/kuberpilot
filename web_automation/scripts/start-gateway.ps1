@@ -28,7 +28,7 @@ try {
     # NativeCommandError when ErrorActionPreference is Stop. Import failures
     # are expected here because they trigger first-run dependency installation.
     $ErrorActionPreference = "Continue"
-    & $venvPython -c "import fastapi, uvicorn, httpx, yaml, playwright" 2>$null
+    & $venvPython -c "import apscheduler, fastapi, uvicorn, httpx, yaml, playwright" 2>$null
     $dependencyCheckExitCode = $LASTEXITCODE
 }
 finally {
