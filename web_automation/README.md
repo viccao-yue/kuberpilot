@@ -2,11 +2,13 @@
 
 本目录实现目标平台网络预检、只读告警采集、周期采集任务中心和告警增量回调。
 Gateway 通过 REST 与 MCP 工具提供按需查询，通过 APScheduler 按平台配置定时
-采集告警，并将新增与恢复事件推送到 KuberPilot 告警中心。
+采集告警，并通过持久化投递队列将新增与恢复事件推送到 KuberPilot 告警中心。
 
 实现边界、任务 API、验证结果和未完成的生产化能力见
 [`docs/WebAutomation定时采集.md`](../docs/WebAutomation定时采集.md)和
-[`docs/WebAutomation告警增量闭环.md`](../docs/WebAutomation告警增量闭环.md)。
+[`docs/WebAutomation告警增量闭环.md`](../docs/WebAutomation告警增量闭环.md)，
+可靠投递、重启恢复和死信重投见
+[`docs/WebAutomation可靠投递.md`](../docs/WebAutomation可靠投递.md)。
 
 ## 启用 KuberPilot 告警回调
 
@@ -74,12 +76,26 @@ $task = Invoke-RestMethod `
 # 查看任务详情和最近任务
 Invoke-RestMethod "http://127.0.0.1:8010/api/v1/collection-tasks/$($task.task.task_id)"
 Invoke-RestMethod "http://127.0.0.1:8010/api/v1/collection-tasks?limit=20"
+
+# 查看待重试或死信投递任务
+Invoke-RestMethod "http://127.0.0.1:8010/api/v1/delivery-jobs?status=retry_wait"
+Invoke-RestMethod "http://127.0.0.1:8010/api/v1/delivery-jobs?status=dead_letter"
+
+# 修复回调故障后，人工重投一条死信任务
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://127.0.0.1:8010/api/v1/delivery-jobs/<job_id>/retry"
 ```
 
 两个演示平台的 YAML 均配置为每 60 秒采集一次告警。任务会经历
 `queued -> running -> succeeded/failed`，结果持久化到项目内部的
 `.runtime/collection-tasks.sqlite3`。同一平台已有活动任务时，新任务返回 HTTP 409，
 防止浏览器任务重叠。
+
+告警回调会先持久化到同一个项目内 SQLite 文件，再由后台投递器发送。状态依次为
+`pending -> delivering -> retry_wait -> succeeded`；达到最大尝试次数后进入
+`dead_letter`。Gateway 重启会恢复停留在 `delivering` 的任务，重复事件由幂等键复用
+原任务，不会生成第二条投递记录。
 
 如需关闭定时调度但保留手动任务 API，可在本地 `.env` 设置：
 

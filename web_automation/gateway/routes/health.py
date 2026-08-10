@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/healthz")
 async def healthz() -> dict:
-    return {"status": "ok", "service": "web-automation-gateway", "version": "0.3.0"}
+    return {"status": "ok", "service": "web-automation-gateway", "version": "0.4.0"}
 
 
 @router.post(

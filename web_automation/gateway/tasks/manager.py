@@ -7,7 +7,6 @@ from typing import Any
 from uuid import uuid4
 
 from credentials.environment import EnvironmentCredentialProvider
-from gateway.alerts.callback import CallbackDeliveryError
 from gateway.alerts.processor import AlarmChangeProcessor
 from gateway.mcp.alarm_tool import call_alarm_tool
 from gateway.tasks.models import CollectionTask, TaskStatus, TaskTrigger
@@ -107,22 +106,11 @@ class CollectionTaskManager:
                 )
                 return
             if task.trigger == TaskTrigger.SCHEDULED and self.change_processor:
-                try:
-                    payload["alarm_changes"] = await self.change_processor.process(
-                        task.task_id,
-                        task.platform,
-                        list(payload.get("alarms") or []),
-                    )
-                except CallbackDeliveryError as exc:
-                    duration_ms = max(0, round((perf_counter() - started_counter) * 1000))
-                    self.store.mark_failed(
-                        task.task_id,
-                        utc_now(),
-                        duration_ms,
-                        "CALLBACK_DELIVERY_FAILED",
-                        f"KuberPilot callback failed after {exc.attempts} attempts",
-                    )
-                    return
+                payload["alarm_changes"] = await self.change_processor.process(
+                    task.task_id,
+                    task.platform,
+                    list(payload.get("alarms") or []),
+                )
             duration_ms = max(0, round((perf_counter() - started_counter) * 1000))
             self.store.mark_succeeded(task.task_id, utc_now(), duration_ms, payload)
         except Exception as exc:

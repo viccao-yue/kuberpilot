@@ -5,6 +5,8 @@ from functools import lru_cache
 from gateway.alerts.callback import KuberPilotCallbackClient
 from gateway.alerts.processor import AlarmChangeProcessor
 from gateway.config import PROJECT_DIR, Settings
+from gateway.delivery.store import DeliveryJobStore
+from gateway.delivery.worker import DeliveryWorker
 from gateway.tasks.manager import CollectionTaskManager
 from gateway.tasks.scheduler import CollectionScheduler
 from gateway.tasks.store import CollectionTaskStore
@@ -43,6 +45,33 @@ def get_task_store() -> CollectionTaskStore:
 
 
 @lru_cache(maxsize=1)
+def get_delivery_store() -> DeliveryJobStore:
+    return DeliveryJobStore(get_settings().task_database_file)
+
+
+@lru_cache(maxsize=1)
+def get_callback_client() -> KuberPilotCallbackClient:
+    settings = get_settings()
+    return KuberPilotCallbackClient(
+        settings.callback_url,
+        settings.callback_token,
+        timeout_seconds=settings.callback_timeout_seconds,
+    )
+
+
+@lru_cache(maxsize=1)
+def get_delivery_worker() -> DeliveryWorker:
+    settings = get_settings()
+    return DeliveryWorker(
+        get_delivery_store(),
+        get_callback_client(),
+        retry_delays_seconds=settings.callback_retry_delays,
+        poll_interval_seconds=settings.delivery_poll_interval_seconds,
+        batch_size=settings.delivery_batch_size,
+    )
+
+
+@lru_cache(maxsize=1)
 def get_task_manager() -> CollectionTaskManager:
     settings = get_settings()
     return CollectionTaskManager(
@@ -53,12 +82,10 @@ def get_task_manager() -> CollectionTaskManager:
         change_processor=(
             AlarmChangeProcessor(
                 get_task_store(),
-                KuberPilotCallbackClient(
-                    settings.callback_url,
-                    settings.callback_token,
-                    timeout_seconds=settings.callback_timeout_seconds,
-                    retry_delays_seconds=settings.callback_retry_delays,
-                ),
+                get_delivery_store(),
+                get_callback_client(),
+                get_delivery_worker(),
+                settings.delivery_max_attempts,
             )
             if settings.callback_enabled and settings.callback_token
             else None

@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 from gateway.tasks.manager import CollectionTaskManager
 from gateway.tasks.models import TaskStatus, TaskTrigger
@@ -63,3 +63,38 @@ async def test_submit_and_wait_records_sanitized_failure(monkeypatch, tmp_path):
     assert task.status == TaskStatus.FAILED
     assert task.error_code == "CREDENTIAL_UNAVAILABLE"
     assert "password" not in task.error_message.lower()
+
+
+async def test_scheduled_collection_succeeds_while_delivery_waits_for_retry(
+    monkeypatch,
+    tmp_path,
+):
+    manager = make_manager(tmp_path)
+    manager.change_processor = AsyncMock()
+    manager.change_processor.process.return_value = {
+        "new": 1,
+        "ongoing": 0,
+        "recovered": 0,
+        "queued": 1,
+        "deduplicated": 0,
+        "delivered": 0,
+        "retry_wait": 1,
+        "dead_letter": 0,
+        "delivery_attempts": 1,
+    }
+
+    async def successful_collection(*_args, **_kwargs):
+        return {
+            "isError": False,
+            "structuredContent": {"ok": True, "alarms": [{"alarm_id": "alarm-1"}]},
+        }
+
+    monkeypatch.setattr("gateway.tasks.manager.call_alarm_tool", successful_collection)
+    accepted, task = await manager.submit_and_wait(
+        "mock_platform",
+        trigger=TaskTrigger.SCHEDULED,
+    )
+
+    assert accepted is True
+    assert task.status == TaskStatus.SUCCEEDED
+    assert task.result["alarm_changes"]["retry_wait"] == 1
