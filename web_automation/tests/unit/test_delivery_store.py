@@ -123,3 +123,64 @@ def test_later_change_for_same_alarm_waits_behind_dead_letter(tmp_path):
     store.mark_succeeded(first.job_id)
     next_claim = store.claim_due()
     assert [job.job_id for job in next_claim] == [recovered.job_id]
+
+
+def test_lifecycle_sequence_preserves_first_event_and_advances_after_recovery(tmp_path):
+    store = DeliveryJobStore(tmp_path / "tasks.sqlite3")
+    first_change = store.assign_lifecycle_sequences("mock_platform", [change()])[0]
+    first_event_id = first_change.event_id
+    store.enqueue_changes(
+        "task-1",
+        "mock_platform",
+        [first_change],
+        [{"id": first_event_id}],
+        {first_change.fingerprint: first_change.alarm},
+        max_attempts=4,
+    )
+
+    repeated_change = store.assign_lifecycle_sequences("mock_platform", [change()])[0]
+    assert repeated_change.lifecycle_sequence == 1
+    assert repeated_change.event_id == first_event_id
+
+    recovered_change = AlarmChange(
+        AlarmChangeType.RECOVERED,
+        first_change.fingerprint,
+        first_change.alarm,
+    )
+    recovered_change = store.assign_lifecycle_sequences(
+        "mock_platform", [recovered_change]
+    )[0]
+    store.enqueue_changes(
+        "task-2",
+        "mock_platform",
+        [recovered_change],
+        [{"id": recovered_change.event_id}],
+        {},
+        max_attempts=4,
+    )
+
+    second_change = store.assign_lifecycle_sequences("mock_platform", [change()])[0]
+    assert second_change.lifecycle_sequence == 2
+    assert second_change.event_id != first_event_id
+
+
+def test_status_counts_include_empty_and_populated_states(tmp_path):
+    store = DeliveryJobStore(tmp_path / "tasks.sqlite3")
+    assert store.status_counts() == {
+        "pending": 0,
+        "delivering": 0,
+        "retry_wait": 0,
+        "succeeded": 0,
+        "dead_letter": 0,
+    }
+
+    item = change()
+    store.enqueue_changes(
+        "task-1",
+        "mock_platform",
+        [item],
+        [{"id": item.event_id}],
+        {},
+        max_attempts=4,
+    )
+    assert store.status_counts()["pending"] == 1

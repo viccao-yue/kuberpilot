@@ -34,6 +34,7 @@ class AlarmChangeProcessor:
         previous = self.store.get_alarm_snapshot(platform)
         current = index_alarms(platform, alarms)
         changes, ongoing_count = diff_alarm_snapshots(previous, current)
+        changes = self.delivery_store.assign_lifecycle_sequences(platform, changes)
         payloads = [
             self.callback_client.build_payload(task_id, platform, change)
             for change in changes

@@ -1,15 +1,16 @@
 """SQLite-backed outbox for reliable KuberPilot callback delivery."""
 
+from dataclasses import replace
+from datetime import datetime
 import hashlib
 import json
-import sqlite3
-from datetime import datetime
 from pathlib import Path
+import sqlite3
 from threading import Lock
 from typing import Any
 from uuid import uuid4
 
-from gateway.alerts.differ import AlarmChange
+from gateway.alerts.differ import AlarmChange, AlarmChangeType
 from gateway.delivery.models import DeliveryJob, DeliveryStatus
 from gateway.tasks.store import utc_now
 
@@ -71,6 +72,10 @@ class DeliveryJobStore:
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS idx_delivery_jobs_platform "
                 "ON delivery_jobs(platform, created_at DESC)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS idx_delivery_jobs_alarm "
+                "ON delivery_jobs(platform, fingerprint)"
             )
 
     def enqueue_changes(
@@ -140,6 +145,42 @@ class DeliveryJobStore:
             connection.commit()
         return [job for job_id in job_ids if (job := self.get(job_id)) is not None]
 
+    def assign_lifecycle_sequences(
+        self,
+        platform: str,
+        changes: list[AlarmChange],
+    ) -> list[AlarmChange]:
+        """Distinguish repeated alarm lifecycles without breaking transition deduplication."""
+        assigned: list[AlarmChange] = []
+        with self._connect() as connection:
+            for change in changes:
+                new_count = connection.execute(
+                    """
+                    SELECT COUNT(*) AS count FROM delivery_jobs
+                    WHERE platform = ? AND fingerprint = ? AND change_type = ?
+                    """,
+                    (platform, change.fingerprint, AlarmChangeType.NEW.value),
+                ).fetchone()["count"]
+                latest = connection.execute(
+                    """
+                    SELECT change_type FROM delivery_jobs
+                    WHERE platform = ? AND fingerprint = ?
+                    ORDER BY rowid DESC LIMIT 1
+                    """,
+                    (platform, change.fingerprint),
+                ).fetchone()
+                latest_change_type = latest["change_type"] if latest else None
+                if change.change_type == AlarmChangeType.NEW:
+                    sequence = (
+                        max(1, new_count)
+                        if latest_change_type == AlarmChangeType.NEW.value
+                        else new_count + 1
+                    )
+                else:
+                    sequence = max(1, new_count)
+                assigned.append(replace(change, lifecycle_sequence=sequence))
+        return assigned
+
     def recover_interrupted_jobs(self) -> int:
         now = utc_now().isoformat()
         with self._lock, self._connect() as connection:
@@ -160,6 +201,40 @@ class DeliveryJobStore:
                 ),
             )
         return cursor.rowcount
+
+    def recover_interrupted_job(
+        self,
+        job_id: str,
+        *,
+        error_code: str,
+        error_message: str,
+    ) -> bool:
+        """Release one claimed job after an unexpected callback or state-write error."""
+        now = utc_now().isoformat()
+        with self._lock, self._connect() as connection:
+            cursor = connection.execute(
+                """
+                UPDATE delivery_jobs
+                SET status = CASE
+                        WHEN attempt_count >= max_attempts THEN ?
+                        ELSE ?
+                    END,
+                    next_attempt_at = ?, updated_at = ?,
+                    last_error_code = ?, last_error_message = ?
+                WHERE job_id = ? AND status = ?
+                """,
+                (
+                    DeliveryStatus.DEAD_LETTER.value,
+                    DeliveryStatus.RETRY_WAIT.value,
+                    now,
+                    now,
+                    error_code,
+                    error_message,
+                    job_id,
+                    DeliveryStatus.DELIVERING.value,
+                ),
+            )
+        return bool(cursor.rowcount)
 
     def claim_due(self, *, limit: int = 20) -> list[DeliveryJob]:
         now = utc_now().isoformat()
@@ -295,6 +370,16 @@ class DeliveryJobStore:
                 values,
             ).fetchall()
         return [self._from_row(row) for row in rows]
+
+    def status_counts(self) -> dict[str, int]:
+        counts = {status.value: 0 for status in DeliveryStatus}
+        with self._connect() as connection:
+            rows = connection.execute(
+                "SELECT status, COUNT(*) AS count FROM delivery_jobs GROUP BY status"
+            ).fetchall()
+        for row in rows:
+            counts[row["status"]] = row["count"]
+        return counts
 
     def _update(self, job_id: str, **fields: Any) -> None:
         assignments = ", ".join(f"{name} = ?" for name in fields)

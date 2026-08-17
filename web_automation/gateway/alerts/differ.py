@@ -17,11 +17,14 @@ class AlarmChange:
     change_type: AlarmChangeType
     fingerprint: str
     alarm: dict[str, Any]
+    lifecycle_sequence: int = 1
 
     @property
     def event_id(self) -> str:
         occurred_at = str(self.alarm.get("occurred_at") or "")
         value = f"{self.change_type.value}:{self.fingerprint}:{occurred_at}"
+        if self.lifecycle_sequence > 1:
+            value = f"{value}:{self.lifecycle_sequence}"
         return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 

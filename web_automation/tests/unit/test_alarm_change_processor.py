@@ -66,6 +66,43 @@ async def test_processor_advances_snapshot_after_durable_enqueue(tmp_path):
     assert delivery_store.list()[0].status == DeliveryStatus.PENDING
 
 
+async def test_processor_creates_new_job_when_recovered_alarm_fires_again(tmp_path):
+    database = tmp_path / "tasks.sqlite3"
+    store = CollectionTaskStore(database)
+    delivery_store = DeliveryJobStore(database)
+    callback = Mock()
+    callback.build_payload.side_effect = lambda task_id, platform, item: {
+        "id": item.event_id,
+        "platform": platform,
+        "task_id": task_id,
+    }
+    worker = AsyncMock()
+
+    async def mark_all_succeeded():
+        return await _mark_all_succeeded(delivery_store)
+
+    worker.run_once.side_effect = mark_all_succeeded
+    processor = AlarmChangeProcessor(store, delivery_store, callback, worker, 4)
+
+    first_firing = await processor.process("task-1", "mock_platform", [alarm("a-1")])
+    repeated_firing = await processor.process("task-2", "mock_platform", [alarm("a-1")])
+    recovered = await processor.process("task-3", "mock_platform", [])
+    repeated_recovered = await processor.process("task-4", "mock_platform", [])
+    second_firing = await processor.process("task-5", "mock_platform", [alarm("a-1")])
+
+    jobs = sorted(delivery_store.list(), key=lambda item: item.created_at)
+    assert first_firing["queued"] == 1
+    assert repeated_firing["ongoing"] == 1
+    assert repeated_firing["queued"] == 0
+    assert recovered["queued"] == 1
+    assert repeated_recovered["queued"] == 0
+    assert second_firing["queued"] == 1
+    assert [job.change_type for job in jobs] == ["new", "recovered", "new"]
+    assert jobs[0].payload["id"] != jobs[2].payload["id"]
+    assert len({job.idempotency_key for job in jobs}) == 3
+    assert all(job.status == DeliveryStatus.SUCCEEDED for job in jobs)
+
+
 async def _mark_all_succeeded(store: DeliveryJobStore) -> int:
     jobs = store.claim_due(limit=20)
     for job in jobs:
