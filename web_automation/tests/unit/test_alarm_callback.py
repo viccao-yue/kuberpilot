@@ -34,19 +34,17 @@ async def test_callback_sends_token_and_normalized_active_payload():
         "http://kuberpilot.local/api/alerts/webhooks/generic/",
         "secret-token",
         timeout_seconds=1,
-        retry_delays_seconds=(),
         transport=httpx.MockTransport(handler),
     )
 
-    attempts = await client.deliver("task-1", "mock_platform", change())
+    await client.deliver("task-1", "mock_platform", change())
 
-    assert attempts == 1
     assert captured["token"] == "secret-token"
     assert captured["payload"]["status"] == "firing"
     assert captured["payload"]["labels"]["collection_task_id"] == "task-1"
 
 
-async def test_callback_retries_and_reports_final_failure():
+async def test_callback_makes_one_attempt_and_reports_sanitized_failure():
     calls = 0
 
     def handler(_request: httpx.Request) -> httpx.Response:
@@ -58,20 +56,19 @@ async def test_callback_retries_and_reports_final_failure():
         "http://kuberpilot.local/callback",
         "secret-token",
         timeout_seconds=1,
-        retry_delays_seconds=(0, 0),
         transport=httpx.MockTransport(handler),
     )
 
     with pytest.raises(CallbackDeliveryError) as raised:
         await client.deliver("task-1", "mock_platform", change())
 
-    assert calls == 3
-    assert raised.value.attempts == 3
+    assert calls == 1
+    assert raised.value.error_code == "HTTPSTATUSERROR"
     assert "secret-token" not in str(raised.value)
 
 
 def test_recovered_callback_uses_same_fingerprint_and_resolved_status():
-    payload = KuberPilotCallbackClient._payload(
+    payload = KuberPilotCallbackClient.build_payload(
         "task-2",
         "mock_platform",
         change(AlarmChangeType.RECOVERED),

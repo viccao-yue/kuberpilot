@@ -3216,6 +3216,39 @@ class AlertWebhookIngestTests(TestCase):
         self.assertEqual(allowed.status_code, 202)
         self.assertTrue(Alert.objects.filter(title='Web Automation alert').exists())
 
+    def test_web_automation_webhook_deduplicates_repeated_delivery(self):
+        integration = AlertIntegration.objects.create(
+            name='Web Automation',
+            provider='generic',
+        )
+        payload = {
+            'id': 'stable-event-id',
+            'title': 'Repeated Web Automation alert',
+            'fingerprint': 'web-automation-fp-repeated',
+            'status': 'firing',
+        }
+        headers = {'HTTP_X_KUBERPILOT_TOKEN': integration.token}
+
+        first = self.client.post(
+            '/api/alerts/webhooks/web-automation/',
+            payload,
+            format='json',
+            **headers,
+        )
+        repeated = self.client.post(
+            '/api/alerts/webhooks/web-automation/',
+            payload,
+            format='json',
+            **headers,
+        )
+
+        self.assertEqual(first.status_code, 202)
+        self.assertEqual(repeated.status_code, 202)
+        self.assertEqual(
+            Alert.objects.filter(title='Repeated Web Automation alert').count(),
+            1,
+        )
+
 
 class AlertActionApiTests(TestCase):
     def setUp(self):

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +21,8 @@ class Settings(BaseSettings):
     callback_token: str = ""
     callback_timeout_seconds: float = 5.0
     callback_retry_delays_seconds: str = "10,30,90"
+    delivery_poll_interval_seconds: float = Field(default=1.0, gt=0, le=60)
+    delivery_batch_size: int = Field(default=20, ge=1, le=200)
 
     model_config = SettingsConfigDict(
         env_prefix="WEB_AUTOMATION_",
@@ -54,3 +57,7 @@ class Settings(BaseSettings):
         if len(values) > 5:
             raise ValueError("Callback retry delays support at most five retries")
         return tuple(values)
+
+    @property
+    def delivery_max_attempts(self) -> int:
+        return 1 + len(self.callback_retry_delays)
