@@ -24,10 +24,11 @@ class WebPlatformAlarmRoutingTests(TestCase):
         self.assertTrue(_is_web_platform_alarm_question("查看mock_platform当前告警"))
         self.assertTrue(_is_web_platform_alarm_question("查询模拟平台 alerts"))
         self.assertTrue(_is_web_platform_alarm_question("查看旧版运维平台当前告警"))
+        self.assertTrue(_is_web_platform_alarm_question("查看 KuberCon 当前告警"))
         self.assertFalse(_is_web_platform_alarm_question("查看当前告警"))
         self.assertFalse(_is_web_platform_alarm_question("打开 mock_platform"))
 
-    def test_platform_extractor_supports_two_distinct_platforms(self):
+    def test_platform_extractor_supports_three_distinct_platforms(self):
         self.assertEqual(
             _extract_web_platform("查看mock_platform当前告警"),
             "mock_platform",
@@ -38,6 +39,9 @@ class WebPlatformAlarmRoutingTests(TestCase):
         )
         self.assertEqual(_extract_web_platform("查看 MockOps 告警"), "mock_platform")
         self.assertEqual(_extract_web_platform("查看 mock ops 告警"), "mock_platform")
+        self.assertEqual(_extract_web_platform("查看 KuberCon 告警"), "kubercon")
+        self.assertEqual(_extract_web_platform("查看 kuber-con 告警"), "kubercon")
+        self.assertEqual(_extract_web_platform("查看 kuber con 告警"), "kubercon")
         self.assertIsNone(_extract_web_platform("查看当前告警"))
 
     def test_formatter_renders_standard_alarm_in_chinese(self):
@@ -199,9 +203,11 @@ class WebAutomationSetupCommandTests(TestCase):
             config.suggested_questions[1],
             "查看legacy_ops_platform当前告警",
         )
+        self.assertEqual(config.suggested_questions[2], "查看KuberCon当前告警")
         self.assertTrue(environment.is_default)
         self.assertIn("mock_platform", environment.aliases)
         self.assertIn("legacy_ops_platform", environment.aliases)
+        self.assertIn("KuberCon", environment.aliases)
         self.assertEqual(integration.provider, "generic")
         self.assertTrue(integration.is_enabled)
         self.assertEqual(integration.default_labels["integration"], "web_automation")
@@ -258,3 +264,24 @@ class WebAutomationSetupCommandTests(TestCase):
 
         self.assertFalse(default_environment.is_default)
         self.assertFalse(non_default_environment.is_default)
+
+    def test_command_preserves_custom_environment_content(self):
+        environment = AIOpsKnowledgeEnvironment.objects.create(
+            name="Web Automation 演示环境",
+            aliases=["company-platform"],
+            description="公司内部的自定义环境说明。",
+            is_default=False,
+            is_enabled=False,
+            created_by="operator",
+            updated_by="operator",
+        )
+
+        call_command("setup_web_automation_demo", stdout=StringIO())
+        environment.refresh_from_db()
+
+        self.assertIn("company-platform", environment.aliases)
+        self.assertIn("KuberCon", environment.aliases)
+        self.assertEqual(environment.description, "公司内部的自定义环境说明。")
+        self.assertEqual(environment.created_by, "operator")
+        self.assertTrue(environment.is_default)
+        self.assertTrue(environment.is_enabled)

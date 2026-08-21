@@ -5,6 +5,10 @@ from models.standard import StandardAlarm
 from platforms.models import PlatformDefinition
 
 
+class PlatformLoginError(RuntimeError):
+    """The configured credential could not establish an authenticated session."""
+
+
 class BaseAdapter(ABC):
     PLATFORM = ""
 

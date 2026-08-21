@@ -6436,6 +6436,14 @@ def _extract_web_platform(question):
     lowered = str(question or '').strip().lower()
     aliases = [
         (
+            'kubercon',
+            [
+                'kubercon',
+                'kuber-con',
+                'kuber con',
+            ],
+        ),
+        (
             'legacy_ops_platform',
             [
                 'legacy_ops_platform',
