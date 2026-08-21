@@ -1,20 +1,14 @@
 """Playwright adapter that logs in through the real mock-platform HTML form."""
 
 import json
-import os
-from pathlib import Path
-from urllib.parse import urlsplit
 
 from playwright.async_api import async_playwright
 
-from adapters.base import BaseAdapter
+from adapters.base import BaseAdapter, PlatformLoginError
+from adapters.browser import browser_launch_options, browser_state_path, platform_origin
 from adapters.registry import register_adapter
 from credentials.models import Credential
 from models.standard import StandardAlarm
-
-
-class PlatformLoginError(RuntimeError):
-    pass
 
 
 @register_adapter
@@ -23,16 +17,11 @@ class MockPlatformAdapter(BaseAdapter):
 
     @property
     def origin(self) -> str:
-        parsed = urlsplit(str(self.definition.base_url))
-        port = f":{parsed.port}" if parsed.port else ""
-        return f"{parsed.scheme}://{parsed.hostname}{port}"
+        return platform_origin(self.definition)
 
     @property
-    def state_path(self) -> Path:
-        root = Path(__file__).resolve().parents[1]
-        path = root / ".runtime" / "browser-state" / f"{self.definition.platform}.json"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return path
+    def state_path(self):
+        return browser_state_path(self.definition)
 
     async def list_alarms(
         self,
@@ -41,11 +30,7 @@ class MockPlatformAdapter(BaseAdapter):
         limit: int = 20,
     ) -> list[StandardAlarm]:
         async with async_playwright() as playwright:
-            channel = os.environ.get("PLAYWRIGHT_BROWSER_CHANNEL", "msedge")
-            launch_options = {"headless": True}
-            if channel and channel != "chromium":
-                launch_options["channel"] = channel
-            browser = await playwright.chromium.launch(**launch_options)
+            browser = await playwright.chromium.launch(**browser_launch_options())
             try:
                 context_options = {}
                 if self.state_path.is_file():

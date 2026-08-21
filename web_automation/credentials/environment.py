@@ -2,6 +2,9 @@
 
 import os
 import re
+from pathlib import Path
+
+from dotenv import dotenv_values
 
 from credentials.models import Credential
 
@@ -16,10 +19,20 @@ def _prefix(credential_id: str) -> str:
 
 
 class EnvironmentCredentialProvider:
+    def __init__(self, env_file: Path | None = None):
+        project_env = Path(__file__).resolve().parents[1] / ".env"
+        self.file_values = dotenv_values(env_file or project_env)
+
     def resolve(self, credential_id: str) -> Credential:
         prefix = _prefix(credential_id)
-        username = os.environ.get(f"{prefix}_USERNAME", "")
-        password = os.environ.get(f"{prefix}_PASSWORD", "")
+        username_key = f"{prefix}_USERNAME"
+        password_key = f"{prefix}_PASSWORD"
+        username = (
+            os.environ.get(username_key) or self.file_values.get(username_key) or ""
+        )
+        password = (
+            os.environ.get(password_key) or self.file_values.get(password_key) or ""
+        )
         local_defaults = {
             "mock-platform-readonly": ("aiops_robot", "MockOnly@123456"),
             "legacy-ops-readonly": ("legacy_reader", "LegacyOnly@123456"),
