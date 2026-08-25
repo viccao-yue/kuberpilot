@@ -2,8 +2,10 @@
 
 import json
 
-import adapters.mock_platform  # noqa: F401 - registers the adapter plugin
+import adapters.kubercon  # noqa: F401 - registers the adapter plugin
 import adapters.legacy_ops_platform  # noqa: F401 - registers the adapter plugin
+import adapters.mock_platform  # noqa: F401 - registers the adapter plugin
+from adapters.base import PlatformLoginError
 from adapters.registry import get_adapter
 from credentials.environment import (
     CredentialUnavailableError,
@@ -28,8 +30,8 @@ TOOL_DEFINITION = {
                 "type": "string",
                 "pattern": "^[a-z][a-z0-9_-]{1,63}$",
                 "description": (
-                    "Registered platform id, for example mock_platform or "
-                    "legacy_ops_platform"
+                    "Registered platform id, for example mock_platform, "
+                    "legacy_ops_platform or kubercon"
                 ),
             },
             "severity": {
@@ -95,6 +97,11 @@ async def call_alarm_tool(
         )
     except CredentialUnavailableError:
         return _error("The read-only platform credential is unavailable.", "CREDENTIAL_UNAVAILABLE")
+    except PlatformLoginError:
+        return _error(
+            "The platform rejected the configured read-only credential.",
+            "PLATFORM_LOGIN_FAILED",
+        )
     except Exception as exc:
         return _error(
             f"Alarm collection failed: {type(exc).__name__}",

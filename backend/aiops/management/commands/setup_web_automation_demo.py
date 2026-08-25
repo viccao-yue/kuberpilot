@@ -15,6 +15,10 @@ from ops.models import AlertIntegration
 SERVER_NAME = "Web Automation Gateway"
 ENVIRONMENT_NAME = "Web Automation 演示环境"
 ALERT_INTEGRATION_NAME = "Web Automation Gateway"
+DEFAULT_ENVIRONMENT_DESCRIPTION = "用于学习 Web Automation 外部平台告警接入的本地演示环境"
+WEB_AUTOMATION_ENVIRONMENT_DESCRIPTION = (
+    "用于 Web Automation 外部平台告警接入的演示与经授权只读联调环境"
+)
 DEFAULT_WELCOME_MESSAGE = "你好，我可以帮你结合平台上下文查询资源、根因分析、生成待执行任务等。"
 WEB_AUTOMATION_WELCOME_MESSAGE = (
     "你好，我可以查询 KuberPilot 数据，也可以通过 Web Automation "
@@ -23,6 +27,20 @@ WEB_AUTOMATION_WELCOME_MESSAGE = (
 SUGGESTED_QUESTIONS = [
     "查看mock_platform当前告警",
     "查看legacy_ops_platform当前告警",
+    "查看KuberCon当前告警",
+]
+ENVIRONMENT_ALIASES = [
+    "mock_platform",
+    "mock-platform",
+    "MockOps",
+    "模拟平台",
+    "legacy_ops_platform",
+    "legacy-ops-platform",
+    "Legacy NOC",
+    "旧版运维平台",
+    "kubercon",
+    "kuber-con",
+    "KuberCon",
 ]
 
 
@@ -108,26 +126,44 @@ class Command(BaseCommand):
         AIOpsKnowledgeEnvironment.objects.exclude(name=ENVIRONMENT_NAME).filter(
             is_default=True
         ).update(is_default=False)
-        environment, _ = AIOpsKnowledgeEnvironment.objects.update_or_create(
+        environment, created = AIOpsKnowledgeEnvironment.objects.get_or_create(
             name=ENVIRONMENT_NAME,
             defaults={
-                "aliases": [
-                    "mock_platform",
-                    "mock-platform",
-                    "MockOps",
-                    "模拟平台",
-                    "legacy_ops_platform",
-                    "legacy-ops-platform",
-                    "Legacy NOC",
-                    "旧版运维平台",
-                ],
-                "description": "用于学习 Web Automation 外部平台告警接入的本地演示环境",
+                "aliases": ENVIRONMENT_ALIASES,
+                "description": WEB_AUTOMATION_ENVIRONMENT_DESCRIPTION,
                 "is_default": True,
                 "is_enabled": True,
                 "created_by": "setup_web_automation_demo",
                 "updated_by": "setup_web_automation_demo",
             },
         )
+        if not created:
+            aliases = [
+                str(item).strip()
+                for item in (environment.aliases or [])
+                if str(item).strip()
+            ]
+            for alias in ENVIRONMENT_ALIASES:
+                if alias not in aliases:
+                    aliases.append(alias)
+            environment.aliases = aliases
+            if not environment.description or (
+                environment.description == DEFAULT_ENVIRONMENT_DESCRIPTION
+            ):
+                environment.description = WEB_AUTOMATION_ENVIRONMENT_DESCRIPTION
+            environment.is_default = True
+            environment.is_enabled = True
+            environment.updated_by = "setup_web_automation_demo"
+            environment.save(
+                update_fields=[
+                    "aliases",
+                    "description",
+                    "is_default",
+                    "is_enabled",
+                    "updated_by",
+                    "updated_at",
+                ]
+            )
 
         self.stdout.write(
             self.style.SUCCESS(

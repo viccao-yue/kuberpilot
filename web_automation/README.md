@@ -8,7 +8,9 @@ Gateway 通过 REST 与 MCP 工具提供按需查询，通过 APScheduler 按平
 [`docs/WebAutomation定时采集.md`](../docs/WebAutomation定时采集.md)和
 [`docs/WebAutomation告警增量闭环.md`](../docs/WebAutomation告警增量闭环.md)，
 可靠投递、重启恢复和死信重投见
-[`docs/WebAutomation可靠投递.md`](../docs/WebAutomation可靠投递.md)。
+[`docs/WebAutomation可靠投递.md`](../docs/WebAutomation可靠投递.md)，KuberCon
+测试平台接入见
+[`docs/WebAutomation-KuberCon接入.md`](../docs/WebAutomation-KuberCon接入.md)。
 
 ## 启用 KuberPilot 告警回调
 
@@ -119,6 +121,29 @@ WEB_AUTOMATION_SCHEDULER_ENABLED=0
 `legacy_ops_platform` 的 HTML 表格解析。后者没有告警 API，用于证明同一个 MCP
 工具可以通过不同 Adapter 接入页面结构不同的平台。
 
+## KuberCon 测试平台
+
+KuberCon Adapter 复用 Playwright 登录态，通过平台内部只读 GET 接口采集自定义和
+内置告警，再转换为统一 `StandardAlarm`。平台地址、集群和凭据只保存在 Git 忽略的
+`.runtime` 与 `.env` 中。
+
+在获得测试平台授权后执行：
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\configure-kubercon-local.ps1 `
+  -BaseUrl "http://<authorized-internal-platform>:<port>" `
+  -Cluster "<authorized-cluster>" `
+  -Username "<authorized-account>"
+
+.\.venv\Scripts\python.exe .\scripts\verify_kubercon.py `
+  --severity critical `
+  --limit 10
+```
+
+配置脚本会通过安全输入读取密码，不把密码放进命令行或终端输出。验证脚本仅输出
+状态、数量和严重级别统计，不输出告警详情、平台地址或凭据。
+
 ## Docker Compose
 
 在仓库根目录执行：
@@ -137,10 +162,10 @@ docker compose -f compose.web-automation.yml down
 不要随意追加 `-v`，它会删除数据卷。Compose 配置提供 Gateway、两个 HTTP 测试
 平台和私有 CA HTTPS 测试服务，用于本地复现与验证。
 
-## 添加真实平台
+## 添加独立平台
 
 在 `platforms/definitions` 中新增 YAML。AI 只能传 `platform` 标识，不能传任意
 URL；目标 URL、允许网段、CA 和代理均由管理员配置。
 
-真实私有 CA 放入项目内 `certs` 或管理员指定的受控路径，但不得提交 Git。禁止用
+私有 CA 放入项目内 `certs` 或管理员指定的受控路径，但不得提交 Git。禁止用
 `verify=False` 代替正确的 CA 配置。

@@ -23,6 +23,32 @@ allowed_resolved_cidrs: []
     assert registry.get("demo_platform").display_name == "Demo"
 
 
+def test_loads_administrator_controlled_adapter_options(tmp_path: Path):
+    definitions = tmp_path / "definitions"
+    definitions.mkdir()
+    (definitions / "kubercon.yaml").write_text(
+        """
+platform: kubercon_test
+display_name: KuberCon test
+base_url: http://127.0.0.1:30880/login
+adapter: kubercon
+adapter_options:
+  cluster: test-cluster
+  include_builtin: true
+""".strip(),
+        encoding="utf-8",
+    )
+    registry = PlatformRegistry(definitions, tmp_path)
+
+    registry.load()
+
+    item = registry.get("kubercon_test")
+    assert item.adapter_options == {
+        "cluster": "test-cluster",
+        "include_builtin": True,
+    }
+
+
 def test_unknown_platform_is_rejected(tmp_path: Path):
     definitions = tmp_path / "definitions"
     definitions.mkdir()

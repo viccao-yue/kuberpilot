@@ -16,6 +16,7 @@ class PlatformDefinition(BaseModel):
     ca_cert_path: str | None = None
     allowed_resolved_cidrs: list[str] = Field(default_factory=list)
     adapter: str = Field(default="network_only", pattern=r"^[a-z][a-z0-9_-]{1,63}$")
+    adapter_options: dict[str, str | int | bool] = Field(default_factory=dict)
     credential_id: str | None = Field(
         default=None,
         pattern=r"^[a-z][a-z0-9_-]{1,63}$",
