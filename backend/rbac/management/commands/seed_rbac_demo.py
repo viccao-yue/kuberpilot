@@ -1,4 +1,7 @@
-﻿from django.contrib.auth import get_user_model
+﻿import os
+import secrets
+
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 from rbac.models import Role, UserGroup
@@ -6,7 +9,7 @@ from rbac.services import ensure_builtin_rbac
 
 
 User = get_user_model()
-DEFAULT_PASSWORD = 'Admin@123456'
+DEFAULT_PASSWORD = os.getenv('KUBERPILOT_DEMO_PASSWORD') or os.getenv('SXDEVOPS_DEMO_PASSWORD') or secrets.token_urlsafe(18)
 
 DEMO_USERS = [
     {

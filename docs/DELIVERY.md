@@ -26,6 +26,7 @@ cp docker-compose.override.yml.example docker-compose.override.yml
 - `MYSQL_PASSWORD`
 - `MYSQL_ROOT_PASSWORD`
 - `ALLOWED_HOSTS`（如需域名/外网访问）
+- `KUBERPILOT_ADMIN_INITIAL_PASSWORD`（全新库需要它才会创建 `admin`；已有超级用户时留空即可）
 
 ### 2.2 启动服务
 
@@ -39,13 +40,13 @@ docker compose up -d --build
 
 首次启动会自动执行：
 
-- 数据库等待（`SXDEVOPS_WAIT_FOR_DB=1`）
-- `migrate`（`SXDEVOPS_MIGRATE=1`）
+- 数据库等待（`KUBERPILOT_WAIT_FOR_DB=1`）
+- `migrate`（`KUBERPILOT_MIGRATE=1`）
 
 如需导入演示数据，可将以下变量改为 `1` 后重启容器：
 
-- `SXDEVOPS_SEED_DATA`
-- `SXDEVOPS_SEED_TEMPLATES`
+- `KUBERPILOT_SEED_DATA`
+- `KUBERPILOT_SEED_TEMPLATES`
 
 ## 3. 本地开发启动（可选）
 
@@ -57,7 +58,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_data
 python manage.py seed_templates
-python -m daphne -b 0.0.0.0 -p 8000 sxdevops.asgi:application
+python -m daphne -b 0.0.0.0 -p 8000 kuberPilot.asgi:application
 ```
 
 ### 3.2 前端
@@ -73,4 +74,4 @@ npm run dev
 ### 4.1 登录报错 500
 
 - 多数为后端未启动或数据库未就绪导致
-- Docker Compose 场景优先检查：`docker compose ps`、`docker compose logs -f sxdevops`
+- Docker Compose 场景优先检查：`docker compose ps`、`docker compose logs -f kuberPilot`

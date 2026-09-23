@@ -69,7 +69,7 @@ PERMISSION_DEFINITIONS = [
     ('aiops.task.execute', '执行 AIOps 任务', 'aiops', '通过机器人确认并触发任务中心执行'),
     ('aiops.config.view', '查看 AIOps 配置', 'aiops', '查看模型、MCP、Skill 和机器人安全配置'),
     ('aiops.config.manage', '管理 AIOps 配置', 'aiops', '维护模型 API、MCP、Skill、Prompt 与执行策略'),
-    ('aiops.mcp.view', '查看 AIOps 对外 MCP', 'aiops', '查看 sxdevops 对外暴露的只读 MCP 工具清单和接入信息'),
+    ('aiops.mcp.view', '查看 AIOps 对外 MCP', 'aiops', '查看 kuberPilot 对外暴露的只读 MCP 工具清单和接入信息'),
     ('aiops.mcp.invoke', '调用 AIOps 对外 MCP', 'aiops', '允许外部 Agent 通过统一鉴权调用只读平台 MCP 工具'),
     ('aiops.audit.view', '查看 AIOps 审计', 'aiops', '查看机器人会话、工具调用和动作执行审计'),
     ('aiops.audit.manage', '管理 AIOps 审计', 'aiops', '删除机器人历史会话等审计管理动作'),

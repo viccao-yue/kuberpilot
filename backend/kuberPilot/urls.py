@@ -1,5 +1,5 @@
 """
-URL configuration for sxdevops project.
+URL configuration for kuberPilot project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.0/topics/http/urls/
@@ -25,6 +25,9 @@ urlpatterns = [
     path('api/iac/', include('iac.urls')),
     path('api/sqlaudit/', include('sqlaudit.urls')),
     path('api/aiops/', include('aiops.urls')),
+    path('api/cmdb/', include('cmdb.urls')),
+    path('api/multicloud/', include('multicloud.urls')),
+    path('api/marketplace/', include('marketplace.urls')),
     path('api/', include('eventwall.urls')),
     re_path(r'^(assets/.*|promo/.*|favicon\.svg)$', frontend_views.frontend_asset),
     path('', frontend_views.frontend_index),

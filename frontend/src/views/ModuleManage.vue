@@ -146,7 +146,7 @@ async function handleSave() {
     }))
     const response = await updateModuleSettings(payload)
     modules.value = normalizeModules(response.data || response || [])
-    window.dispatchEvent(new Event('sxdevops-module-settings-updated'))
+    window.dispatchEvent(new Event('kuberPilot-module-settings-updated'))
     ElMessage.success('模块显示配置已保存')
   } finally {
     saving.value = false

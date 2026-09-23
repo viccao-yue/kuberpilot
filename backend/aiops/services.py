@@ -13,6 +13,7 @@ import uuid
 from collections import Counter
 from datetime import datetime, time as datetime_time, timedelta
 from decimal import Decimal
+from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
@@ -27,7 +28,7 @@ from django.utils.dateparse import parse_date, parse_datetime
 from cmdb.models import ConfigItem
 from eventwall.models import EventRecord
 from eventwall.services import record_event
-from sxdevops.features import filter_feature_tools, tool_feature_enabled
+from kuberPilot.features import filter_feature_tools, tool_feature_enabled
 from ops.host_tasks import build_host_target_snapshot as build_ops_host_target_snapshot
 from ops.host_tasks import build_k8s_target_snapshot as build_ops_k8s_target_snapshot
 from ops.host_tasks import resolve_host_source_refs, start_host_task
@@ -233,13 +234,19 @@ ALERT_QUERY_NOISE_PATTERNS = [
 ]
 
 DANGEROUS_COMMAND_PATTERNS = [
-    'rm -rf',
-    'shutdown',
-    'reboot',
-    'mkfs',
-    'userdel',
-    'kill -9',
+    r'\brm\s+-r(?:f)?\b',
+    r'\bshutdown\b',
+    r'\breboot\b',
+    r'\bmkfs(?:\.|\s|$)',
+    r'\buserdel\b',
+    r'\bkill\s+-9\b',
+    r'\bcurl\b[^\n|;&]*\|\s*(?:ba)?sh\b',
+    r'\bwget\b[^\n|;&]*\|\s*(?:ba)?sh\b',
+    r'\bnc\b[^\n]*\s-e\s',
 ]
+MCP_ALLOWED_STDIO_EXECUTABLES = {'npx', 'swmcp'}
+MCP_ALLOWED_NPX_PACKAGES = {'@n9e/n9e-mcp-server'}
+MCP_BLOCKED_ENV_KEYS = {'PATH', 'PATHEXT', 'PYTHONPATH', 'LD_PRELOAD', 'DYLD_INSERT_LIBRARIES'}
 
 MCP_PROTOCOL_VERSION = '2025-03-26'
 MCP_CLIENT_INFO = {'name': 'KuberPilot AIOps', 'version': '1.0.0'}
@@ -7139,7 +7146,7 @@ if command -v "$BINARY_NAME" >/dev/null 2>&1; then
   echo "$APP_NAME already installed: $($BINARY_NAME version --short 2>&1 || true)"
 else
   TMP_DIR="$(mktemp -d)"
-  trap 'rm -rf "$TMP_DIR"' EXIT
+  trap 'rmdir "$TMP_DIR" 2>/dev/null || true' EXIT
   curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 -o "$TMP_DIR/get-helm-3"
   chmod 700 "$TMP_DIR/get-helm-3"
   "$TMP_DIR/get-helm-3"
@@ -7243,7 +7250,7 @@ def _build_k8s_install_manifest(target, namespace='default', draft_request=None)
     labels = [
         ('app.kubernetes.io/name', app_name),
         ('app.kubernetes.io/instance', app_name),
-        ('app.kubernetes.io/managed-by', 'sxdevops-aiops'),
+        ('app.kubernetes.io/managed-by', 'kuberPilot-aiops'),
     ]
 
     def label_block(indent):
@@ -9397,7 +9404,7 @@ PLATFORM_MCP_RATE_LIMIT_PER_MINUTE = 60
 
 PLATFORM_MCP_TOOL_DEFINITIONS = [
     {
-        'name': 'sxdevops.query_knowledge_graph',
+        'name': 'kuberPilot.query_knowledge_graph',
         'title': '查询 AIOps 知识图谱',
         'description': '按环境、系统或服务查询平台知识图谱节点和关系。',
         'permission': 'aiops.knowledge.view',
@@ -9414,7 +9421,7 @@ PLATFORM_MCP_TOOL_DEFINITIONS = [
         },
     },
     {
-        'name': 'sxdevops.query_alerts',
+        'name': 'kuberPilot.query_alerts',
         'title': '查询告警',
         'description': '查询告警中心只读告警事实。',
         'permission': 'ops.alert.view',
@@ -9431,7 +9438,7 @@ PLATFORM_MCP_TOOL_DEFINITIONS = [
         },
     },
     {
-        'name': 'sxdevops.query_alert_metrics',
+        'name': 'kuberPilot.query_alert_metrics',
         'title': '查询告警指标证据包',
         'description': '按告警上下文生成受预算约束的 PromQL 查询计划，返回指标趋势和异常摘要。',
         'permission': 'ops.metric.query',
@@ -9451,7 +9458,7 @@ PLATFORM_MCP_TOOL_DEFINITIONS = [
         },
     },
     {
-        'name': 'sxdevops.query_logs',
+        'name': 'kuberPilot.query_logs',
         'title': '查询日志',
         'description': '查询平台日志源中的只读日志样本。',
         'permission': 'ops.log.query',
@@ -9468,7 +9475,7 @@ PLATFORM_MCP_TOOL_DEFINITIONS = [
         },
     },
     {
-        'name': 'sxdevops.query_traces',
+        'name': 'kuberPilot.query_traces',
         'title': '查询链路',
         'description': '查询链路追踪只读样本和异常链路。',
         'permission': 'ops.trace.view',
@@ -9484,7 +9491,7 @@ PLATFORM_MCP_TOOL_DEFINITIONS = [
         },
     },
     {
-        'name': 'sxdevops.query_k8s_cluster_summary',
+        'name': 'kuberPilot.query_k8s_cluster_summary',
         'title': '查询 K8s 集群摘要',
         'description': '查询 Kubernetes 集群、Pod 和异常摘要。',
         'permission': 'ops.k8s.view',
@@ -9499,7 +9506,7 @@ PLATFORM_MCP_TOOL_DEFINITIONS = [
         },
     },
     {
-        'name': 'sxdevops.query_recent_changes',
+        'name': 'kuberPilot.query_recent_changes',
         'title': '查询最近变更',
         'description': '查询最近发布、工单和事件候选变更。',
         'permission': 'ops.deployment.view',
@@ -9705,7 +9712,7 @@ def invoke_platform_mcp_tool(tool_name, arguments=None, user=None, request=None)
 
 def build_platform_mcp_manifest(user=None):
     return {
-        'name': 'sxdevops-aiops',
+        'name': 'kuberPilot-aiops',
         'title': 'KuberPilot AIOps Platform MCP Server',
         'version': '2.1',
         'auth': {'type': 'token', 'header': 'Authorization'},
@@ -12474,11 +12481,19 @@ def build_task_draft(user, question='', draft_request=None):
         title = _playbook_task_title(draft_request, request_summary, question, payload, hosts)
         description = '由 AIOps 智能助手生成的 Playbook 任务'
 
+    if task_type == HostTask.TASK_RUN_COMMAND:
+        command_text = str(payload.get('command') or '')
+        if any(re.search(pattern, command_text, re.IGNORECASE) for pattern in DANGEROUS_COMMAND_PATTERNS):
+            return {'error': '检测到高风险命令，系统拒绝生成任务草稿。请改用经过审核的运维流程。'}
+
     risk_level = AIOpsPendingAction.RISK_LOW
     if task_type == HostTask.TASK_RUN_COMMAND:
         risk_level = AIOpsPendingAction.RISK_HIGH
         lowered_command = payload.get('command', '').lower()
-        if any(pattern in lowered_command for pattern in DANGEROUS_COMMAND_PATTERNS):
+        if (
+            any(re.search(pattern, lowered_command, re.IGNORECASE) for pattern in DANGEROUS_COMMAND_PATTERNS)
+            or any(token in lowered_command for token in (';', '&&', '||', '|', '`', '$(', '\n', '\r'))
+        ):
             risk_level = AIOpsPendingAction.RISK_CRITICAL
     elif task_type == HostTask.TASK_RUN_PLAYBOOK:
         risk_level = AIOpsPendingAction.RISK_HIGH
@@ -13911,8 +13926,28 @@ def _build_safe_mcp_stdio_env(auth_config):
         if key in MCP_SAFE_STDIO_ENV_KEYS or key.startswith('XDG_')
     }
     explicit_env = (auth_config or {}).get('env') or {}
-    env.update({str(key): str(value) for key, value in explicit_env.items()})
+    for key, value in explicit_env.items():
+        key = str(key)
+        if key.upper() in MCP_BLOCKED_ENV_KEYS or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', key):
+            continue
+        env[key] = str(value)
     return env
+
+
+def _validate_mcp_stdio_command(command_text):
+    if not command_text or any(token in command_text for token in (';', '&&', '||', '|', '`', '$(', '\n', '\r')):
+        raise ValueError('MCP STDIO 仅允许受控可执行文件和参数，禁止 shell 拼接或命令替换。')
+    command = shlex.split(command_text, posix=False)
+    if not command:
+        raise ValueError('MCP STDIO command is empty')
+    executable = Path(command[0]).stem.lower()
+    if executable not in MCP_ALLOWED_STDIO_EXECUTABLES:
+        raise ValueError(f'MCP STDIO executable is not allowed: {executable}')
+    if executable == 'npx':
+        package = next((item for item in command[1:] if not item.startswith('-')), '')
+        if package not in MCP_ALLOWED_NPX_PACKAGES:
+            raise ValueError('MCP STDIO npx 仅允许已审核的 MCP 包。')
+    return command
 
 
 def _build_mcp_runtime_diagnostic(server, status, message='', tool_count=0):
@@ -14212,9 +14247,7 @@ class _StdioMCPClientSession(_BaseMCPClientSession):
     def __init__(self, server):
         super().__init__(server)
         auth_config = server.auth_config or {}
-        command = shlex.split(server.endpoint_or_command or '', posix=False)
-        if not command:
-            raise ValueError('MCP STDIO command is empty')
+        command = _validate_mcp_stdio_command(server.endpoint_or_command or '')
         env = _build_safe_mcp_stdio_env(auth_config)
         self.timeout_seconds = max(int(auth_config.get('timeout_seconds') or 20), 5)
         self.process = subprocess.Popen(

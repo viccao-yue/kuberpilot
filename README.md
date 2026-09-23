@@ -13,7 +13,7 @@ KuberPilot 是一个面向真实运维现场的开源智能运维 Agent 平台�
 - 技术栈：`Django + Django REST framework + Channels + Vue 3 + Element Plus`
 - 开源协议：[Apache License 2.0](LICENSE)
 
-<img src="docs/screenshots/sxdevops-operation-flow.png" alt="KuberPilot 运转逻辑" width="820" />
+<img src="docs/screenshots/kuberPilot-operation-flow.png" alt="KuberPilot 运转逻辑" width="820" />
 
 ## 为什么需要它
 
@@ -196,7 +196,7 @@ python manage.py seed_data
 python manage.py seed_templates
 ```
 
-如需关闭初始化数据，可在 `docker-compose.yml` 中把 `SXDEVOPS_SEED_DATA` 或 `SXDEVOPS_SEED_TEMPLATES` 设置为 `0`。
+如需关闭初始化数据，可在 `docker-compose.yml` 中把 `KUBERPILOT_SEED_DATA` 或 `KUBERPILOT_SEED_TEMPLATES` 设置为 `0`。
 
 ### 方式二：本地开发
 
@@ -208,7 +208,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_data
 python manage.py seed_templates
-python -m daphne -b 0.0.0.0 -p 8000 sxdevops.asgi:application
+python -m daphne -b 0.0.0.0 -p 8000 kuberPilot.asgi:application
 ```
 
 前端：
@@ -233,11 +233,9 @@ Windows 下也可以使用开发辅助脚本一键启动或停止前后端：
 
 ## 体验账号
 
-执行初始化数据后可使用以下账号登录，默认密码均为：
+首次启动且库里还没有超级用户时，设置 `KUBERPILOT_ADMIN_INITIAL_PASSWORD` 后才会创建 `admin`。未设置则不自动创建管理员。
 
-```text
-Admin@123456
-```
+执行 `seed_rbac_demo` 前请通过 `KUBERPILOT_DEMO_PASSWORD` 设置演示账号密码。未设置时，系统为本次初始化随机生成密码，并在命令输出中显示一次。`demo` 账号仍使用命令内写明的独立密码。
 
 常用账号：
 
@@ -247,7 +245,7 @@ Admin@123456
 - `audit_demo`
 - `viewer_demo`
 
-这些账号仅用于本地演示和开发环境。公开部署前请修改默认密码或禁用演示账号。
+这些账号仅用于本地演示和开发环境。公开部署前请禁用演示账号。
 
 ## 配置说明
 
@@ -264,10 +262,12 @@ MYSQL_USER=sxdevops
 MYSQL_PASSWORD=sxdevops_password
 REDIS_URL=redis://redis:6379/0
 CHANNEL_REDIS_URL=redis://redis:6379/1
-SECRET_KEY=change-me
+SECRET_KEY=<generate-a-long-random-value>
 DEBUG=0
 ALLOWED_HOSTS=localhost,127.0.0.1
 CORS_ALLOW_ALL_ORIGINS=0
+KUBERPILOT_ADMIN_INITIAL_PASSWORD=<set-an-initial-admin-password>
+KUBERPILOT_DEMO_PASSWORD=<optional-demo-password>
 ```
 
 本地开发不配置数据库时会自动使用 `backend/db.sqlite3`；Docker Compose 默认使用 MySQL 与 Redis。
@@ -296,7 +296,7 @@ docker compose down
 ```text
 .
 ├── backend/                 # Django 后端项目
-│   ├── sxdevops/            # 项目设置、ASGI/WSGI、路由入口
+│   ├── kuberPilot/            # 项目设置、ASGI/WSGI、路由入口
 │   ├── aiops/               # AIOps 智能体、模型、工具、审计
 │   ├── ops/                 # 运维任务、可观测性、发布、告警等
 │   ├── eventwall/           # 事件中心
@@ -350,7 +350,7 @@ docker compose down
 
 - 生产环境请显式配置 `SECRET_KEY`、`DEBUG=0`、`ALLOWED_HOSTS`、数据库和 Redis。
 - 不要提交真实云账号、数据库密码、Kubeconfig、SSH 密钥、Grafana Token、模型供应商 API Key 或其他生产凭据。
-- 演示账号和默认密码只适合本地体验，公开服务请立即调整。
+- 演示账号只适合本地体验，公开服务请禁用。
 - 运行日志、SQLite 数据库、临时截图和本地配置不应进入版本库。
 - 如发现安全问题，请参考 [SECURITY.md](SECURITY.md) 的方式反馈。
 

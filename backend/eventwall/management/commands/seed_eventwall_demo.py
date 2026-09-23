@@ -304,7 +304,7 @@ class Command(BaseCommand):
                 'resource_name': '运维管理员',
                 'business_line': '平台',
                 'environment': 'shared',
-                'application': 'sxdevops',
+                'application': 'kuberPilot',
                 'correlation_id': 'rbac:ops-admin',
                 'related_resources': [
                     build_resource('rbac', 'menu_group', 'ops-console', '运维控制台'),

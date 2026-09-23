@@ -4,7 +4,7 @@
 
 KuberPilot is split into `backend/` and `frontend/`.
 
-- `backend/` is a Django project. Shared settings live in `backend/sxdevops/`; domain apps include `ops/`, `marketplace/`, `sqlaudit/`, `iac/`, `multicloud/`, `aiops/`, `rbac/`, and `eventwall/`.
+- `backend/` is a Django project. Shared settings live in `backend/kuberPilot/`; domain apps include `ops/`, `marketplace/`, `sqlaudit/`, `iac/`, `multicloud/`, `aiops/`, `rbac/`, and `eventwall/`.
 - `frontend/src/` contains the Vue 3 app. Views live in `frontend/src/views/`, layout in `frontend/src/layout/`, API wrappers in `frontend/src/api/`, routes in `frontend/src/router/`, and stores in `frontend/src/stores/`.
 - `docs/` is reserved for public-facing product and architecture documentation.
 - Treat `frontend/dist/`, `frontend/node_modules/`, `backend/__pycache__/`, runtime logs, local SQLite databases, and temporary screenshots as generated artifacts.
@@ -19,7 +19,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_data
 python manage.py seed_templates
-python -m daphne -b 0.0.0.0 -p 8000 sxdevops.asgi:application
+python -m daphne -b 0.0.0.0 -p 8000 kuberPilot.asgi:application
 ```
 
 Frontend:
@@ -84,4 +84,4 @@ README-facing screenshots should be captured from the running product and stored
 
 ## Security
 
-`backend/sxdevops/settings.py` supports local defaults, but production deployments should set `SECRET_KEY`, `DEBUG=0`, `ALLOWED_HOSTS`, database credentials and Redis URLs explicitly. Do not commit production secrets, real credentials, Kubeconfig files, SSH keys, customer data, host-specific endpoints or private tokens.
+`backend/kuberPilot/settings.py` supports local defaults, but production deployments should set `SECRET_KEY`, `DEBUG=0`, `ALLOWED_HOSTS`, database credentials and Redis URLs explicitly. Do not commit production secrets, real credentials, Kubeconfig files, SSH keys, customer data, host-specific endpoints or private tokens.

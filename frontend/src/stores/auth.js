@@ -3,8 +3,8 @@ import { defineStore } from 'pinia'
 import { getCurrentUser, login as loginApi, logout as logoutApi } from '@/api/modules/rbac'
 import { ensurePreviewMode, getPreviewToken, getPreviewUser, isPreviewMode } from '@/utils/preview'
 
-const TOKEN_KEY = 'sxdevops_token'
-const USER_KEY = 'sxdevops_user'
+const TOKEN_KEY = 'kuberPilot_token'
+const USER_KEY = 'kuberPilot_user'
 
 function loadStoredUser() {
   try {

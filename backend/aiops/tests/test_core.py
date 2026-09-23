@@ -52,6 +52,8 @@ from ..services import (
     _is_direct_log_question,
     _normalize_formatter_output,
     _normalize_mcp_input_schema,
+    _build_safe_mcp_stdio_env,
+    _validate_mcp_stdio_command,
     _build_evidence_bundle_result,
     _infer_alert_root_cause,
     _request_model_completion,
@@ -123,7 +125,7 @@ class AIOpsApiTests(TestCase):
     def test_platform_mcp_tools_respect_feature_gate_without_name_error(self):
         tools = list_platform_mcp_tools(user=self.user)
 
-        self.assertTrue(any(item['name'] == 'sxdevops.query_knowledge_graph' for item in tools))
+        self.assertTrue(any(item['name'] == 'kuberPilot.query_knowledge_graph' for item in tools))
         self.assertTrue(all('available' in item for item in tools))
 
     def ensure_ecommerce_knowledge_environment(self):
@@ -1069,20 +1071,20 @@ class AIOpsApiTests(TestCase):
             'method': 'tools/list',
         }, format='json')
         self.assertEqual(list_response.status_code, 200)
-        self.assertTrue(any(item['name'] == 'sxdevops.query_recent_changes' for item in list_response.data['result']['tools']))
+        self.assertTrue(any(item['name'] == 'kuberPilot.query_recent_changes' for item in list_response.data['result']['tools']))
 
         call_response = self.client.post('/api/aiops/mcp/rpc/', {
             'jsonrpc': '2.0',
             'id': 2,
             'method': 'tools/call',
             'params': {
-                'name': 'sxdevops.query_recent_changes',
+                'name': 'kuberPilot.query_recent_changes',
                 'arguments': {'limit': 1},
             },
         }, format='json')
 
         self.assertEqual(call_response.status_code, 200)
-        self.assertEqual(call_response.data['result']['tool']['name'], 'sxdevops.query_recent_changes')
+        self.assertEqual(call_response.data['result']['tool']['name'], 'kuberPilot.query_recent_changes')
         self.assertFalse(call_response.data['result']['isError'])
         self.assertTrue(AIOpsToolInvocation.objects.filter(tool_name='query_recent_changes').exists())
         self.assertTrue(EventRecord.objects.filter(action='call_platform_mcp_tool').exists())
@@ -1095,7 +1097,7 @@ class AIOpsApiTests(TestCase):
         client.credentials(HTTP_AUTHORIZATION=f'Token {readonly_token.key}')
 
         response = client.post('/api/aiops/mcp/call/', {
-            'name': 'sxdevops.query_recent_changes',
+            'name': 'kuberPilot.query_recent_changes',
             'arguments': {'limit': 1},
         }, format='json')
 
@@ -1106,11 +1108,11 @@ class AIOpsApiTests(TestCase):
 
         with mock.patch('aiops.services.PLATFORM_MCP_RATE_LIMIT_PER_MINUTE', 1):
             first_response = self.client.post('/api/aiops/mcp/call/', {
-                'name': 'sxdevops.query_recent_changes',
+                'name': 'kuberPilot.query_recent_changes',
                 'arguments': {'limit': 1},
             }, format='json')
             second_response = self.client.post('/api/aiops/mcp/call/', {
-                'name': 'sxdevops.query_recent_changes',
+                'name': 'kuberPilot.query_recent_changes',
                 'arguments': {'limit': 1},
             }, format='json')
 
@@ -9034,3 +9036,37 @@ class AIOpsApiTests(TestCase):
         self.assertIn('[REDACTED]', broken['message'])
         self.assertNotIn('secret-value', broken['message'])
         self.assertIn('query_alerts', response.data['assistant_message']['tool_calls'])
+
+
+class AIOpsSecurityControlTests(TestCase):
+    def setUp(self):
+        ensure_builtin_rbac()
+        self.user = User.objects.create_user(username='aiops_security', password='Passw0rd!123')
+        Host.objects.create(hostname='prod-web-01', ip_address='10.0.0.10', environment='prod', status='online')
+
+    def test_mcp_stdio_command_and_environment_are_restricted(self):
+        with self.assertRaises(ValueError):
+            _validate_mcp_stdio_command('python -c "import os"')
+        with self.assertRaises(ValueError):
+            _validate_mcp_stdio_command('npx server | sh')
+        with self.assertRaises(ValueError):
+            _validate_mcp_stdio_command('npx -y evil-mcp-package')
+        self.assertEqual(
+            _validate_mcp_stdio_command('npx -y @n9e/n9e-mcp-server stdio')[0],
+            'npx',
+        )
+        env = _build_safe_mcp_stdio_env({'env': {'PATH': 'malicious', 'SW_USERNAME': 'readonly'}})
+        self.assertNotEqual(env.get('PATH'), 'malicious')
+        self.assertEqual(env.get('SW_USERNAME'), 'readonly')
+
+    def test_generated_task_rejects_dangerous_command(self):
+        draft = build_task_draft(
+            self.user,
+            question='在 prod 环境执行命令',
+            draft_request={
+                'task_kind': 'run_command',
+                'target_host_ids': [Host.objects.get(hostname='prod-web-01').id],
+                'payload': {'command': 'rm -rf /'},
+            },
+        )
+        self.assertIn('error', draft)

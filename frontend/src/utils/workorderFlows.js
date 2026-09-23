@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'sxdevops_workorder_flow_types'
+const STORAGE_KEY = 'kuberPilot_workorder_flow_types'
 
 export const WORK_ORDER_TYPE_OPTIONS = [
   { label: '应用发布', value: 'deployment' },

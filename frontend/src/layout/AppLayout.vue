@@ -204,7 +204,7 @@ const notificationsLoading = ref(false)
 const notificationItems = ref([])
 const notificationCount = ref(0)
 const moduleVisibility = ref({})
-const MODULE_SETTINGS_EVENT = 'sxdevops-module-settings-updated'
+const MODULE_SETTINGS_EVENT = 'kuberPilot-module-settings-updated'
 const TASK_SCHEDULES_VISIBLE = false
 const observabilityBoardPermissions = ['ops.grafana.view']
 const defaultOpenMenuKeys = ['aiops', 'observability', 'events']
@@ -630,7 +630,7 @@ async function loadModuleSettings() {
 }
 
 function openAIOpsAssistant() {
-  window.dispatchEvent(new Event('sxdevops-aiops-open'))
+  window.dispatchEvent(new Event('kuberPilot-aiops-open'))
 }
 
 function canHandleDeploymentApproval(item) {

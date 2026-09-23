@@ -18,7 +18,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py seed_data
 python manage.py seed_templates
-python -m daphne -b 0.0.0.0 -p 8000 sxdevops.asgi:application
+python -m daphne -b 0.0.0.0 -p 8000 kuberPilot.asgi:application
 ```
 
 前端：

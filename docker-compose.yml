@@ -1,10 +1,10 @@
 services:
-  sxdevops:
+  kuberPilot:
     build:
       context: .
       dockerfile: Dockerfile
-    image: sxdevops:latest
-    container_name: sxdevops-app
+    image: kuberPilot:latest
+    container_name: kuberPilot-app
     restart: unless-stopped
     depends_on:
       mysql:
@@ -22,18 +22,22 @@ services:
       CHANNEL_REDIS_URL: redis://redis:6379/1
       SECRET_KEY: ${SECRET_KEY:-change-me}
       DEBUG: ${DEBUG:-0}
+      KUBERPILOT_ADMIN_INITIAL_PASSWORD: ${KUBERPILOT_ADMIN_INITIAL_PASSWORD:-}
+      SXDEVOPS_ADMIN_INITIAL_PASSWORD: ${SXDEVOPS_ADMIN_INITIAL_PASSWORD:-}
+      KUBERPILOT_DEMO_PASSWORD: ${KUBERPILOT_DEMO_PASSWORD:-}
+      SXDEVOPS_DEMO_PASSWORD: ${SXDEVOPS_DEMO_PASSWORD:-}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-127.0.0.1,localhost}
       CORS_ALLOW_ALL_ORIGINS: ${CORS_ALLOW_ALL_ORIGINS:-0}
-      SXDEVOPS_WAIT_FOR_DB: "1"
-      SXDEVOPS_MIGRATE: "1"
-      SXDEVOPS_SEED_DATA: "0"
-      SXDEVOPS_SEED_TEMPLATES: "0"
+      KUBERPILOT_WAIT_FOR_DB: "1"
+      KUBERPILOT_MIGRATE: "1"
+      KUBERPILOT_SEED_DATA: "0"
+      KUBERPILOT_SEED_TEMPLATES: "0"
     ports:
       - "127.0.0.1:${APP_PORT:-8000}:8000"
 
   mysql:
     image: mysql:8.0
-    container_name: sxdevops-mysql
+    container_name: kuberPilot-mysql
     restart: unless-stopped
     command:
       - --character-set-server=utf8mb4
@@ -55,7 +59,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: sxdevops-redis
+    container_name: kuberPilot-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:

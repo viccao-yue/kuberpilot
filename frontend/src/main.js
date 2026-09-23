@@ -14,6 +14,37 @@ import './assets/tdesign-theme.css'
 import { pinia } from './stores'
 import { useAuthStore } from './stores/auth'
 
+function migrateLegacyStorage(storage) {
+  const pairs = [
+    ['sxdevops_token', 'kuberPilot_token'],
+    ['sxdevops_user', 'kuberPilot_user'],
+    ['sxdevops_workorder_flow_types', 'kuberPilot_workorder_flow_types'],
+    ['sxdevops_preview_mode', 'kuberPilot_preview_mode'],
+    ['sxdevops_preview_knowledge_envs_v1', 'kuberPilot_preview_knowledge_envs_v1'],
+    ['sxdevops.task-center.prefill-draft', 'kuberPilot.task-center.prefill-draft'],
+    ['sxdevops_aiops_current_session', 'kuberPilot_aiops_current_session'],
+    ['sxdevops_aiops_visible', 'kuberPilot_aiops_visible'],
+    ['sxdevops_aiops_analysis_only', 'kuberPilot_aiops_analysis_only'],
+  ]
+  pairs.forEach(([oldKey, newKey]) => {
+    const legacy = storage.getItem(oldKey)
+    if (legacy != null && storage.getItem(newKey) == null) storage.setItem(newKey, legacy)
+  })
+  const legacyDrafts = []
+  for (let index = 0; index < storage.length; index += 1) {
+    const key = storage.key(index)
+    if (key && key.startsWith('sxdevops_aiops_draft_')) legacyDrafts.push(key)
+  }
+  legacyDrafts.forEach((key) => {
+    const newKey = `kuberPilot_aiops_draft_${key.slice('sxdevops_aiops_draft_'.length)}`
+    const legacy = storage.getItem(key)
+    if (legacy != null && storage.getItem(newKey) == null) storage.setItem(newKey, legacy)
+  })
+}
+
+migrateLegacyStorage(window.localStorage)
+migrateLegacyStorage(window.sessionStorage)
+
 const savedTheme = window.localStorage.getItem('kp-theme')
 document.documentElement.dataset.theme = savedTheme || 'tdesign'
 

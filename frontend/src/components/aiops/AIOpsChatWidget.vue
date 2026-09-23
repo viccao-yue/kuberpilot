@@ -584,10 +584,10 @@ const props = defineProps({
   },
 })
 
-const STORAGE_SESSION_KEY = 'sxdevops_aiops_current_session'
-const STORAGE_VISIBLE_KEY = 'sxdevops_aiops_visible'
-const STORAGE_ANALYSIS_KEY = 'sxdevops_aiops_analysis_only'
-const STORAGE_DRAFT_PREFIX = 'sxdevops_aiops_draft_'
+const STORAGE_SESSION_KEY = 'kuberPilot_aiops_current_session'
+const STORAGE_VISIBLE_KEY = 'kuberPilot_aiops_visible'
+const STORAGE_ANALYSIS_KEY = 'kuberPilot_aiops_analysis_only'
+const STORAGE_DRAFT_PREFIX = 'kuberPilot_aiops_draft_'
 const AIOPS_SESSION_REQUEST_CONFIG = { skipErrorMessage: true }
 const AIOPS_SESSION_MISSING_MESSAGE = '会话不存在或已被删除，请刷新会话列表后重新选择会话，或新建会话后再提问。'
 
@@ -1905,7 +1905,7 @@ async function handleConfirmAction(action) {
   try {
     const result = await confirmAIOpsAction(action.id)
     if (result?.task_draft) {
-      sessionStorage.setItem('sxdevops.task-center.prefill-draft', JSON.stringify(result.task_draft))
+      sessionStorage.setItem('kuberPilot.task-center.prefill-draft', JSON.stringify(result.task_draft))
       ElMessage.success(`已载入任务草稿 ${result.task_name}`)
       router.push({ path: '/tasks/workbench', query: { aiopsDraft: String(Date.now()) } })
       closePanel()
@@ -2175,7 +2175,7 @@ onMounted(async () => {
   window.addEventListener('resize', handleResize)
   if (!embedded.value) {
     window.addEventListener('keydown', handleGlobalKeydown)
-    window.addEventListener('sxdevops-aiops-open', handleOpenRequest)
+    window.addEventListener('kuberPilot-aiops-open', handleOpenRequest)
   }
   await fetchBootstrap()
   if ((embedded.value || visible.value) && bootstrap.value.enabled) {
@@ -2192,7 +2192,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   if (!embedded.value) {
     window.removeEventListener('keydown', handleGlobalKeydown)
-    window.removeEventListener('sxdevops-aiops-open', handleOpenRequest)
+    window.removeEventListener('kuberPilot-aiops-open', handleOpenRequest)
   }
 })
 </script>
