@@ -414,7 +414,7 @@ class LogViewsTests(TestCase):
         self.assertGreaterEqual(payload['total'], 1)
         self.assertIn('payment', payload['logs'][0]['message'])
         self.assertIn('trace_id', payload['logs'][0]['attributes'])
-        self.assertIn('com.sxdevops', payload['logs'][0]['message'])
+        self.assertIn('com.kuberPilot', payload['logs'][0]['message'])
 
     def test_demo_elk_query_honors_high_limit_when_matches_are_available(self):
         response = self.client.post(
@@ -1412,8 +1412,8 @@ class ObservabilityViewsTests(TestCase):
             MockHttpResponse({
                 'data': {
                     'listServices': [
-                        {'id': 'service-1', 'name': 'gateway-service', 'shortName': 'gateway', 'group': 'sxdevops', 'layers': ['GENERAL']},
-                        {'id': 'service-2', 'name': 'payment-service', 'shortName': 'payment', 'group': 'sxdevops', 'layers': ['GENERAL']},
+                        {'id': 'service-1', 'name': 'gateway-service', 'shortName': 'gateway', 'group': 'kuberPilot', 'layers': ['GENERAL']},
+                        {'id': 'service-2', 'name': 'payment-service', 'shortName': 'payment', 'group': 'kuberPilot', 'layers': ['GENERAL']},
                     ]
                 }
             }),
@@ -2103,7 +2103,7 @@ class ObservabilityViewsTests(TestCase):
             MockHttpResponse({
                 'data': {
                     'listServices': [
-                        {'id': 'service-1', 'name': 'gateway-service', 'shortName': 'gateway', 'group': 'sxdevops', 'layers': ['GENERAL']},
+                        {'id': 'service-1', 'name': 'gateway-service', 'shortName': 'gateway', 'group': 'kuberPilot', 'layers': ['GENERAL']},
                     ]
                 }
             }),

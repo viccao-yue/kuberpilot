@@ -4,7 +4,7 @@
 
 ## 1. 升级定位
 
-AIOps 2.0 的目标不是增加一个通用聊天入口，而是把 AI 能力做进 sxdevops 的运维控制面：让 assistant 理解用户所在页面、知识图谱关联对象、环境、告警、变更、日志、链路、K8s、发布任务、工单和值班上下文，并通过受控工具完成分析、推荐和待确认操作。
+AIOps 2.0 的目标不是增加一个通用聊天入口，而是把 AI 能力做进 kuberPilot 的运维控制面：让 assistant 理解用户所在页面、知识图谱关联对象、环境、告警、变更、日志、链路、K8s、发布任务、工单和值班上下文，并通过受控工具完成分析、推荐和待确认操作。
 
 核心定位：
 
@@ -160,7 +160,7 @@ P0 先内置以下 Action：
 
 ## 6. Skill 库设计
 
-Skill 是 sxdevops assistant 的领域能力包，可以声明工具依赖，但不能绕过平台权限和 Action 安全策略直接执行。Skill 管理的重点是“让 assistant 在某一类问题上具备稳定专业能力”，而不是堆叠零散的一句话提示词。
+Skill 是 kuberPilot assistant 的领域能力包，可以声明工具依赖，但不能绕过平台权限和 Action 安全策略直接执行。Skill 管理的重点是“让 assistant 在某一类问题上具备稳定专业能力”，而不是堆叠零散的一句话提示词。
 
 ### Skill 包结构
 
@@ -287,15 +287,15 @@ AIOps 2.0 需要把“回答内容”和“前端可交互对象”分开。建�
 
 ## 10. MCP/A2A 互操作
 
-sxdevops 不只服务 Web 页面，也要服务外部 Agent 编排平台。
+kuberPilot 不只服务 Web 页面，也要服务外部 Agent 编排平台。
 
-sxdevops 作为 MCP Server：
+kuberPilot 作为 MCP Server：
 
 - 暴露知识图谱、告警、日志、链路、K8s、发布、工单、任务中心等只读工具。
 - 写入和执行类工具默认要求 preflight 和用户确认。
 - 统一鉴权、权限过滤、审计和限流。
 
-sxdevops 接入外部 MCP：
+kuberPilot 接入外部 MCP：
 
 - 管理外部 MCP Server 配置。
 - 做健康检查、工具发现、权限绑定和超时控制。
@@ -327,7 +327,7 @@ A2A 方向在产品界面上命名为“协同任务 / Runbook”，避免把协
 | 状态 | 任务 | 当前落地说明 |
 | --- | --- | --- |
 | 已完成 | Skill 市场和团队自定义 Skill | 已支持内置 Skill 市场、团队克隆、自定义 Skill、适用 Action、工具依赖、风险等级和输出约束。 |
-| 已完成初版 | MCP 接入与对外暴露 | 已支持外部 MCP Server 配置、健康检查和工具发现；2.1 新增 sxdevops 对外 MCP Server，只暴露只读平台工具，并接入统一 Token 鉴权、RBAC、限流和事件审计。 |
+| 已完成初版 | MCP 接入与对外暴露 | 已支持外部 MCP Server 配置、健康检查和工具发现；2.1 新增 kuberPilot 对外 MCP Server，只暴露只读平台工具，并接入统一 Token 鉴权、RBAC、限流和事件审计。 |
 | 已完成 | preflight 表单 | 已提供 `POST /api/aiops/admin/actions/preflight/`，可按 Action 返回缺参、风险、权限和 `approval_form` 合同。 |
 | 已完成 | AI 执行审计 | 已覆盖会话、工具调用、待确认动作、模型调用、协同任务和 Runbook 的审计数据。 |
 | 已完成 | 工具调用追踪详情 | 已有工具调用列表、详情展开、单条/批量删除和失败信息展示。 |
@@ -363,7 +363,7 @@ A2A 方向在产品界面上命名为“协同任务 / Runbook”，避免把协
 - `POST /api/aiops/admin/actions/preflight/`：获取 Action 预检和确认表单合同。
 - `GET /api/aiops/admin/audit/model-invocations/`：查看模型调用审计。
 - `GET /api/aiops/admin/audit/costs/`：查看模型成本和工具调用概览，兼容无尾斜杠。
-- `GET /api/aiops/mcp/manifest/`：查看 sxdevops 对外 MCP Server 清单、鉴权和限流信息。
+- `GET /api/aiops/mcp/manifest/`：查看 kuberPilot 对外 MCP Server 清单、鉴权和限流信息。
 - `GET /api/aiops/mcp/tools/`：查看对外 MCP 只读工具列表。
 - `POST /api/aiops/mcp/rpc/`：以 JSON-RPC 方式执行 `initialize`、`tools/list` 和 `tools/call`。
 - `POST /api/aiops/mcp/call/`：直接调用单个对外 MCP 只读工具。
@@ -384,8 +384,8 @@ A2A 方向在产品界面上命名为“协同任务 / Runbook”，避免把协
 
 - `aiops.a2a.view`：查看协同任务。
 - `aiops.a2a.invoke`：创建或取消协同任务。
-- `aiops.mcp.view`：查看 sxdevops 对外 MCP Server 工具清单。
-- `aiops.mcp.invoke`：调用 sxdevops 对外 MCP 只读工具。
+- `aiops.mcp.view`：查看 kuberPilot 对外 MCP Server 工具清单。
+- `aiops.mcp.invoke`：调用 kuberPilot 对外 MCP 只读工具。
 - `aiops.runbook.view`：查看 Runbook 手册。
 - `aiops.runbook.manage`：生成、更新或删除 Runbook 手册。
 - `aiops.review.view`：查看自动沉淀的复盘知识。
@@ -406,7 +406,7 @@ python manage.py migrate aiops
 
 ```bash
 cd backend
-python -m daphne -b 0.0.0.0 -p 8000 sxdevops.asgi:application
+python -m daphne -b 0.0.0.0 -p 8000 kuberPilot.asgi:application
 ```
 
 前端变更至少执行：
@@ -428,7 +428,7 @@ npm run build
 
 2.1 已补齐以下能力：
 
-- sxdevops 作为 MCP Server 对外暴露只读平台工具，并接入统一鉴权、限流和审计。
+- kuberPilot 作为 MCP Server 对外暴露只读平台工具，并接入统一鉴权、限流和审计。
 - 多 Agent 编排：拆出诊断 Agent、证据 Agent、变更 Agent、Runbook Agent，并定义结果合并规则。
 - 完整 Plan + ReAct 深度排障：支持计划、执行、观察、修正、终止条件和用户中断。
 - Runbook 发布、归档、版本历史、引用来源和从事故会话一键生成。

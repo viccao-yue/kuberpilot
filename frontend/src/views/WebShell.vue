@@ -28,7 +28,7 @@ import { getHost } from '@/api/modules/ops'
 
 const route = useRoute()
 const hostId = route.params.hostId
-const token = localStorage.getItem('sxdevops_token') || ''
+const token = localStorage.getItem('kuberPilot_token') || ''
 const terminalRef = ref(null)
 const hostInfo = ref(null)
 const wsStatus = ref('connecting')

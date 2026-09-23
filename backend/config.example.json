@@ -15,7 +15,7 @@
   "cache": {
     "type": "redis",
     "redis_url": "redis://127.0.0.1:6379/0",
-    "key_prefix": "sxdevops",
+    "key_prefix": "kuberPilot",
     "default_timeout_seconds": 300,
     "ignore_redis_errors": true
   }

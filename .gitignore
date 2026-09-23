@@ -38,7 +38,9 @@ backend/*.err.log
 frontend/*.log
 frontend/*.out.log
 frontend/*.err.log
-backend/*.txt
+backend/*.out.txt
+backend/*.err.txt
+!backend/requirements.txt
 
 # Local verification artifacts
 frontend/cmdb-cost-check*.png

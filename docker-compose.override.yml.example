@@ -1,5 +1,5 @@
 services:
-  sxdevops:
+  kuberPilot:
     environment:
-      SXDEVOPS_SEED_DATA: "1"
-      SXDEVOPS_SEED_TEMPLATES: "1"
+      KUBERPILOT_SEED_DATA: "1"
+      KUBERPILOT_SEED_TEMPLATES: "1"

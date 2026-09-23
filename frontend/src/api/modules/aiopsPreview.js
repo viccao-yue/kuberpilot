@@ -1,4 +1,4 @@
-const PREVIEW_KNOWLEDGE_ENVS_KEY = 'sxdevops_preview_knowledge_envs_v1'
+const PREVIEW_KNOWLEDGE_ENVS_KEY = 'kuberPilot_preview_knowledge_envs_v1'
 
 const PREVIEW_KNOWLEDGE_CATALOG = {
   event_environments: ['交易生产', '交易预发'],

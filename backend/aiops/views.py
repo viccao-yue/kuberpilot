@@ -1666,7 +1666,7 @@ def platform_mcp_rpc(request):
     if method in {'initialize', 'server/initialize'}:
         return ok({
             'protocolVersion': '2025-11-25',
-            'serverInfo': {'name': 'sxdevops-aiops', 'version': '2.1'},
+            'serverInfo': {'name': 'kuberPilot-aiops', 'version': '2.1'},
             'capabilities': {'tools': {'listChanged': False}},
         })
     if method in {'ping', 'server/ping'}:

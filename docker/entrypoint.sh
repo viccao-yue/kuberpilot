@@ -25,19 +25,19 @@ raise SystemExit(f"Timed out waiting for {label} at {host}:{port}")
 PY
 }
 
-if [ "${SXDEVOPS_WAIT_FOR_DB:-1}" = "1" ]; then
+if [ "${KUBERPILOT_WAIT_FOR_DB:-${SXDEVOPS_WAIT_FOR_DB:-1}}" = "1" ]; then
   wait_for_tcp "${MYSQL_HOST:-mysql}" "${MYSQL_PORT:-3306}" "MySQL"
 fi
 
-if [ "${SXDEVOPS_MIGRATE:-1}" = "1" ]; then
+if [ "${KUBERPILOT_MIGRATE:-${SXDEVOPS_MIGRATE:-1}}" = "1" ]; then
   python manage.py migrate --noinput
 fi
 
-if [ "${SXDEVOPS_SEED_DATA:-1}" = "1" ]; then
+if [ "${KUBERPILOT_SEED_DATA:-${SXDEVOPS_SEED_DATA:-1}}" = "1" ]; then
   python manage.py seed_data
 fi
 
-if [ "${SXDEVOPS_SEED_TEMPLATES:-1}" = "1" ]; then
+if [ "${KUBERPILOT_SEED_TEMPLATES:-${SXDEVOPS_SEED_TEMPLATES:-1}}" = "1" ]; then
   python manage.py seed_templates
 fi
 

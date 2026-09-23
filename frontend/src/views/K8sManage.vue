@@ -1861,7 +1861,7 @@ function connectExecTerminal() {
   if (!selectedClusterId.value || !execForm.value.pod_name || !execTerminal) return
   disconnectExecSocket()
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const token = localStorage.getItem('sxdevops_token') || ''
+  const token = localStorage.getItem('kuberPilot_token') || ''
   const params = new URLSearchParams({
     token,
     pod_name: execForm.value.pod_name,

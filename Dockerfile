@@ -1,5 +1,9 @@
 FROM node:20-alpine AS frontend-builder
 
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+
 WORKDIR /app/frontend
 
 COPY frontend/package*.json ./
@@ -11,6 +15,10 @@ RUN npm run build
 
 
 FROM python:3.12-slim AS app
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -36,4 +44,4 @@ WORKDIR /app/backend
 EXPOSE 8000
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "-m", "daphne", "-b", "0.0.0.0", "-p", "8000", "sxdevops.asgi:application"]
+CMD ["python", "-m", "daphne", "-b", "0.0.0.0", "-p", "8000", "kuberPilot.asgi:application"]

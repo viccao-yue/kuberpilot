@@ -149,13 +149,24 @@ def validate_schedule_definition(attrs, instance=None):
 class HostSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     environment_display = serializers.SerializerMethodField()
+    has_ssh_password = serializers.SerializerMethodField()
 
     class Meta:
         model = Host
         fields = '__all__'
+        extra_kwargs = {
+            'ssh_password': {
+                'write_only': True,
+                'required': False,
+                'allow_blank': True,
+            },
+        }
 
     def get_environment_display(self, obj):
         return obj.get_environment_display() if obj.environment else ''
+
+    def get_has_ssh_password(self, obj):
+        return bool(getattr(obj, 'ssh_password', '') or '')
 
     def validate(self, attrs):
         business_line = (attrs.get('business_line') if 'business_line' in attrs else getattr(self.instance, 'business_line', '')) or ''

@@ -6,6 +6,8 @@ from . import log_views
 from . import docker_views
 from . import k8s_views
 from . import observability_views
+from . import nginx_views
+from . import middleware_views
 
 router = DefaultRouter()
 router.register(r'hosts', views.HostViewSet)
@@ -37,6 +39,10 @@ router.register(r'observability/tracing/datasources', observability_views.Tracin
 router.register(r'observability/metric/datasources', observability_views.MetricDataSourceViewSet, basename='metric-datasource')
 router.register(r'k8s/clusters', k8s_views.K8sClusterViewSet)
 router.register(r'docker/hosts', docker_views.DockerHostViewSet)
+router.register(r'nginx/environments', nginx_views.NginxEnvironmentViewSet, basename='nginx-environment')
+router.register(r'nginx/certificates', nginx_views.NginxCertificateViewSet, basename='nginx-certificate')
+router.register(r'nginx/domains', nginx_views.NginxDomainViewSet, basename='nginx-domain')
+router.register(r'nginx/routes', nginx_views.NginxRouteViewSet, basename='nginx-route')
 urlpatterns = [
     path('dashboard/stats/', views.dashboard_stats, name='dashboard-stats'),
     path('alerts/webhooks/web-automation/', views.web_automation_alert_webhook, name='web-automation-alert-webhook'),
@@ -70,6 +76,8 @@ urlpatterns = [
     path('observability/tracing/catalog/', observability_views.observability_tracing_catalog, name='observability-tracing-catalog'),
     path('observability/tracing/search/', observability_views.observability_tracing_search, name='observability-tracing-search'),
     path('observability/tracing/traces/<str:trace_id>/', observability_views.observability_trace_detail, name='observability-trace-detail'),
+    path('middleware/overview/', middleware_views.middleware_overview, name='middleware-overview'),
+    path('middleware/action/', middleware_views.middleware_action, name='middleware-action'),
 
     path('', include(router.urls)),
 ]

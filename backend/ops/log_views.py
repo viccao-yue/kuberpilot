@@ -421,7 +421,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'gateway-service',
             },
             'thread': 'reactor-http-nio-4',
-            'logger': 'com.sxdevops.gateway.filter.AccessLogFilter',
+            'logger': 'com.kuberPilot.gateway.filter.AccessLogFilter',
             'message': 'route matched, routeId=order-service, path=/api/orders/submit, cost=18ms',
         },
         {
@@ -437,7 +437,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'gateway-service',
             },
             'thread': 'reactor-http-nio-7',
-            'logger': 'com.sxdevops.gateway.filter.ExceptionLogFilter',
+            'logger': 'com.kuberPilot.gateway.filter.ExceptionLogFilter',
             'message': 'forward request failed, uri=lb://order-service, reason=ReadTimeoutException: downstream timeout',
         },
         {
@@ -453,7 +453,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'gateway-service',
             },
             'thread': 'reactor-http-nio-3',
-            'logger': 'com.sxdevops.gateway.filter.GrayReleaseRouteFilter',
+            'logger': 'com.kuberPilot.gateway.filter.GrayReleaseRouteFilter',
             'message': 'gray release route hit, routeId=payment-service-gray, tenantId=t-ob, version=gray, header[X-Gray]=true',
         },
         {
@@ -469,7 +469,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'order-service',
             },
             'thread': 'http-nio-8082-exec-3',
-            'logger': 'com.sxdevops.order.controller.OrderController',
+            'logger': 'com.kuberPilot.order.controller.OrderController',
             'message': 'create order success, orderNo=SO202603150001, userId=10086, amount=299.00',
         },
         {
@@ -485,7 +485,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'order-service',
             },
             'thread': 'http-nio-8082-exec-7',
-            'logger': 'com.sxdevops.order.service.PaymentRemoteService',
+            'logger': 'com.kuberPilot.order.service.PaymentRemoteService',
             'message': 'feign invoke payment-service failed, status=500, retry=2, msg=payment status update timeout',
         },
         {
@@ -501,13 +501,13 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'order-service',
             },
             'thread': 'http-nio-8082-exec-11',
-            'logger': 'com.sxdevops.order.service.impl.OrderSubmitServiceImpl',
+            'logger': 'com.kuberPilot.order.service.impl.OrderSubmitServiceImpl',
             'message': (
                 'submit order failed, orderNo=SO202603150009, tenantId=t-vip, ex=java.lang.IllegalStateException: stock lock failed\n'
                 'java.lang.IllegalStateException: stock lock failed\n'
-                '\tat com.sxdevops.order.service.impl.OrderSubmitServiceImpl.lockStock(OrderSubmitServiceImpl.java:214)\n'
-                '\tat com.sxdevops.order.service.impl.OrderSubmitServiceImpl.submit(OrderSubmitServiceImpl.java:126)\n'
-                '\tat com.sxdevops.order.controller.OrderController.submit(OrderController.java:58)\n'
+                '\tat com.kuberPilot.order.service.impl.OrderSubmitServiceImpl.lockStock(OrderSubmitServiceImpl.java:214)\n'
+                '\tat com.kuberPilot.order.service.impl.OrderSubmitServiceImpl.submit(OrderSubmitServiceImpl.java:126)\n'
+                '\tat com.kuberPilot.order.controller.OrderController.submit(OrderController.java:58)\n'
                 '\tat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:186)'
             ),
         },
@@ -524,7 +524,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'payment-service',
             },
             'thread': 'http-nio-8091-exec-5',
-            'logger': 'com.sxdevops.payment.service.CallbackService',
+            'logger': 'com.kuberPilot.payment.service.CallbackService',
             'message': 'payment callback processed successfully, channel=alipay, tradeStatus=SUCCESS',
         },
         {
@@ -540,7 +540,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'payment-service',
             },
             'thread': 'http-nio-8091-exec-8',
-            'logger': 'com.sxdevops.payment.service.SignVerifyService',
+            'logger': 'com.kuberPilot.payment.service.SignVerifyService',
             'message': 'signature verify failed, orderNo=SO202603150001, channel=wechat, errorCode=SIGN_MISMATCH',
         },
         {
@@ -556,12 +556,12 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'payment-service',
             },
             'thread': 'http-nio-8091-exec-12',
-            'logger': 'com.sxdevops.payment.controller.PaymentCallbackController',
+            'logger': 'com.kuberPilot.payment.controller.PaymentCallbackController',
             'message': (
                 'payment callback processing exception, requestId=cb-20260315-991, tenantId=t-ob, ex=java.lang.NullPointerException: callback payload is null\n'
                 'java.lang.NullPointerException: callback payload is null\n'
-                '\tat com.sxdevops.payment.controller.PaymentCallbackController.handle(PaymentCallbackController.java:87)\n'
-                '\tat com.sxdevops.payment.controller.PaymentCallbackController.callback(PaymentCallbackController.java:52)\n'
+                '\tat com.kuberPilot.payment.controller.PaymentCallbackController.handle(PaymentCallbackController.java:87)\n'
+                '\tat com.kuberPilot.payment.controller.PaymentCallbackController.callback(PaymentCallbackController.java:52)\n'
                 '\tat java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)\n'
                 '\tat org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:257)'
             ),
@@ -579,7 +579,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'auth-service',
             },
             'thread': 'http-nio-8071-exec-2',
-            'logger': 'com.sxdevops.auth.filter.JwtTokenFilter',
+            'logger': 'com.kuberPilot.auth.filter.JwtTokenFilter',
             'message': 'token will expire soon, userId=10086, expireIn=92s, clientIp=10.20.31.18',
         },
         {
@@ -595,7 +595,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'auth-service',
             },
             'thread': 'http-nio-8071-exec-9',
-            'logger': 'com.sxdevops.auth.filter.JwtTokenFilter',
+            'logger': 'com.kuberPilot.auth.filter.JwtTokenFilter',
             'message': 'authentication failed, token verify error, reason=JwtException: token expired',
         },
         {
@@ -611,7 +611,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'user-service',
             },
             'thread': 'http-nio-8061-exec-4',
-            'logger': 'com.sxdevops.user.service.UserProfileService',
+            'logger': 'com.kuberPilot.user.service.UserProfileService',
             'message': 'load user profile from redis cache, userId=10086, cacheHit=true, cost=6ms',
         },
         {
@@ -627,7 +627,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'inventory-service',
             },
             'thread': 'scheduling-1',
-            'logger': 'com.sxdevops.inventory.job.StockSyncJob',
+            'logger': 'com.kuberPilot.inventory.job.StockSyncJob',
             'message': 'stock sync task finished, warehouseCode=HZ01, total=128, changed=5',
         },
         {
@@ -643,7 +643,7 @@ def _demo_loki_entries(start_ms, end_ms):
                 'service_name': 'user-service',
             },
             'thread': 'http-nio-8061-exec-8',
-            'logger': 'com.sxdevops.user.controller.UserPortalController',
+            'logger': 'com.kuberPilot.user.controller.UserPortalController',
             'message': 'tenant gray user routed to v2026.3-gray, tenantId=t-vip, feature=user-portrait-v2, percent=10',
         },
     ]
@@ -763,7 +763,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-app-2026.03.15',
             'service': 'gateway-service',
-            'logger': 'com.sxdevops.gateway.filter.AccessLogFilter',
+            'logger': 'com.kuberPilot.gateway.filter.AccessLogFilter',
             'thread': 'reactor-http-nio-4',
             'message': 'route matched, routeId=order-service, path=/api/orders/submit, cost=18ms',
             'host': 'gateway-01',
@@ -772,7 +772,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-app-2026.03.15',
             'service': 'gateway-service',
-            'logger': 'com.sxdevops.gateway.filter.ExceptionLogFilter',
+            'logger': 'com.kuberPilot.gateway.filter.ExceptionLogFilter',
             'thread': 'reactor-http-nio-7',
             'message': 'forward request failed, uri=lb://order-service, reason=ReadTimeoutException: downstream timeout',
             'host': 'gateway-02',
@@ -781,7 +781,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-app-2026.03.15',
             'service': 'order-service',
-            'logger': 'com.sxdevops.order.controller.OrderController',
+            'logger': 'com.kuberPilot.order.controller.OrderController',
             'thread': 'http-nio-8082-exec-3',
             'message': 'create order success, orderNo=SO202603160001, tenantId=t-ob, amount=299.00',
             'host': 'order-01',
@@ -790,7 +790,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-app-2026.03.15',
             'service': 'order-service',
-            'logger': 'com.sxdevops.order.service.PaymentRemoteService',
+            'logger': 'com.kuberPilot.order.service.PaymentRemoteService',
             'thread': 'http-nio-8082-exec-7',
             'message': 'feign invoke payment-service failed, status=500, retry=2, msg=payment status update timeout',
             'host': 'order-02',
@@ -799,14 +799,14 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-app-2026.03.15',
             'service': 'payment-service',
-            'logger': 'com.sxdevops.payment.controller.PaymentCallbackController',
+            'logger': 'com.kuberPilot.payment.controller.PaymentCallbackController',
             'thread': 'http-nio-8091-exec-12',
             'message': (
                 'payment callback processing exception, requestId=cb-20260316-991, tenantId=t-ob, '
                 'ex=java.lang.NullPointerException: callback payload is null\n'
                 'java.lang.NullPointerException: callback payload is null\n'
-                '\tat com.sxdevops.payment.controller.PaymentCallbackController.handle(PaymentCallbackController.java:87)\n'
-                '\tat com.sxdevops.payment.controller.PaymentCallbackController.callback(PaymentCallbackController.java:52)'
+                '\tat com.kuberPilot.payment.controller.PaymentCallbackController.handle(PaymentCallbackController.java:87)\n'
+                '\tat com.kuberPilot.payment.controller.PaymentCallbackController.callback(PaymentCallbackController.java:52)'
             ),
             'host': 'payment-02',
             'env': 'prod',
@@ -814,7 +814,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-app-2026.03.15',
             'service': 'payment-service',
-            'logger': 'com.sxdevops.payment.service.CallbackService',
+            'logger': 'com.kuberPilot.payment.service.CallbackService',
             'thread': 'http-nio-8091-exec-5',
             'message': 'payment callback processed successfully, channel=alipay, tradeStatus=SUCCESS',
             'host': 'payment-01',
@@ -823,7 +823,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-security-2026.03.15',
             'service': 'auth-service',
-            'logger': 'com.sxdevops.auth.filter.JwtTokenFilter',
+            'logger': 'com.kuberPilot.auth.filter.JwtTokenFilter',
             'thread': 'http-nio-8071-exec-9',
             'message': 'authentication failed, token verify error, reason=JwtException: token expired',
             'host': 'auth-01',
@@ -832,7 +832,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-security-2026.03.15',
             'service': 'user-service',
-            'logger': 'com.sxdevops.user.controller.UserPortalController',
+            'logger': 'com.kuberPilot.user.controller.UserPortalController',
             'thread': 'http-nio-8061-exec-8',
             'message': 'tenant gray user routed to v2026.3-gray, tenantId=t-vip, feature=user-portrait-v2, percent=10',
             'host': 'user-01',
@@ -841,7 +841,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-security-2026.03.15',
             'service': 'inventory-service',
-            'logger': 'com.sxdevops.inventory.job.StockSyncJob',
+            'logger': 'com.kuberPilot.inventory.job.StockSyncJob',
             'thread': 'scheduling-1',
             'message': 'stock sync task finished, warehouseCode=HZ01, total=128, changed=5',
             'host': 'inventory-01',
@@ -850,7 +850,7 @@ def _demo_elk_documents(start_ms, end_ms):
         {
             'index': 'logs-demo-security-2026.03.15',
             'service': 'gateway-service',
-            'logger': 'com.sxdevops.gateway.filter.GrayReleaseRouteFilter',
+            'logger': 'com.kuberPilot.gateway.filter.GrayReleaseRouteFilter',
             'thread': 'reactor-http-nio-3',
             'message': 'gray release route hit, routeId=payment-service-gray, tenantId=t-ob, version=gray, header[X-Gray]=true',
             'host': 'gateway-01',
@@ -909,14 +909,14 @@ def _demo_elk_documents(start_ms, end_ms):
 
 def _demo_sls_documents(start_ms, end_ms, logstore):
     base_entries = [
-        ('INFO', 'order-service', 'order-01', 'http-nio-8082-exec-3', 'com.sxdevops.order.controller.OrderController', 'create order success, orderNo=SO202603160001, tenantId=t-ob, amount=299.00'),
-        ('ERROR', 'order-service', 'order-02', 'http-nio-8082-exec-11', 'com.sxdevops.order.service.impl.OrderSubmitServiceImpl', 'submit order failed, orderNo=SO202603160009, tenantId=t-vip, ex=java.lang.IllegalStateException: warehouse api timeout\njava.lang.IllegalStateException: warehouse api timeout\n\tat com.sxdevops.order.service.impl.OrderSubmitServiceImpl.lockStock(OrderSubmitServiceImpl.java:214)\n\tat com.sxdevops.order.service.impl.OrderSubmitServiceImpl.submit(OrderSubmitServiceImpl.java:126)'),
-        ('INFO', 'payment-service', 'payment-01', 'http-nio-8091-exec-5', 'com.sxdevops.payment.service.CallbackService', 'payment callback processed successfully, channel=alipay, tradeStatus=SUCCESS'),
-        ('ERROR', 'payment-service', 'payment-02', 'http-nio-8091-exec-12', 'com.sxdevops.payment.controller.PaymentCallbackController', 'payment callback processing exception, requestId=cb-20260316-991, tenantId=t-ob, ex=java.lang.NullPointerException: callback payload is null\njava.lang.NullPointerException: callback payload is null\n\tat com.sxdevops.payment.controller.PaymentCallbackController.handle(PaymentCallbackController.java:87)'),
-        ('WARN', 'auth-service', 'auth-01', 'http-nio-8071-exec-2', 'com.sxdevops.auth.filter.JwtTokenFilter', 'token will expire soon, userId=10086, expireIn=92s, clientIp=10.20.31.18'),
-        ('ERROR', 'auth-service', 'auth-02', 'http-nio-8071-exec-9', 'com.sxdevops.auth.filter.JwtTokenFilter', 'authentication failed, token verify error, reason=JwtException: token expired'),
-        ('INFO', 'user-service', 'user-01', 'http-nio-8061-exec-8', 'com.sxdevops.user.controller.UserPortalController', 'tenant gray user routed to v2026.3-gray, tenantId=t-vip, feature=user-portrait-v2, percent=10'),
-        ('INFO', logstore or 'demo-logstore', 'sls-app-05', 'scheduling-1', 'com.sxdevops.logging.job.LogHeartbeatJob', 'demo logstore heartbeat is healthy, collector=sls-agent'),
+        ('INFO', 'order-service', 'order-01', 'http-nio-8082-exec-3', 'com.kuberPilot.order.controller.OrderController', 'create order success, orderNo=SO202603160001, tenantId=t-ob, amount=299.00'),
+        ('ERROR', 'order-service', 'order-02', 'http-nio-8082-exec-11', 'com.kuberPilot.order.service.impl.OrderSubmitServiceImpl', 'submit order failed, orderNo=SO202603160009, tenantId=t-vip, ex=java.lang.IllegalStateException: warehouse api timeout\njava.lang.IllegalStateException: warehouse api timeout\n\tat com.kuberPilot.order.service.impl.OrderSubmitServiceImpl.lockStock(OrderSubmitServiceImpl.java:214)\n\tat com.kuberPilot.order.service.impl.OrderSubmitServiceImpl.submit(OrderSubmitServiceImpl.java:126)'),
+        ('INFO', 'payment-service', 'payment-01', 'http-nio-8091-exec-5', 'com.kuberPilot.payment.service.CallbackService', 'payment callback processed successfully, channel=alipay, tradeStatus=SUCCESS'),
+        ('ERROR', 'payment-service', 'payment-02', 'http-nio-8091-exec-12', 'com.kuberPilot.payment.controller.PaymentCallbackController', 'payment callback processing exception, requestId=cb-20260316-991, tenantId=t-ob, ex=java.lang.NullPointerException: callback payload is null\njava.lang.NullPointerException: callback payload is null\n\tat com.kuberPilot.payment.controller.PaymentCallbackController.handle(PaymentCallbackController.java:87)'),
+        ('WARN', 'auth-service', 'auth-01', 'http-nio-8071-exec-2', 'com.kuberPilot.auth.filter.JwtTokenFilter', 'token will expire soon, userId=10086, expireIn=92s, clientIp=10.20.31.18'),
+        ('ERROR', 'auth-service', 'auth-02', 'http-nio-8071-exec-9', 'com.kuberPilot.auth.filter.JwtTokenFilter', 'authentication failed, token verify error, reason=JwtException: token expired'),
+        ('INFO', 'user-service', 'user-01', 'http-nio-8061-exec-8', 'com.kuberPilot.user.controller.UserPortalController', 'tenant gray user routed to v2026.3-gray, tenantId=t-vip, feature=user-portrait-v2, percent=10'),
+        ('INFO', logstore or 'demo-logstore', 'sls-app-05', 'scheduling-1', 'com.kuberPilot.logging.job.LogHeartbeatJob', 'demo logstore heartbeat is healthy, collector=sls-agent'),
     ]
     timestamps = _demo_time_points(start_ms, end_ms, len(base_entries) * DEMO_LOG_BATCHES)
     logs = []

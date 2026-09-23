@@ -1,4 +1,4 @@
-const PREVIEW_MODE_KEY = 'sxdevops_preview_mode'
+const PREVIEW_MODE_KEY = 'kuberPilot_preview_mode'
 
 function isLocalDevHost() {
   if (typeof window === 'undefined') return false
